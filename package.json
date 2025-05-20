@@ -11,7 +11,7 @@
   "scripts": {
     "lint": "eslint lib/"
   },
-  "version": "0.0.0-dev",
+  "version": "0.0.0-development",
   "license": "MIT",
   "main": "./lib/blessed.js",
   "bin": "./bin/tput.js",
