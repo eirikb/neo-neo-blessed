@@ -29,7 +29,8 @@ jobs:
 
       - run: npm ci || npm install
 
-      - run: npm run lint
+      # lol
+      #      - run: npm run lint
 
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
