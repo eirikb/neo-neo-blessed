@@ -1,6 +1,6 @@
 {
-  "name": "neo-blessed",
-  "description": "A fork of the original blessed with bug fixes and maintenance.",
+  "name": "neo-neo-blessed",
+  "description": "A fork of the original neo-blessed (fork of blessed) with bug fixes and maintenance.",
   "author": "Christopher Jeffrey",
   "contributors": [
     {
@@ -11,15 +11,15 @@
   "scripts": {
     "lint": "eslint lib/"
   },
-  "version": "0.2.0",
+  "version": "0.0.0-dev",
   "license": "MIT",
   "main": "./lib/blessed.js",
   "bin": "./bin/tput.js",
   "preferGlobal": false,
-  "repository": "git://github.com/embark-framework/neo-blessed.git",
-  "homepage": "https://github.com/embark-framework/neo-blessed",
+  "repository": "git://github.com/eirikb/neo-neo-blessed.git",
+  "homepage": "https://github.com/eirikb/neo-neo-blessed",
   "bugs": {
-    "url": "http://github.com/embark-framework/neo-blessed/issues"
+    "url": "http://github.com/eirikb/neo-neo-blessed/issues"
   },
   "keywords": [
     "curses",
