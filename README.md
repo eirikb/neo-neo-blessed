@@ -9,8 +9,7 @@ A curses-like library with a high level terminal interface API for node.js.
 Blessed is over 16,000 lines of code and terminal goodness. It's completely
 implemented in javascript, and its goal consists of two things:
 
-1. Reimplement ncurses entirely by parsing and compiling terminfo and termcap,
-and exposing a `Program` object which can output escape sequences compatible
+1. Reimplement ncurses entirely by parsing and compiling terminfo and termcap, and exposing a `Program` object which can output escape sequences compatible
 with _any_ terminal.
 
 2. Implement a widget API which is heavily optimized for terminals.
