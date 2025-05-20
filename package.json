@@ -1,11 +1,15 @@
 {
   "name": "neo-neo-blessed",
-  "description": "A fork of the original neo-blessed (fork of blessed) with bug fixes and maintenance.",
+  "description": "A fork of neo-blessed (which is a fork of blessed) with bug fixes and maintenance.",
   "author": "Christopher Jeffrey",
   "contributors": [
     {
       "name": "Iuri Matias",
       "email": "iuri.matias@gmail.com"
+    },
+    {
+      "name": "Eirik Brandtzæg",
+      "email": "eirikb@eirikb.no"
     }
   ],
   "scripts": {
