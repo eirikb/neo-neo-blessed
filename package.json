@@ -13,7 +13,7 @@
     }
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "./build-temp.sh",
     "build-watch": "tsc --watch",
     "type-check": "tsc --noEmit",
     "lint": "eslint lib/",
