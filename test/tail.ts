@@ -17,7 +17,7 @@ module.exports = function(file) {
     s.emit('close');
   };
 
-  fs.open(file, 'a+', 0644, function(err, fd) {
+  fs.open(file, 'a+', 0o644, function(err, fd) {
     if (err) {
       s.emit('error', err);
       s.destroy();

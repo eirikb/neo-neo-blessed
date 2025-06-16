@@ -19,7 +19,8 @@
     "build-watch": "tsc --watch",
     "type-check": "tsc --noEmit",
     "lint": "eslint lib/",
-    "test": "node -r ts-node/register test-runner.js"
+    "test": "tsx test-runner.ts",
+    "dev": "tsx"
   },
   "version": "0.0.0-development",
   "license": "MIT",
@@ -58,6 +59,7 @@
     "esbuild": "^0.25.5",
     "eslint": "^5.10.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },
   "dependencies": {

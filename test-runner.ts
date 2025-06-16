@@ -6,19 +6,19 @@ const path = require('path');
 
 const testDir = path.join(__dirname, 'test');
 const testFiles = fs.readdirSync(testDir)
-  .filter(file => file.startsWith('widget-') && file.endsWith('.js'))
+  .filter(file => file.startsWith('widget-') && file.endsWith('.ts'))
   .sort();
 
-testFiles.unshift('widget.js');
+testFiles.unshift('widget.ts');
 
 const knownIssues = {
-  'widget-play.js': 'Missing frames.json file',
-  'widget-shrink-fail.js': 'Uses "blessed" instead of "../" (intentional failure test)',
-  'widget-shrink-fail-2.js': 'Uses "blessed" instead of "../" (intentional failure test)',
-  'widget-term-blessed.js': 'RangeError: Invalid array length in Terminal',
-  'widget-video.js': 'RangeError: Invalid array length in Terminal',
-  'widget-huge-content.js': 'Slow test - takes 5+ seconds',
-  'widget-image.js': 'Slow test - takes 7+ seconds'
+  'widget-play.ts': 'Missing frames.json file',
+  'widget-shrink-fail.ts': 'Uses "blessed" instead of "../" (intentional failure test)',
+  'widget-shrink-fail-2.ts': 'Uses "blessed" instead of "../" (intentional failure test)',
+  'widget-term-blessed.ts': 'RangeError: Invalid array length in Terminal',
+  'widget-video.ts': 'RangeError: Invalid array length in Terminal',
+  'widget-huge-content.ts': 'Slow test - takes 5+ seconds',
+  'widget-image.ts': 'Slow test - takes 7+ seconds'
 };
 
 console.log(`Found ${testFiles.length} test files to run`);
@@ -86,7 +86,7 @@ async function runTest(testFile) {
           child.kill('SIGKILL');
         }
       }, 500);
-    }, 500);
+    }, 2000);
     
     child.on('exit', (code, signal) => {
       clearTimeout(initialTtyTimeout);
