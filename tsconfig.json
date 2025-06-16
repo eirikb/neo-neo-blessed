@@ -1,4 +1,16 @@
 {
+  "ts-node": {
+    "transpileOnly": true,
+    "files": false,
+    "compilerOptions": {
+      "allowJs": true,
+      "checkJs": false,
+      "noImplicitAny": false,
+      "strict": false,
+      "target": "ES2018",
+      "module": "CommonJS"
+    }
+  },
   "compilerOptions": {
     "target": "ES2018",
     "module": "CommonJS",
@@ -6,11 +18,17 @@
     "outDir": "./dist",
     "rootDir": "./",
     "strict": false,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
+    "forceConsistentCasingInFileNames": false,
+    "declaration": false,
+    "declarationMap": false,
     "sourceMap": true,
     "allowJs": true,
     "checkJs": false,
@@ -19,7 +37,7 @@
     "resolveJsonModule": true
   },
   "include": [
-    "lib/**/*",
+    "lib/**/*.ts",
     "index.js"
   ],
   "exclude": [
