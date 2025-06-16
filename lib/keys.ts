@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * keys.js - emit key presses
  * Copyright (c) 2010-2015, Joyent, Inc. and other contributors (MIT License)

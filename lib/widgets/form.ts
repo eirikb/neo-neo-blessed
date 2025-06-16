@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * form.js - form element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).

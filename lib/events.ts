@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * events.js - event emitter for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).

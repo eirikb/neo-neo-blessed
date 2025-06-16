@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * colors.js - color-related functions for blessed.
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).

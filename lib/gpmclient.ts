@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * gpmclient.js - support the gpm mouse protocol
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).

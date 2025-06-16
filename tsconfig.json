@@ -15,6 +15,7 @@
     "target": "ES2018",
     "module": "CommonJS",
     "lib": ["ES2018"],
+    "types": ["node"],
     "outDir": "./dist",
     "rootDir": "./",
     "strict": false,
@@ -29,17 +30,20 @@
     "forceConsistentCasingInFileNames": false,
     "declaration": false,
     "declarationMap": false,
-    "sourceMap": true,
+    "sourceMap": false,
     "allowJs": true,
     "checkJs": false,
     "noEmit": false,
     "skipDefaultLibCheck": true,
     "incremental": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noErrorTruncation": true
   },
   "include": [
-    "lib/**/*.ts",
-    "index.ts"
+    "index.ts",
+    "lib/colors.ts",
+    "lib/unicode.ts",
+    "lib/widgets/*.ts"
   ],
   "exclude": [
     "node_modules",

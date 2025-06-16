@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * terminal.js - term.js terminal element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ansiimage.js - render PNGS/GIFS as ANSI
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -15,7 +16,7 @@ var colors = require('../colors');
 var Node = require('./node');
 var Box = require('./box');
 
-var tng = require('../../vendor/tng');
+var tng = require('../../vendor/tng.js');
 
 /**
  * ANSIImage

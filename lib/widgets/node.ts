@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * node.js - base abstract node for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).

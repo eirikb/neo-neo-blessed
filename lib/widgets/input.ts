@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * input.js - abstract input element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).

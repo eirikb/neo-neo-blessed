@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * element.js - base element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).

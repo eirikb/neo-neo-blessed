@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * image.js - image element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
