@@ -13,7 +13,11 @@
     }
   ],
   "scripts": {
-    "lint": "eslint lib/"
+    "build": "tsc",
+    "build-watch": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint lib/",
+    "test": "node test-runner.js"
   },
   "version": "0.0.0-development",
   "license": "MIT",
@@ -48,7 +52,9 @@
     ]
   },
   "devDependencies": {
-    "eslint": "^5.10.0"
+    "@types/node": "^24.0.2",
+    "eslint": "^5.10.0",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "node-pty": "^0.9.0",
