@@ -33,12 +33,13 @@
     "allowJs": true,
     "checkJs": false,
     "noEmit": false,
+    "skipDefaultLibCheck": true,
     "incremental": true,
     "resolveJsonModule": true
   },
   "include": [
     "lib/**/*.ts",
-    "index.js"
+    "index.ts"
   ],
   "exclude": [
     "node_modules",

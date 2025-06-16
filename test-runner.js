@@ -47,7 +47,7 @@ async function runTest(testFile) {
       return resolve();
     }
     
-    const child = spawn('node', [testPath], {
+    const child = spawn('node', ['-r', 'ts-node/register', testPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: { ...process.env, TERM: 'xterm-256color' }
     });

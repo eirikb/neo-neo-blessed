@@ -13,15 +13,17 @@
     }
   ],
   "scripts": {
-    "build": "./build-temp.sh",
+    "build": "npm run build:esbuild",
+    "build:esbuild": "esbuild lib/**/*.ts --outdir=dist/lib --format=cjs --target=es2018 --sourcemap",
+    "build:tsc": "tsc",
     "build-watch": "tsc --watch",
     "type-check": "tsc --noEmit",
     "lint": "eslint lib/",
-    "test": "node test-runner.js"
+    "test": "node -r ts-node/register test-runner.js"
   },
   "version": "0.0.0-development",
   "license": "MIT",
-  "main": "./lib/blessed.js",
+  "main": "./index.ts",
   "bin": "./bin/tput.js",
   "preferGlobal": false,
   "repository": "git://github.com/eirikb/neo-neo-blessed.git",
@@ -53,6 +55,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.2",
+    "esbuild": "^0.25.5",
     "eslint": "^5.10.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
