@@ -26,7 +26,7 @@ var assert = require('assert'),
   fs = require('fs'),
   cp = require('child_process');
 
-var internalTerm = require('./internal-term');
+import internalTerm from './internal-term';
 
 /**
  * Tput
@@ -242,7 +242,10 @@ Tput.prototype.readTerminfo = function (
 
   // Use inlined terminfo buffer if we have it.
   if (internalTerm[term]) {
-    info = this.parseTerminfo(Buffer.from(internalTerm[term], 'base64'), '<inline:'+term+'>');
+    info = this.parseTerminfo(
+      Buffer.from(internalTerm[term], 'base64'),
+      '<inline:' + term + '>'
+    );
   } else {
     file = path.normalize(this._prefix(term));
     data = fs.readFileSync(file);
