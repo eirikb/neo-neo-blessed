@@ -1,11 +1,35 @@
-// @ts-nocheck
 /**
  * colors.js - color-related functions for blessed.
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
  * https://github.com/chjj/blessed
  */
 
-exports.match = function(r1, g1, b1) {
+interface RGB {
+  0: number;
+  1: number;
+  2: number;
+}
+
+type ColorInput = string | number[] | RGB;
+
+interface ColorModule {
+  match(r1: number | string | number[], g1?: number, b1?: number): number;
+  RGBToHex(r: number | number[], g?: number, b?: number): string;
+  hexToRGB(hex: string): number[];
+  mixColors(c1: number, c2: number, alpha?: number): number;
+  blend(attr: number, attr2?: number | null, alpha?: number): number;
+  reduce(color: number, total: number): number;
+  convert(color: ColorInput): number;
+  _cache: { [key: number]: number };
+  xterm: string[];
+  colors: string[];
+  vcolors: number[][];
+  colorNames: { [key: string]: number };
+  ccolors: { [key: string]: any };
+  ncolors: string[];
+}
+
+exports.match = function(r1: number | string | number[], g1?: number, b1?: number): number {
   if (typeof r1 === 'string') {
     var hex = r1;
     if (hex[0] !== '#') {
@@ -59,23 +83,23 @@ exports.match = function(r1, g1, b1) {
   return exports._cache[hash];
 };
 
-exports.RGBToHex = function(r, g, b) {
+exports.RGBToHex = function(r: number | number[], g?: number, b?: number): string {
   if (Array.isArray(r)) {
     b = r[2];
     g = r[1];
     r = r[0];
   }
 
-  function hex(n) {
-    n = n.toString(16);
-    if (n.length < 2) n = '0' + n;
-    return n;
+  function hex(n: number): string {
+    let hexStr = n.toString(16);
+    if (hexStr.length < 2) hexStr = '0' + hexStr;
+    return hexStr;
   }
 
   return '#' + hex(r) + hex(g) + hex(b);
 };
 
-exports.hexToRGB = function(hex) {
+exports.hexToRGB = function(hex: string): number[] {
   if (hex.length === 4) {
     hex = hex[0] + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
   }
@@ -91,13 +115,13 @@ exports.hexToRGB = function(hex) {
 // propose a superior solution.
 // [1] http://stackoverflow.com/questions/1633828
 
-function colorDistance(r1, g1, b1, r2, g2, b2) {
+function colorDistance(r1: number, g1: number, b1: number, r2: number, g2: number, b2: number): number {
   return Math.pow(30 * (r1 - r2), 2) + Math.pow(59 * (g1 - g2), 2) + Math.pow(11 * (b1 - b2), 2);
 }
 
 // This might work well enough for a terminal's colors: treat RGB as XYZ in a
 // 3-dimensional space and go midway between the two points.
-exports.mixColors = function(c1, c2, alpha) {
+exports.mixColors = function(c1: number, c2: number, alpha?: number | null): number {
   // if (c1 === 0x1ff) return c1;
   // if (c2 === 0x1ff) return c1;
   if (c1 === 0x1ff) c1 = 0;
@@ -121,7 +145,7 @@ exports.mixColors = function(c1, c2, alpha) {
   return exports.match([r1, g1, b1]);
 };
 
-exports.blend = function blend(attr, attr2, alpha) {
+exports.blend = function blend(attr: number, attr2?: number | null, alpha?: number): number {
   var name, i, c, nc;
 
   var bg = attr & 0x1ff;
@@ -205,7 +229,7 @@ exports.blend._cache = {};
 
 exports._cache = {};
 
-exports.reduce = function(color, total) {
+exports.reduce = function(color: number, total: number): number {
   if (color >= 16 && total <= 16) {
     color = exports.ccolors[color];
   } else if (color >= 8 && total <= 8) {
@@ -242,15 +266,15 @@ exports.xterm = [
 // Seed all 256 colors. Assume xterm defaults.
 // Ported from the xterm color generation script.
 exports.colors = (function() {
-  var cols = exports.colors = [], _cols = exports.vcolors = [], r, g, b, i, l;
+  var cols = exports.colors = [], _cols = exports.vcolors = [], r: number, g: number, b: number, i: number, l: number;
 
-  function hex(n) {
-    n = n.toString(16);
-    if (n.length < 2) n = '0' + n;
-    return n;
+  function hex(n: number): string {
+    let hexStr = n.toString(16);
+    if (hexStr.length < 2) hexStr = '0' + hexStr;
+    return hexStr;
   }
 
-  function push(i, r, g, b) {
+  function push(i: number, r: number, g: number, b: number): void {
     cols[i] = '#' + hex(r) + hex(g) + hex(b);
     _cols[i] = [r, g, b];
   }
@@ -284,7 +308,7 @@ exports.colors = (function() {
   return cols;
 })();
 
-var colorNames = exports.colorNames = {
+var colorNames: { [key: string]: number } = exports.colorNames = {
   // special
   default: -1,
   normal: -1,
@@ -326,7 +350,7 @@ var colorNames = exports.colorNames = {
   brightgray: 7
 };
 
-exports.convert = function(color) {
+exports.convert = function(color: ColorInput): number {
   if (typeof color === 'number') {
   } else if (typeof color === 'string') {
     color = color.replace(/[\- ]/g, '');

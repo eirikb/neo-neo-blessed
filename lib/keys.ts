@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * keys.js - emit key presses
  * Copyright (c) 2010-2015, Joyent, Inc. and other contributors (MIT License)
@@ -29,7 +28,25 @@
 var EventEmitter = require('events').EventEmitter;
 
 // NOTE: node <=v0.8.x has no EventEmitter.listenerCount
-function listenerCount(stream, event) {
+interface KeypressEvent {
+  name?: string;
+  ctrl?: boolean;
+  meta?: boolean;
+  shift?: boolean;
+  sequence?: string;
+  [key: string]: any;
+}
+
+interface KeypressStream extends EventEmitter {
+  _keypressDecoder?: any;
+  listeners(event: string): Function[];
+  on(event: string, listener: Function): this;
+  once(event: string, listener: Function): this;
+  removeListener(event: string, listener: Function): this;
+  removeAllListeners(event?: string): this;
+}
+
+function listenerCount(stream: KeypressStream, event: string): number {
   return EventEmitter.listenerCount
     ? EventEmitter.listenerCount(stream, event)
     : stream.listeners(event).length;
@@ -39,12 +56,12 @@ function listenerCount(stream, event) {
  * accepts a readable Stream instance and makes it emit "keypress" events
  */
 
-function emitKeypressEvents(stream) {
+function emitKeypressEvents(stream: KeypressStream): void {
   if (stream._keypressDecoder) return;
   var StringDecoder = require('string_decoder').StringDecoder; // lazy load
   stream._keypressDecoder = new StringDecoder('utf8');
 
-  function onData(b) {
+  function onData(b: Buffer): void {
     if (listenerCount(stream, 'keypress') > 0) {
       var r = stream._keypressDecoder.write(b);
       if (r) emitKeys(stream, r);
@@ -55,7 +72,7 @@ function emitKeypressEvents(stream) {
     }
   }
 
-  function onNewListener(event) {
+  function onNewListener(event: string): void {
     if (event === 'keypress') {
       stream.on('data', onData);
       stream.removeListener('newListener', onNewListener);
@@ -111,7 +128,7 @@ var escapeCodeReAnywhere = new RegExp([
   functionKeyCodeReAnywhere.source, metaKeyCodeReAnywhere.source, /\x1b./.source
 ].join('|'));
 
-function emitKeys(stream, s) {
+function emitKeys(stream: KeypressStream, s: string): void {
   if (Buffer.isBuffer(s)) {
     if (s[0] > 127 && s[1] === undefined) {
       s[0] -= 128;
@@ -123,8 +140,8 @@ function emitKeys(stream, s) {
 
   if (isMouse(s)) return;
 
-  var buffer = [];
-  var match;
+  var buffer: string[] = [];
+  var match: RegExpExecArray | null;
   while (match = escapeCodeReAnywhere.exec(s)) {
     buffer = buffer.concat(s.slice(0, match.index).split(''));
     buffer.push(match[0]);
@@ -132,9 +149,9 @@ function emitKeys(stream, s) {
   }
   buffer = buffer.concat(s.split(''));
 
-  buffer.forEach(function(s) {
-    var ch,
-        key = {
+  buffer.forEach(function(s: string): void {
+    var ch: string,
+        key: KeypressEvent = {
           sequence: s,
           name: undefined,
           ctrl: false,
@@ -329,7 +346,7 @@ function emitKeys(stream, s) {
   });
 }
 
-function isMouse(s) {
+function isMouse(s: string): boolean {
   return /\x1b\[M/.test(s)
     || /\x1b\[M([\x00\u0020-\uffff]{3})/.test(s)
     || /\x1b\[(\d+;\d+;\d+)M/.test(s)

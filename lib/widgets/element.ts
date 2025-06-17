@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * element.js - base element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -21,10 +20,114 @@ var helpers = require('../helpers');
 var Node = require('./node');
 
 /**
+ * Interfaces
+ */
+
+interface ElementOptions {
+  scrollable?: boolean;
+  position?: any;
+  content?: string;
+  tags?: boolean;
+  label?: string;
+  hoverText?: string;
+  align?: 'left' | 'center' | 'right';
+  valign?: 'top' | 'middle' | 'bottom';
+  shrink?: boolean;
+  padding?: any;
+  margin?: any;
+  border?: any;
+  style?: any;
+  hidden?: boolean;
+  fixed?: boolean;
+  top?: number | string;
+  left?: number | string;
+  right?: number | string;
+  bottom?: number | string;
+  width?: number | string;
+  height?: number | string;
+  clickable?: boolean;
+  keyable?: boolean;
+  focused?: boolean;
+  mouse?: boolean;
+  keys?: boolean;
+  vi?: boolean;
+  ignoreKeys?: boolean;
+  alwaysScroll?: boolean;
+  scrollbar?: any;
+  track?: any;
+  wrap?: boolean;
+  draggable?: boolean;
+  shadow?: boolean;
+  [key: string]: any;
+}
+
+interface ElementInterface extends Node {
+  type: string;
+  _ignore?: boolean;
+  position: any;
+  content: string;
+  hidden: boolean;
+  visible: boolean;
+  detached: boolean;
+  
+  // Positioning and sizing
+  aleft: number;
+  aright: number;
+  atop: number;
+  abottom: number;
+  width: number;
+  height: number;
+  iwidth: number;
+  iheight: number;
+  ileft: number;
+  iright: number;
+  itop: number;
+  ibottom: number;
+  
+  // Various element properties
+  parseTags?: boolean;
+  label?: any;
+  border?: any;
+  style?: any;
+  padding?: any;
+  margin?: any;
+  lpos?: any;
+  
+  // Methods (key ones for now)
+  hide(): void;
+  show(): void;
+  toggle(): void;
+  focus(): void;
+  key(key: string | string[], listener: Function): void;
+  onceKey(key: string | string[], listener: Function): void;
+  unkey(key: string | string[], listener?: Function): void;
+  onScreenEvent(type: string, listener: Function): void;
+  removeScreenEvent(type: string, listener: Function): void;
+  render(): any;
+  setContent(content: string): void;
+  getContent(): string;
+  insertLine(i: number, line: string): void;
+  deleteLine(i: number): void;
+  getBaseLine(i: number): string;
+  setBaseLine(i: number, line: string): void;
+  insertTop(line: string): void;
+  insertBottom(line: string): void;
+  deleteTop(): void;
+  deleteBottom(): void;
+  unshiftLine(line: string): void;
+  shiftLine(): string;
+  pushLine(line: string): void;
+  popLine(): string;
+  getLines(): string[];
+  getScreenLines(): string[];
+  strWidth(text: string): number;
+}
+
+/**
  * Element
  */
 
-function Element(options) {
+function Element(this: ElementInterface, options?: ElementOptions) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -36,7 +139,7 @@ function Element(options) {
   // Workaround to get a `scrollable` option.
   if (options.scrollable && !this._ignore && this.type !== 'scrollable-box') {
     var ScrollableBox = require('./scrollablebox');
-    Object.getOwnPropertyNames(ScrollableBox.prototype).forEach(function(key) {
+    Object.getOwnPropertyNames(ScrollableBox.prototype).forEach(function(key: string) {
       if (key === 'type') return;
       Object.defineProperty(this, key,
         Object.getOwnPropertyDescriptor(ScrollableBox.prototype, key));
@@ -230,7 +333,7 @@ Element.prototype.__defineGetter__('focused', function() {
   return this.screen.focused === this;
 });
 
-Element.prototype.sattr = function(style, fg, bg) {
+Element.prototype.sattr = function(this: ElementInterface, style?: any, fg?: any, bg?: any): number {
   var bold = style.bold
     , underline = style.underline
     , blink = style.blink
@@ -265,13 +368,13 @@ Element.prototype.sattr = function(style, fg, bg) {
     | colors.convert(bg);
 };
 
-Element.prototype.onScreenEvent = function(type, handler) {
+Element.prototype.onScreenEvent = function(this: ElementInterface, type: string, handler: Function): void {
   var listeners = this._slisteners = this._slisteners || [];
   listeners.push({ type: type, handler: handler });
   this.screen.on(type, handler);
 };
 
-Element.prototype.onceScreenEvent = function(type, handler) {
+Element.prototype.onceScreenEvent = function(this: ElementInterface, type: string, handler: Function): void {
   var listeners = this._slisteners = this._slisteners || [];
   var entry = { type: type, handler: handler };
   listeners.push(entry);
@@ -282,7 +385,7 @@ Element.prototype.onceScreenEvent = function(type, handler) {
   });
 };
 
-Element.prototype.removeScreenEvent = function(type, handler) {
+Element.prototype.removeScreenEvent = function(this: ElementInterface, type: string, handler: Function): void {
   var listeners = this._slisteners = this._slisteners || [];
   for (var i = 0; i < listeners.length; i++) {
     var listener = listeners[i];
@@ -297,7 +400,7 @@ Element.prototype.removeScreenEvent = function(type, handler) {
   this.screen.removeListener(type, handler);
 };
 
-Element.prototype.free = function() {
+Element.prototype.free = function(this: ElementInterface): void {
   var listeners = this._slisteners = this._slisteners || [];
   for (var i = 0; i < listeners.length; i++) {
     var listener = listeners[i];
@@ -306,7 +409,7 @@ Element.prototype.free = function() {
   delete this._slisteners;
 };
 
-Element.prototype.hide = function() {
+Element.prototype.hide = function(this: ElementInterface): void {
   if (this.hidden) return;
   this.clearPos();
   this.hidden = true;
@@ -316,43 +419,43 @@ Element.prototype.hide = function() {
   }
 };
 
-Element.prototype.show = function() {
+Element.prototype.show = function(this: ElementInterface): void {
   if (!this.hidden) return;
   this.hidden = false;
   this.emit('show');
 };
 
-Element.prototype.toggle = function() {
+Element.prototype.toggle = function(this: ElementInterface): void {
   return this.hidden ? this.show() : this.hide();
 };
 
-Element.prototype.focus = function() {
+Element.prototype.focus = function(this: ElementInterface): void {
   return this.screen.focused = this;
 };
 
-Element.prototype.setContent = function(content, noClear, noTags) {
+Element.prototype.setContent = function(this: ElementInterface, content: string, noClear?: boolean, noTags?: boolean): void {
   if (!noClear) this.clearPos();
   this.content = content || '';
   this.parseContent(noTags);
   this.emit('set content');
 };
 
-Element.prototype.getContent = function() {
+Element.prototype.getContent = function(this: ElementInterface): string {
   if (!this._clines) return '';
   return this._clines.fake.join('\n');
 };
 
-Element.prototype.setText = function(content, noClear) {
+Element.prototype.setText = function(this: ElementInterface, content: string, noClear?: boolean): void {
   content = content || '';
   content = content.replace(/\x1b\[[\d;]*m/g, '');
   return this.setContent(content, noClear, true);
 };
 
-Element.prototype.getText = function() {
+Element.prototype.getText = function(this: ElementInterface): string {
   return this.getContent().replace(/\x1b\[[\d;]*m/g, '');
 };
 
-Element.prototype.parseContent = function(noTags) {
+Element.prototype.parseContent = function(this: ElementInterface, noTags?: boolean): any {
   if (this.detached) return false;
 
   var width = this.width - this.iwidth;

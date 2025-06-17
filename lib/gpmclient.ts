@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * gpmclient.js - support the gpm mouse protocol
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -27,8 +26,41 @@ var GPM_SOCKET = '/dev/gpmctl';
 //   int vc;
 // } Gpm_Connect;
 
-function send_config(socket, Gpm_Connect,  callback) {
-  var buffer;
+interface GpmConnect {
+  eventMask: number;
+  defaultMask: number;
+  minMod: number;
+  maxMod: number;
+  pid: number;
+  vc: number;
+}
+
+interface GpmEvent {
+  buttons: number;
+  modifiers: number;
+  vc: number;
+  dx: number;
+  dy: number;
+  x: number;
+  y: number;
+  type: number;
+  clicks: number;
+  margin: number;
+  wdx: number;
+  wdy: number;
+}
+
+interface GpmClientInterface extends EventEmitter {
+  gpm?: any;
+  stop(): void;
+  ButtonName(btn: number): string;
+  hasShiftKey(mod: number): boolean;
+  hasCtrlKey(mod: number): boolean;
+  hasMetaKey(mod: number): boolean;
+}
+
+function send_config(socket: any, Gpm_Connect: GpmConnect, callback?: Function): void {
+  var buffer: Buffer;
   if (GPM_USE_MAGIC) {
     buffer = new Buffer(20);
     buffer.writeUInt32LE(GPM_MAGIC, 0);
@@ -69,8 +101,8 @@ function send_config(socket, Gpm_Connect,  callback) {
 //   short wdx, wdy;
 // } Gpm_Event;
 
-function parseEvent(raw) {
-  var evnt = {};
+function parseEvent(raw: Buffer): GpmEvent {
+  var evnt: any = {};
   evnt.buttons = raw[0];
   evnt.modifiers = raw[1];
   evnt.vc = raw.readUInt16LE(2);
@@ -86,27 +118,27 @@ function parseEvent(raw) {
   return evnt;
 }
 
-function GpmClient(options) {
+function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface {
   if (!(this instanceof GpmClient)) {
     return new GpmClient(options);
   }
 
   EventEmitter.call(this);
 
-  var pid = process.pid;
+  var pid: number = process.pid;
 
   // check tty for /dev/tty[n]
-  var path;
+  var path: string | undefined;
   try {
     path = fs.readlinkSync('/proc/' + pid + '/fd/0');
   } catch (e) {
   }
-  var tty = /tty[0-9]+$/.exec(path);
+  var tty = path ? /tty[0-9]+$/.exec(path) : null;
   if (tty === null) {
     // TODO: should  also check for /dev/input/..
   }
 
-  var vc;
+  var vc: number | undefined;
   if (tty) {
     tty = tty[0];
     vc = +/[0-9]+$/.exec(tty)[0];
@@ -120,7 +152,7 @@ function GpmClient(options) {
         return;
       }
 
-      var conf =  {
+      var conf: GpmConnect = {
         eventMask: 0xffff,
         defaultMask: GPM_MOVE | GPM_HARD,
         minMod: 0,
@@ -187,29 +219,29 @@ function GpmClient(options) {
 
 GpmClient.prototype.__proto__ = EventEmitter.prototype;
 
-GpmClient.prototype.stop = function() {
+GpmClient.prototype.stop = function(this: GpmClientInterface): void {
   if (this.gpm) {
     this.gpm.end();
   }
   delete this.gpm;
 };
 
-GpmClient.prototype.ButtonName =  function(btn) {
+GpmClient.prototype.ButtonName = function(this: GpmClientInterface, btn: number): string {
   if (btn & 4) return 'left';
   if (btn & 2) return 'middle';
   if (btn & 1) return 'right';
   return '';
 };
 
-GpmClient.prototype.hasShiftKey =  function(mod) {
+GpmClient.prototype.hasShiftKey = function(this: GpmClientInterface, mod: number): boolean {
   return (mod & 1);
 };
 
-GpmClient.prototype.hasCtrlKey =  function(mod) {
+GpmClient.prototype.hasCtrlKey = function(this: GpmClientInterface, mod: number): boolean {
   return (mod & 4);
 };
 
-GpmClient.prototype.hasMetaKey =  function(mod) {
+GpmClient.prototype.hasMetaKey = function(this: GpmClientInterface, mod: number): boolean {
   return (mod & 8);
 };
 

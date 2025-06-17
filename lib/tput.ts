@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * tput.js - parse and compile terminfo caps to javascript.
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -31,7 +30,56 @@ var assert = require('assert')
  * Tput
  */
 
-function Tput(options) {
+interface TputOptions {
+  terminal?: string;
+  term?: string;
+  debug?: boolean;
+  padding?: boolean;
+  extended?: boolean;
+  printf?: boolean;
+  termcap?: boolean;
+  terminfoPrefix?: string;
+  terminfoFile?: string;
+  termcapFile?: string;
+  [key: string]: any;
+}
+
+interface TerminfoData {
+  header: any;
+  dataSize: number;
+  name: string;
+  names: string[];
+  desc: string;
+  file: string;
+  booleans: { [key: string]: boolean };
+  numbers: { [key: string]: number };
+  strings: { [key: string]: string };
+}
+
+interface TputInterface {
+  options: TputOptions;
+  terminal: string;
+  debug?: boolean;
+  padding?: boolean;
+  extended?: boolean;
+  printf?: boolean;
+  termcap?: boolean;
+  error: Error | null;
+  terminfoPrefix?: string;
+  terminfoFile?: string;
+  termcapFile?: string;
+  
+  // Methods
+  setup(): void;
+  term(is: string): boolean;
+  readTerminfo(term?: string): TerminfoData;
+  parseTerminfo(data: Buffer, file?: string): TerminfoData;
+  injectTerminfo(file?: string): void;
+  injectTermcap(file?: string): void;
+  [key: string]: any;
+}
+
+function Tput(this: TputInterface, options?: TputOptions | string): TputInterface {
   if (!(this instanceof Tput)) {
     return new Tput(options);
   }
@@ -65,7 +113,7 @@ function Tput(options) {
   }
 }
 
-Tput.prototype.setup = function() {
+Tput.prototype.setup = function(this: TputInterface): void {
   this.error = null;
   try {
     if (this.termcap) {
@@ -94,11 +142,11 @@ Tput.prototype.setup = function() {
   }
 };
 
-Tput.prototype.term = function(is) {
+Tput.prototype.term = function(this: TputInterface, is: string): boolean {
   return this.terminal.indexOf(is) === 0;
 };
 
-Tput.prototype._debug = function() {
+Tput.prototype._debug = function(this: TputInterface, ...args: any[]): void {
   if (!this.debug) return;
   return console.log.apply(console, arguments);
 };
@@ -107,24 +155,24 @@ Tput.prototype._debug = function() {
  * Fallback
  */
 
-Tput.prototype._useVt102Cap = function() {
+Tput.prototype._useVt102Cap = function(this: TputInterface): void {
   return this.injectTermcap('vt102');
 };
 
-Tput.prototype._useXtermCap = function() {
+Tput.prototype._useXtermCap = function(this: TputInterface): void {
   return this.injectTermcap(__dirname + '/../usr/xterm.termcap');
 };
 
-Tput.prototype._useXtermInfo = function() {
+Tput.prototype._useXtermInfo = function(this: TputInterface): void {
   return this.injectTerminfo(__dirname + '/../usr/xterm');
 };
 
-Tput.prototype._useInternalInfo = function(name) {
+Tput.prototype._useInternalInfo = function(this: TputInterface, name: string): void {
   name = path.basename(name);
   return this.injectTerminfo(__dirname + '/../usr/' + name);
 };
 
-Tput.prototype._useInternalCap = function(name) {
+Tput.prototype._useInternalCap = function(this: TputInterface, name: string): void {
   name = path.basename(name);
   return this.injectTermcap(__dirname + '/../usr/' + name + '.termcap');
 };
@@ -147,10 +195,10 @@ Tput.ipaths = [
   '/lib/terminfo'
 ];
 
-Tput.prototype.readTerminfo = function(term) {
-  var data
-    , file
-    , info;
+Tput.prototype.readTerminfo = function(this: TputInterface, term?: string): TerminfoData {
+  var data: Buffer,
+    file: string,
+    info: TerminfoData;
 
   term = term || this.terminal;
 
@@ -166,7 +214,7 @@ Tput.prototype.readTerminfo = function(term) {
 };
 
 Tput._prefix =
-Tput.prototype._prefix = function(term) {
+Tput.prototype._prefix = function(this: TputInterface, term?: string): string {
   // If we have a terminfoFile, or our
   // term looks like a filename, use it.
   if (term) {
@@ -178,8 +226,8 @@ Tput.prototype._prefix = function(term) {
     }
   }
 
-  var paths = Tput.ipaths.slice()
-    , file;
+  var paths = Tput.ipaths.slice(),
+    file: string | null;
 
   if (this.terminfoPrefix) {
     paths.unshift(this.terminfoPrefix);
@@ -198,15 +246,15 @@ Tput.prototype._prefix = function(term) {
 };
 
 Tput._tprefix =
-Tput.prototype._tprefix = function(prefix, term, soft) {
+Tput.prototype._tprefix = function(this: TputInterface, prefix: string | string[], term: string, soft?: boolean): string | null {
   if (!prefix) return;
 
-  var file
-    , dir
-    , i
-    , sdiff
-    , sfile
-    , list;
+  var file: string | null,
+    dir: string,
+    i: number,
+    sdiff: number,
+    sfile: string,
+    list: string[];
 
   if (Array.isArray(prefix)) {
     for (i = 0; i < prefix.length; i++) {
@@ -216,8 +264,8 @@ Tput.prototype._tprefix = function(prefix, term, soft) {
     return;
   }
 
-  var find = function(word) {
-    var file, ch;
+  var find = function(word: string): string | null {
+    var file: string, ch: string;
 
     file = path.resolve(prefix, word[0]);
     try {
@@ -297,13 +345,13 @@ Tput.prototype._tprefix = function(prefix, term, soft) {
  * All shorts are little-endian
  */
 
-Tput.prototype.parseTerminfo = function(data, file) {
-  var info = {}
-    , extended
-    , l = data.length
-    , i = 0
-    , v
-    , o;
+Tput.prototype.parseTerminfo = function(this: TputInterface, data: Buffer, file?: string): TerminfoData {
+  var info: any = {},
+    extended: boolean,
+    l = data.length,
+    i = 0,
+    v: any,
+    o: any;
 
   var h = info.header = {
     dataSize: data.length,
@@ -326,10 +374,10 @@ Tput.prototype.parseTerminfo = function(data, file) {
   i += h.headerSize;
 
   // Names Section
-  var names = data.toString('ascii', i, i + h.namesSize - 1)
-    , parts = names.split('|')
-    , name = parts[0]
-    , desc = parts.pop();
+  var names = data.toString('ascii', i, i + h.namesSize - 1),
+    parts = names.split('|'),
+    name = parts[0],
+    desc = parts.pop() || '';
 
   info.name = name;
   info.names = parts;
@@ -624,7 +672,7 @@ Tput.prototype.compileTerminfo = function(term) {
   return this.compile(this.readTerminfo(term));
 };
 
-Tput.prototype.injectTerminfo = function(term) {
+Tput.prototype.injectTerminfo = function(this: TputInterface, term?: string): void {
   return this.inject(this.compileTerminfo(term));
 };
 
@@ -632,7 +680,7 @@ Tput.prototype.injectTerminfo = function(term) {
  * Compiler - terminfo cap->javascript
  */
 
-Tput.prototype.compile = function(info) {
+Tput.prototype.compile = function(this: TputInterface, info: TerminfoData): any {
   var self = this;
 
   if (!info) {
@@ -679,9 +727,9 @@ Tput.prototype.compile = function(info) {
   return info;
 };
 
-Tput.prototype.inject = function(info) {
-  var self = this
-    , methods = info.methods || info;
+Tput.prototype.inject = function(this: TputInterface, info: any): void {
+  var self = this,
+    methods = info.methods || info;
 
   Object.keys(methods).forEach(function(key) {
     if (typeof methods[key] !== 'function') {
@@ -720,8 +768,8 @@ Tput.prototype.inject = function(info) {
 // See:
 // ~/ncurses/ncurses/tinfo/lib_tparm.c
 // ~/ncurses/ncurses/tinfo/comp_scan.c
-Tput.prototype._compile = function(info, key, str) {
-  var v;
+Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key: string, str: any): Function {
+  var v: any;
 
   this._debug('Compiling %s: %s', key, JSON.stringify(str));
 

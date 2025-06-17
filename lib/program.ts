@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * program.js - basic curses-like functionality for blessed.
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -25,7 +24,60 @@ var nextTick = global.setImmediate || process.nextTick.bind(process);
  * Program
  */
 
-function Program(options) {
+interface ProgramOptions {
+  input?: any;
+  output?: any;
+  log?: string;
+  dump?: string;
+  zero?: boolean;
+  buffer?: boolean;
+  terminal?: string;
+  term?: string;
+  debug?: boolean;
+  resizeTimeout?: number;
+  [key: string]: any;
+}
+
+interface ProgramInterface extends EventEmitter {
+  options: ProgramOptions;
+  input: any;
+  output: any;
+  x: number;
+  y: number;
+  savedX: number;
+  savedY: number;
+  cols: number;
+  rows: number;
+  scrollTop: number;
+  scrollBottom: number;
+  _terminal: string;
+  tput?: any;
+  
+  // Terminal feature flags
+  isOSXTerm: boolean;
+  isiTerm2: boolean;
+  isXFCE: boolean;
+  isTerminator: boolean;
+  isLXDE: boolean;
+  isVTE: boolean;
+  isRxvt: boolean;
+  isXterm: boolean;
+  isTmux: boolean;
+  isScreen: boolean;
+  
+  // Methods
+  listen(): void;
+  destroy(): void;
+  write(text: string): boolean;
+  flush(): void;
+  clear(): void;
+  reset(): void;
+  _write(text: string): boolean;
+  log(...args: any[]): void;
+  [key: string]: any;
+}
+
+function Program(this: ProgramInterface, options?: ProgramOptions | any): ProgramInterface {
   var self = this;
 
   if (!(this instanceof Program)) {
@@ -115,7 +167,7 @@ Program.total = 0;
 
 Program.instances = [];
 
-Program.bind = function(program) {
+Program.bind = function(program: ProgramInterface): void {
   if (!Program.global) {
     Program.global = program;
   }
@@ -149,21 +201,21 @@ Program.prototype.__proto__ = EventEmitter.prototype;
 
 Program.prototype.type = 'program';
 
-Program.prototype.log = function() {
+Program.prototype.log = function(this: ProgramInterface, ...args: any[]): void {
   return this._log('LOG',  util.format.apply(util, arguments));
 };
 
-Program.prototype.debug = function() {
+Program.prototype.debug = function(this: ProgramInterface, ...args: any[]): void {
   if (!this.options.debug) return;
   return this._log('DEBUG',  util.format.apply(util, arguments));
 };
 
-Program.prototype._log = function(pre, msg) {
+Program.prototype._log = function(this: ProgramInterface, pre: string, msg: string): void {
   if (!this._logger) return;
   return this._logger.write(pre + ': ' + msg + '\n-\n');
 };
 
-Program.prototype.setupDump = function() {
+Program.prototype.setupDump = function(this: ProgramInterface): void {
   var self = this
     , write = this.output.write
     , decoder = new StringDecoder('utf8');
@@ -234,7 +286,7 @@ Program.prototype.setupDump = function() {
   };
 };
 
-Program.prototype.setupTput = function() {
+Program.prototype.setupTput = function(this: ProgramInterface): void {
   if (this._tputSetup) return;
   this._tputSetup = true;
 
@@ -319,7 +371,7 @@ Program.prototype.term = function(is) {
   return this.terminal.indexOf(is) === 0;
 };
 
-Program.prototype.listen = function() {
+Program.prototype.listen = function(this: ProgramInterface): void {
   var self = this;
 
   // Potentially reset window title on exit:
@@ -365,7 +417,7 @@ Program.prototype.listen = function() {
   }
 };
 
-Program.prototype._listenInput = function() {
+Program.prototype._listenInput = function(this: ProgramInterface): void {
   var keys = require('./keys')
     , self = this;
 
@@ -413,7 +465,7 @@ Program.prototype._listenInput = function() {
   keys.emitKeypressEvents(this.input);
 };
 
-Program.prototype._listenOutput = function() {
+Program.prototype._listenOutput = function(this: ProgramInterface): void {
   var self = this;
 
   if (!this.output.isTTY) {
@@ -503,14 +555,14 @@ Program.prototype.destroy = function() {
   }
 };
 
-Program.prototype.key = function(key, listener) {
+Program.prototype.key = function(this: ProgramInterface, key: string, listener: Function): this {
   if (typeof key === 'string') key = key.split(/\s*,\s*/);
   key.forEach(function(key) {
     return this.on('key ' + key, listener);
   }, this);
 };
 
-Program.prototype.onceKey = function(key, listener) {
+Program.prototype.onceKey = function(this: ProgramInterface, key: string, listener: Function): this {
   if (typeof key === 'string') key = key.split(/\s*,\s*/);
   key.forEach(function(key) {
     return this.once('key ' + key, listener);
@@ -518,7 +570,7 @@ Program.prototype.onceKey = function(key, listener) {
 };
 
 Program.prototype.unkey =
-Program.prototype.removeKey = function(key, listener) {
+Program.prototype.removeKey = function(this: ProgramInterface, key: string, listener: Function): this {
   if (typeof key === 'string') key = key.split(/\s*,\s*/);
   key.forEach(function(key) {
     return this.removeListener('key ' + key, listener);
@@ -1634,13 +1686,13 @@ Program.prototype._buffer = function(text) {
   return true;
 };
 
-Program.prototype.flush = function() {
+Program.prototype.flush = function(this: ProgramInterface): void {
   if (!this._buf) return;
   this._owrite(this._buf);
   this._buf = '';
 };
 
-Program.prototype._write = function(text) {
+Program.prototype._write = function(this: ProgramInterface, text: string): boolean {
   if (this.ret) return text;
   if (this.useBuffer) {
     return this._buffer(text);
@@ -1991,7 +2043,7 @@ Program.prototype.nextLine = function() {
 };
 
 // ESC c Full Reset (RIS).
-Program.prototype.reset = function() {
+Program.prototype.reset = function(this: ProgramInterface): void {
   this.x = this.y = 0;
   if (this.has('rs1') || this.has('ris')) {
     return this.has('rs1')
@@ -2383,7 +2435,7 @@ Program.prototype.eraseInDisplay = function(param) {
   }
 };
 
-Program.prototype.clear = function() {
+Program.prototype.clear = function(this: ProgramInterface): void {
   this.x = 0;
   this.y = 0;
   if (this.tput) return this.put.clear();

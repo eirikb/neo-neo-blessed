@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * screen.js - screen node for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -28,10 +27,138 @@ var Element = require('./element');
 var Box = require('./box');
 
 /**
+ * Interfaces
+ */
+
+interface ScreenOptions {
+  program?: any;
+  rsety?: boolean;
+  listen?: boolean;
+  input?: any;
+  output?: any;
+  term?: string;
+  terminal?: string;
+  cursor?: any;
+  log?: string;
+  debug?: boolean;
+  dump?: boolean;
+  smartCSR?: boolean;
+  useBCE?: boolean;
+  resizeTimeout?: number;
+  tabSize?: number;
+  autoPadding?: boolean;
+  warnings?: boolean;
+  buffer?: boolean;
+  fullUnicode?: boolean;
+  dockBorders?: boolean;
+  ignoreDockContrast?: boolean;
+  ignoreLocked?: boolean;
+  sendFocus?: boolean;
+  fastCSR?: boolean;
+  title?: string;
+  tput?: boolean;
+  zero?: boolean;
+  padding?: any;
+  margin?: any;
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+  width?: number;
+  height?: number;
+  [key: string]: any;
+}
+
+interface ScreenInterface extends Node {
+  type: string;
+  program: any;
+  tput: any;
+  _$: any;
+  options: ScreenOptions;
+  position: any;
+  
+  // Screen properties
+  lines: any[][];
+  olines: any[][];
+  _buf: string;
+  _ci: number;
+  width: number;
+  height: number;
+  cols: number;
+  rows: number;
+  focused: any;
+  _focus: any;
+  grabKeys: boolean;
+  lockKeys: boolean;
+  hover: any;
+  history: any[];
+  clickable: any[];
+  keyable: any[];
+  _decScroll: boolean;
+  
+  // Various flags and settings
+  title: string;
+  cursor: any;
+  _cursor: any;
+  fullUnicode: boolean;
+  dockBorders: boolean;
+  ignoreDockContrast: boolean;
+  ignoreLocked: boolean;
+  sendFocus: boolean;
+  fastCSR: boolean;
+  useBCE: boolean;
+  resizeTimeout: number;
+  tabSize: number;
+  autoPadding: boolean;
+  tabc: string;
+  
+  // Methods
+  render(): void;
+  draw(start: number, end: number): void;
+  blankLine(ch?: string, dirty?: boolean): any[];
+  insertLine(n: number, y: number, top: number, bottom: number): void;
+  deleteLine(n: number, y: number, top: number, bottom: number): void;
+  insertLineNC(n: number, y: number, top: number, bottom: number): void;
+  deleteLineNC(n: number, y: number, top: number, bottom: number): void;
+  redrawLine(y: number): void;
+  redrawRegion(xi: number, xl: number, yi: number, yl: number): void;
+  clearRegion(xi: number, xl: number, yi: number, yl: number): void;
+  fillRegion(attr: number, ch: string, xi: number, xl: number, yi: number, yl: number): void;
+  focusOffset(offset: number): void;
+  focusPrev(): any;
+  focusNext(): any;
+  focusPush(el: any): void;
+  focusPop(): any;
+  saveFocus(): void;
+  restoreFocus(): any;
+  rewindFocus(): any;
+  key(key: string | string[], listener: Function): void;
+  onceKey(key: string | string[], listener: Function): void;
+  unkey(key: string | string[], listener?: Function): void;
+  spawn(file: string, args?: string[], options?: any): any;
+  exec(file: string, args?: string[], options?: any, callback?: Function): any;
+  readEditor(options?: any, callback?: Function): any;
+  setEffects(el: any, fel: any, over: any, out: any, effects: any, temp: any): void;
+  sigtstp(callback?: Function): void;
+  copyToClipboard(text: string): void;
+  cursorShape(shape: string, blink?: boolean): boolean;
+  cursorColor(color: string): boolean;
+  cursorReset(): boolean;
+  screenshot(xi?: number, xl?: number, yi?: number, yl?: number, term?: any): string;
+  destroy(): void;
+  log(...args: any[]): void;
+  debug(...args: any[]): void;
+  alloc(): void;
+  realloc(): void;
+  _listenKeys(el: any): void;
+  _listenMouse(el: any): void;
+}
+
+/**
  * Screen
  */
 
-function Screen(options) {
+function Screen(this: ScreenInterface, options?: ScreenOptions) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -261,7 +388,7 @@ Screen.prototype.__defineSetter__('terminal', function(terminal) {
   return this.program.terminal;
 });
 
-Screen.prototype.setTerminal = function(terminal) {
+Screen.prototype.setTerminal = function(this: ScreenInterface, terminal: string): void {
   var entered = !!this.program.isAlt;
   if (entered) {
     this._buf = '';
@@ -275,7 +402,7 @@ Screen.prototype.setTerminal = function(terminal) {
   }
 };
 
-Screen.prototype.enter = function() {
+Screen.prototype.enter = function(this: ScreenInterface): void {
   if (this.program.isAlt) return;
   if (!this.cursor._set) {
     if (this.options.cursor.shape) {
@@ -304,7 +431,7 @@ Screen.prototype.enter = function() {
   this.alloc();
 };
 
-Screen.prototype.leave = function() {
+Screen.prototype.leave = function(this: ScreenInterface): void {
   if (!this.program.isAlt) return;
   this.program.put.keypad_local();
   if (this.program.scrollTop !== 0
@@ -330,7 +457,7 @@ Screen.prototype.leave = function() {
   }
 };
 
-Screen.prototype.postEnter = function() {
+Screen.prototype.postEnter = function(this: ScreenInterface): void {
   var self = this;
   if (this.options.debug) {
     this.debugLog = new Log({
@@ -406,7 +533,7 @@ Screen.prototype.postEnter = function() {
 };
 
 Screen.prototype._destroy = Screen.prototype.destroy;
-Screen.prototype.destroy = function() {
+Screen.prototype.destroy = function(this: ScreenInterface): void {
   this.leave();
 
   var index = Screen.instances.indexOf(this);
@@ -441,11 +568,11 @@ Screen.prototype.destroy = function() {
   this.program.destroy();
 };
 
-Screen.prototype.log = function() {
+Screen.prototype.log = function(this: ScreenInterface, ...args: any[]): void {
   return this.program.log.apply(this.program, arguments);
 };
 
-Screen.prototype.debug = function() {
+Screen.prototype.debug = function(this: ScreenInterface, ...args: any[]): void {
   if (this.debugLog) {
     this.debugLog.log.apply(this.debugLog, arguments);
   }
@@ -557,7 +684,7 @@ Screen.prototype._listenMouse = function(el) {
   });
 };
 
-Screen.prototype.enableMouse = function(el) {
+Screen.prototype.enableMouse = function(this: ScreenInterface, el?: any): void {
   this._listenMouse(el);
 };
 
@@ -604,11 +731,11 @@ Screen.prototype._listenKeys = function(el) {
   });
 };
 
-Screen.prototype.enableKeys = function(el) {
+Screen.prototype.enableKeys = function(this: ScreenInterface, el?: any): void {
   this._listenKeys(el);
 };
 
-Screen.prototype.enableInput = function(el) {
+Screen.prototype.enableInput = function(this: ScreenInterface, el?: any): void {
   this._listenMouse(el);
   this._listenKeys(el);
 };
