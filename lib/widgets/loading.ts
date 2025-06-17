@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * loading.js - loading element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,17 +8,47 @@
  * Modules
  */
 
-var Node = require('./node');
-var Box = require('./box');
-var Text = require('./text');
+const Node = require('./node');
+const Box = require('./box');
+const Text = require('./text');
+
+/**
+ * Type definitions
+ */
+
+interface LoadingOptions {
+  [key: string]: any;
+}
+
+interface LoadingIcon {
+  content: string;
+  setContent(content: string): void;
+}
+
+interface LoadingScreen {
+  lockKeys: boolean;
+  render(): void;
+}
+
+interface LoadingInterface extends Box {
+  type: string;
+  _: {
+    icon: LoadingIcon;
+    timer?: NodeJS.Timeout;
+  };
+  screen: LoadingScreen;
+  show(): void;
+  hide(): void;
+  setContent(text: string): void;
+}
 
 /**
  * Loading
  */
 
-function Loading(options) {
+function Loading(this: LoadingInterface, options?: LoadingOptions) {
   if (!(this instanceof Node)) {
-    return new Loading(options);
+    return new (Loading as any)(options);
   }
 
   options = options || {};
@@ -41,8 +70,8 @@ Loading.prototype.__proto__ = Box.prototype;
 
 Loading.prototype.type = 'loading';
 
-Loading.prototype.load = function(text) {
-  var self = this;
+Loading.prototype.load = function(this: LoadingInterface, text: string): void {
+  const self = this;
 
   // XXX Keep above:
   // var parent = this.parent;
@@ -72,7 +101,7 @@ Loading.prototype.load = function(text) {
   }, 200);
 };
 
-Loading.prototype.stop = function() {
+Loading.prototype.stop = function(this: LoadingInterface): void {
   this.screen.lockKeys = false;
   this.hide();
   if (this._.timer) {

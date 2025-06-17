@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * radioset.js - radio set element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,16 +8,29 @@
  * Modules
  */
 
-var Node = require('./node');
-var Box = require('./box');
+const Node = require('./node');
+const Box = require('./box');
+
+/**
+ * Type definitions
+ */
+
+interface RadioSetOptions {
+  style?: any;
+  [key: string]: any;
+}
+
+interface RadioSetInterface extends Box {
+  type: string;
+}
 
 /**
  * RadioSet
  */
 
-function RadioSet(options) {
+function RadioSet(this: RadioSetInterface, options?: RadioSetOptions) {
   if (!(this instanceof Node)) {
-    return new RadioSet(options);
+    return new (RadioSet as any)(options);
   }
   options = options || {};
   // Possibly inherit parent's style.
