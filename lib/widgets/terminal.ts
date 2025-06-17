@@ -252,10 +252,18 @@ Terminal.prototype.bootstrap = function (this: TerminalInterface): void {
   element.parentNode = element;
   element.offsetParent = element;
 
+  // Calculate dimensions and ensure they're valid
+  var cols = this.width - this.iwidth;
+  var rows = this.height - this.iheight;
+
+  // Ensure minimum valid dimensions to prevent RangeError in term.js
+  if (isNaN(cols) || cols <= 0) cols = 80; // default to 80 columns
+  if (isNaN(rows) || rows <= 0) rows = 24; // default to 24 rows
+
   this.term = require('term.js')({
     termName: this.termName,
-    cols: this.width - this.iwidth,
-    rows: this.height - this.iheight,
+    cols: cols,
+    rows: rows,
     context: element,
     document: element,
     body: element,
@@ -371,12 +379,26 @@ Terminal.prototype.bootstrap = function (this: TerminalInterface): void {
 
   this.on('resize', function () {
     nextTick(function () {
-      self.term.resize(self.width - self.iwidth, self.height - self.iheight);
+      var cols = self.width - self.iwidth;
+      var rows = self.height - self.iheight;
+
+      // Ensure minimum valid dimensions
+      if (isNaN(cols) || cols <= 0) cols = 80;
+      if (isNaN(rows) || rows <= 0) rows = 24;
+
+      self.term.resize(cols, rows);
     });
   });
 
   this.once('render', function () {
-    self.term.resize(self.width - self.iwidth, self.height - self.iheight);
+    var cols = self.width - self.iwidth;
+    var rows = self.height - self.iheight;
+
+    // Ensure minimum valid dimensions
+    if (isNaN(cols) || cols <= 0) cols = 80;
+    if (isNaN(rows) || rows <= 0) rows = 24;
+
+    self.term.resize(cols, rows);
   });
 
   this.on('destroy', function () {
@@ -388,10 +410,18 @@ Terminal.prototype.bootstrap = function (this: TerminalInterface): void {
     return;
   }
 
+  // Calculate dimensions for pty
+  var ptyCols = this.width - this.iwidth;
+  var ptyRows = this.height - this.iheight;
+
+  // Ensure minimum valid dimensions
+  if (isNaN(ptyCols) || ptyCols <= 0) ptyCols = 80;
+  if (isNaN(ptyRows) || ptyRows <= 0) ptyRows = 24;
+
   this.pty = require('node-pty').fork(this.shell, this.args, {
     name: this.termName,
-    cols: this.width - this.iwidth,
-    rows: this.height - this.iheight,
+    cols: ptyCols,
+    rows: ptyRows,
     cwd: process.env.HOME,
     env: this.options.env || process.env,
   });
@@ -399,7 +429,14 @@ Terminal.prototype.bootstrap = function (this: TerminalInterface): void {
   this.on('resize', function () {
     nextTick(function () {
       try {
-        self.pty.resize(self.width - self.iwidth, self.height - self.iheight);
+        var cols = self.width - self.iwidth;
+        var rows = self.height - self.iheight;
+
+        // Ensure minimum valid dimensions
+        if (isNaN(cols) || cols <= 0) cols = 80;
+        if (isNaN(rows) || rows <= 0) rows = 24;
+
+        self.pty.resize(cols, rows);
       } catch (e) {}
     });
   });
