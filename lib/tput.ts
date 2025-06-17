@@ -26,6 +26,8 @@ var assert = require('assert'),
   fs = require('fs'),
   cp = require('child_process');
 
+var internalTerm = require('./internal-term');
+
 /**
  * Tput
  */
@@ -168,7 +170,13 @@ Tput.prototype._useXtermCap = function (this: TputInterface): void {
 };
 
 Tput.prototype._useXtermInfo = function (this: TputInterface): void {
-  return this.injectTerminfo(__dirname + '/../usr/xterm');
+  try {
+    return this.injectTerminfo(require.resolve('../usr/xterm'));
+  } catch (e) {
+    var buf = Buffer.from(internalTerm['xterm'], 'base64');
+    var info = this.compile(this.parseTerminfo(buf, 'xterm'));
+    return this.inject(info);
+  }
 };
 
 Tput.prototype._useInternalInfo = function (
@@ -176,7 +184,16 @@ Tput.prototype._useInternalInfo = function (
   name: string
 ): void {
   name = path.basename(name);
-  return this.injectTerminfo(__dirname + '/../usr/' + name);
+  try {
+    return this.injectTerminfo(require.resolve('../usr/' + name));
+  } catch (e) {
+    if (internalTerm[name]) {
+      var buf = Buffer.from(internalTerm[name], 'base64');
+      var info = this.compile(this.parseTerminfo(buf, name));
+      return this.inject(info);
+    }
+    throw e;
+  }
 };
 
 Tput.prototype._useInternalCap = function (
@@ -184,7 +201,17 @@ Tput.prototype._useInternalCap = function (
   name: string
 ): void {
   name = path.basename(name);
-  return this.injectTermcap(__dirname + '/../usr/' + name + '.termcap');
+  try {
+    return this.injectTermcap(require.resolve('../usr/' + name + '.termcap'));
+  } catch (e) {
+    if (internalTerm[name]) {
+      // We don't have termcap fallback; terminfo should suffice
+      var buf = Buffer.from(internalTerm[name], 'base64');
+      var info = this.compile(this.parseTerminfo(buf, name));
+      return this.inject(info);
+    }
+    throw e;
+  }
 };
 
 /**
@@ -213,9 +240,14 @@ Tput.prototype.readTerminfo = function (
 
   term = term || this.terminal;
 
-  file = path.normalize(this._prefix(term));
-  data = fs.readFileSync(file);
-  info = this.parseTerminfo(data, file);
+  // Use inlined terminfo buffer if we have it.
+  if (internalTerm[term]) {
+    info = this.parseTerminfo(Buffer.from(internalTerm[term], 'base64'), '<inline:'+term+'>');
+  } else {
+    file = path.normalize(this._prefix(term));
+    data = fs.readFileSync(file);
+    info = this.parseTerminfo(data, file);
+  }
 
   if (this.debug) {
     this._terminfo = info;
