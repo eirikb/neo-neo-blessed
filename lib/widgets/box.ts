@@ -8,8 +8,8 @@
  * Modules
  */
 
-const Node = require('./node');
-const Element = require('./element');
+const BlessedNode = require('./node');
+const BlessedElement = require('./element');
 
 /**
  * Type definitions
@@ -19,7 +19,7 @@ interface BoxOptions {
   [key: string]: any;
 }
 
-interface BoxInterface extends Element {
+interface BoxInterface extends any {
   type: string;
 }
 
@@ -28,14 +28,14 @@ interface BoxInterface extends Element {
  */
 
 function Box(this: BoxInterface, options?: BoxOptions) {
-  if (!(this instanceof Node)) {
+  if (!(this instanceof BlessedNode)) {
     return new (Box as any)(options);
   }
   options = options || {};
-  Element.call(this, options);
+  BlessedElement.call(this, options);
 }
 
-Box.prototype.__proto__ = Element.prototype;
+Box.prototype.__proto__ = BlessedElement.prototype;
 
 Box.prototype.type = 'box';
 

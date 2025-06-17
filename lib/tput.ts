@@ -21,10 +21,10 @@
  * Modules
  */
 
-var assert = require('assert')
-  , path = require('path')
-  , fs = require('fs')
-  , cp = require('child_process');
+var assert = require('assert'),
+  path = require('path'),
+  fs = require('fs'),
+  cp = require('child_process');
 
 /**
  * Tput
@@ -68,7 +68,7 @@ interface TputInterface {
   terminfoPrefix?: string;
   terminfoFile?: string;
   termcapFile?: string;
-  
+
   // Methods
   setup(): void;
   term(is: string): boolean;
@@ -79,7 +79,10 @@ interface TputInterface {
   [key: string]: any;
 }
 
-function Tput(this: TputInterface, options?: TputOptions | string): TputInterface {
+function Tput(
+  this: TputInterface,
+  options?: TputOptions | string
+): TputInterface {
   if (!(this instanceof Tput)) {
     return new Tput(options);
   }
@@ -90,10 +93,11 @@ function Tput(this: TputInterface, options?: TputOptions | string): TputInterfac
   }
 
   this.options = options;
-  this.terminal = options.terminal
-    || options.term
-    || process.env.TERM
-    || (process.platform === 'win32' ? 'windows-ansi' : 'xterm');
+  this.terminal =
+    options.terminal ||
+    options.term ||
+    process.env.TERM ||
+    (process.platform === 'win32' ? 'windows-ansi' : 'xterm');
 
   this.terminal = this.terminal.toLowerCase();
 
@@ -113,7 +117,7 @@ function Tput(this: TputInterface, options?: TputOptions | string): TputInterfac
   }
 }
 
-Tput.prototype.setup = function(this: TputInterface): void {
+Tput.prototype.setup = function (this: TputInterface): void {
   this.error = null;
   try {
     if (this.termcap) {
@@ -142,11 +146,11 @@ Tput.prototype.setup = function(this: TputInterface): void {
   }
 };
 
-Tput.prototype.term = function(this: TputInterface, is: string): boolean {
+Tput.prototype.term = function (this: TputInterface, is: string): boolean {
   return this.terminal.indexOf(is) === 0;
 };
 
-Tput.prototype._debug = function(this: TputInterface, ...args: any[]): void {
+Tput.prototype._debug = function (this: TputInterface, ...args: any[]): void {
   if (!this.debug) return;
   return console.log.apply(console, arguments);
 };
@@ -155,24 +159,30 @@ Tput.prototype._debug = function(this: TputInterface, ...args: any[]): void {
  * Fallback
  */
 
-Tput.prototype._useVt102Cap = function(this: TputInterface): void {
+Tput.prototype._useVt102Cap = function (this: TputInterface): void {
   return this.injectTermcap('vt102');
 };
 
-Tput.prototype._useXtermCap = function(this: TputInterface): void {
+Tput.prototype._useXtermCap = function (this: TputInterface): void {
   return this.injectTermcap(__dirname + '/../usr/xterm.termcap');
 };
 
-Tput.prototype._useXtermInfo = function(this: TputInterface): void {
+Tput.prototype._useXtermInfo = function (this: TputInterface): void {
   return this.injectTerminfo(__dirname + '/../usr/xterm');
 };
 
-Tput.prototype._useInternalInfo = function(this: TputInterface, name: string): void {
+Tput.prototype._useInternalInfo = function (
+  this: TputInterface,
+  name: string
+): void {
   name = path.basename(name);
   return this.injectTerminfo(__dirname + '/../usr/' + name);
 };
 
-Tput.prototype._useInternalCap = function(this: TputInterface, name: string): void {
+Tput.prototype._useInternalCap = function (
+  this: TputInterface,
+  name: string
+): void {
   name = path.basename(name);
   return this.injectTermcap(__dirname + '/../usr/' + name + '.termcap');
 };
@@ -192,13 +202,14 @@ Tput.ipaths = [
   '/usr/local/share/lib/terminfo',
   '/usr/local/lib/terminfo',
   '/usr/local/ncurses/lib/terminfo',
-  '/lib/terminfo'
+  '/lib/terminfo',
 ];
 
-Tput.prototype.readTerminfo = function(this: TputInterface, term?: string): TerminfoData {
-  var data: Buffer,
-    file: string,
-    info: TerminfoData;
+Tput.prototype.readTerminfo = function (
+  this: TputInterface,
+  term?: string
+): TerminfoData {
+  var data: Buffer, file: string, info: TerminfoData;
 
   term = term || this.terminal;
 
@@ -213,8 +224,10 @@ Tput.prototype.readTerminfo = function(this: TputInterface, term?: string): Term
   return info;
 };
 
-Tput._prefix =
-Tput.prototype._prefix = function(this: TputInterface, term?: string): string {
+Tput._prefix = Tput.prototype._prefix = function (
+  this: TputInterface,
+  term?: string
+): string {
   // If we have a terminfoFile, or our
   // term looks like a filename, use it.
   if (term) {
@@ -245,8 +258,12 @@ Tput.prototype._prefix = function(this: TputInterface, term?: string): string {
   throw new Error('Terminfo directory not found.');
 };
 
-Tput._tprefix =
-Tput.prototype._tprefix = function(this: TputInterface, prefix: string | string[], term: string, soft?: boolean): string | null {
+Tput._tprefix = Tput.prototype._tprefix = function (
+  this: TputInterface,
+  prefix: string | string[],
+  term: string,
+  soft?: boolean
+): string | null {
   if (!prefix) return;
 
   var file: string | null,
@@ -264,16 +281,14 @@ Tput.prototype._tprefix = function(this: TputInterface, prefix: string | string[
     return;
   }
 
-  var find = function(word: string): string | null {
+  var find = function (word: string): string | null {
     var file: string, ch: string;
 
     file = path.resolve(prefix, word[0]);
     try {
       fs.statSync(file);
       return file;
-    } catch (e) {
-      ;
-    }
+    } catch (e) {}
 
     ch = word[0].charCodeAt(0).toString(16);
     if (ch.length < 2) ch = '0' + ch;
@@ -282,9 +297,7 @@ Tput.prototype._tprefix = function(this: TputInterface, prefix: string | string[
     try {
       fs.statSync(file);
       return file;
-    } catch (e) {
-      ;
-    }
+    } catch (e) {}
   };
 
   if (!term) {
@@ -292,15 +305,13 @@ Tput.prototype._tprefix = function(this: TputInterface, prefix: string | string[
     // are all one-letter, or hex digits.
     // return find('x') ? prefix : null;
     try {
-      dir = fs.readdirSync(prefix).filter(function(file) {
+      dir = fs.readdirSync(prefix).filter(function (file) {
         return file.length !== 1 && !/^[0-9a-fA-F]{2}$/.test(file);
       });
       if (!dir.length) {
         return prefix;
       }
-    } catch (e) {
-      ;
-    }
+    } catch (e) {}
     return;
   }
 
@@ -316,7 +327,7 @@ Tput.prototype._tprefix = function(this: TputInterface, prefix: string | string[
       return;
     }
 
-    list.forEach(function(file) {
+    list.forEach(function (file) {
       if (file.indexOf(term) === 0) {
         var diff = file.length - term.length;
         if (!sfile || diff < sdiff) {
@@ -326,18 +337,14 @@ Tput.prototype._tprefix = function(this: TputInterface, prefix: string | string[
       }
     });
 
-    return sfile && (soft || sdiff === 0)
-      ? path.resolve(dir, sfile)
-      : null;
+    return sfile && (soft || sdiff === 0) ? path.resolve(dir, sfile) : null;
   }
 
   file = path.resolve(dir, term);
   try {
     fs.statSync(file);
     return file;
-  } catch (e) {
-    ;
-  }
+  } catch (e) {}
 };
 
 /**
@@ -345,7 +352,11 @@ Tput.prototype._tprefix = function(this: TputInterface, prefix: string | string[
  * All shorts are little-endian
  */
 
-Tput.prototype.parseTerminfo = function(this: TputInterface, data: Buffer, file?: string): TerminfoData {
+Tput.prototype.parseTerminfo = function (
+  this: TputInterface,
+  data: Buffer,
+  file?: string
+): TerminfoData {
   var info: any = {},
     extended: boolean,
     l = data.length,
@@ -353,7 +364,7 @@ Tput.prototype.parseTerminfo = function(this: TputInterface, data: Buffer, file?
     v: any,
     o: any;
 
-  var h = info.header = {
+  var h = (info.header = {
     dataSize: data.length,
     headerSize: 12,
     magicNumber: (data[1] << 8) | data[0],
@@ -361,15 +372,16 @@ Tput.prototype.parseTerminfo = function(this: TputInterface, data: Buffer, file?
     boolCount: (data[5] << 8) | data[4],
     numCount: (data[7] << 8) | data[6],
     strCount: (data[9] << 8) | data[8],
-    strTableSize: (data[11] << 8) | data[10]
-  };
+    strTableSize: (data[11] << 8) | data[10],
+  });
 
-  h.total = h.headerSize
-    + h.namesSize
-    + h.boolCount
-    + h.numCount * 2
-    + h.strCount * 2
-    + h.strTableSize;
+  h.total =
+    h.headerSize +
+    h.namesSize +
+    h.boolCount +
+    h.numCount * 2 +
+    h.strCount * 2 +
+    h.strTableSize;
 
   i += h.headerSize;
 
@@ -436,7 +448,7 @@ Tput.prototype.parseTerminfo = function(this: TputInterface, data: Buffer, file?
   }
 
   // String Table
-  Object.keys(info.strings).forEach(function(key) {
+  Object.keys(info.strings).forEach(function (key) {
     if (info.strings[key] === -1) {
       delete info.strings[key];
       return;
@@ -451,8 +463,8 @@ Tput.prototype.parseTerminfo = function(this: TputInterface, data: Buffer, file?
       return;
     }
 
-    var s = i + info.strings[key]
-      , j = s;
+    var s = i + info.strings[key],
+      j = s;
 
     while (data[j]) j++;
 
@@ -480,7 +492,7 @@ Tput.prototype.parseTerminfo = function(this: TputInterface, data: Buffer, file?
         return info;
       }
       info.header.extended = extended.header;
-      ['bools', 'numbers', 'strings'].forEach(function(key) {
+      ['bools', 'numbers', 'strings'].forEach(function (key) {
         merge(info[key], extended[key]);
       });
     }
@@ -539,28 +551,29 @@ Tput.prototype.parseTerminfo = function(this: TputInterface, data: Buffer, file?
 //   h.symOffsetCount = h.strTableSize - h.strCount;
 //   h.symOffsetSize = (h.strTableSize - h.strCount) * 2;
 
-Tput.prototype.parseExtended = function(data) {
-  var info = {}
-    , l = data.length
-    , i = 0;
+Tput.prototype.parseExtended = function (data) {
+  var info = {},
+    l = data.length,
+    i = 0;
 
-  var h = info.header = {
+  var h = (info.header = {
     dataSize: data.length,
     headerSize: 10,
     boolCount: (data[i + 1] << 8) | data[i + 0],
     numCount: (data[i + 3] << 8) | data[i + 2],
     strCount: (data[i + 5] << 8) | data[i + 4],
     strTableSize: (data[i + 7] << 8) | data[i + 6],
-    lastStrTableOffset: (data[i + 9] << 8) | data[i + 8]
-  };
+    lastStrTableOffset: (data[i + 9] << 8) | data[i + 8],
+  });
 
   // h.symOffsetCount = h.strTableSize - h.strCount;
 
-  h.total = h.headerSize
-    + h.boolCount
-    + h.numCount * 2
-    + h.strCount * 2
-    + h.strTableSize;
+  h.total =
+    h.headerSize +
+    h.boolCount +
+    h.numCount * 2 +
+    h.strCount * 2 +
+    h.strTableSize;
 
   i += h.headerSize;
 
@@ -607,14 +620,14 @@ Tput.prototype.parseExtended = function(data) {
 
   // String Table
   var high = 0;
-  _strings.forEach(function(offset, k) {
+  _strings.forEach(function (offset, k) {
     if (offset === -1) {
       _strings[k] = '';
       return;
     }
 
-    var s = i + offset
-      , j = s;
+    var s = i + offset,
+      j = s;
 
     while (data[j]) j++;
 
@@ -634,8 +647,8 @@ Tput.prototype.parseExtended = function(data) {
   i += high + 1;
   l = data.length;
 
-  var sym = []
-    , j;
+  var sym = [],
+    j;
 
   for (; i < l; i++) {
     j = i;
@@ -648,17 +661,17 @@ Tput.prototype.parseExtended = function(data) {
   j = 0;
 
   info.bools = {};
-  _bools.forEach(function(bool) {
+  _bools.forEach(function (bool) {
     info.bools[sym[j++]] = bool;
   });
 
   info.numbers = {};
-  _numbers.forEach(function(number) {
+  _numbers.forEach(function (number) {
     info.numbers[sym[j++]] = number;
   });
 
   info.strings = {};
-  _strings.forEach(function(string) {
+  _strings.forEach(function (string) {
     info.strings[sym[j++]] = string;
   });
 
@@ -668,11 +681,14 @@ Tput.prototype.parseExtended = function(data) {
   return info;
 };
 
-Tput.prototype.compileTerminfo = function(term) {
+Tput.prototype.compileTerminfo = function (term) {
   return this.compile(this.readTerminfo(term));
 };
 
-Tput.prototype.injectTerminfo = function(this: TputInterface, term?: string): void {
+Tput.prototype.injectTerminfo = function (
+  this: TputInterface,
+  term?: string
+): void {
   return this.inject(this.compileTerminfo(term));
 };
 
@@ -680,7 +696,10 @@ Tput.prototype.injectTerminfo = function(this: TputInterface, term?: string): vo
  * Compiler - terminfo cap->javascript
  */
 
-Tput.prototype.compile = function(this: TputInterface, info: TerminfoData): any {
+Tput.prototype.compile = function (
+  this: TputInterface,
+  info: TerminfoData
+): any {
   var self = this;
 
   if (!info) {
@@ -694,28 +713,28 @@ Tput.prototype.compile = function(this: TputInterface, info: TerminfoData): any 
   info.all = {};
   info.methods = {};
 
-  ['bools', 'numbers', 'strings'].forEach(function(type) {
-    Object.keys(info[type]).forEach(function(key) {
+  ['bools', 'numbers', 'strings'].forEach(function (type) {
+    Object.keys(info[type]).forEach(function (key) {
       info.all[key] = info[type][key];
       info.methods[key] = self._compile(info, key, info.all[key]);
     });
   });
 
-  Tput.bools.forEach(function(key) {
+  Tput.bools.forEach(function (key) {
     if (info.methods[key] == null) info.methods[key] = false;
   });
 
-  Tput.numbers.forEach(function(key) {
+  Tput.numbers.forEach(function (key) {
     if (info.methods[key] == null) info.methods[key] = -1;
   });
 
-  Tput.strings.forEach(function(key) {
+  Tput.strings.forEach(function (key) {
     if (!info.methods[key]) info.methods[key] = noop;
   });
 
-  Object.keys(info.methods).forEach(function(key) {
+  Object.keys(info.methods).forEach(function (key) {
     if (!Tput.alias[key]) return;
-    Tput.alias[key].forEach(function(alias) {
+    Tput.alias[key].forEach(function (alias) {
       info.methods[alias] = info.methods[key];
     });
     // Could just use:
@@ -727,16 +746,16 @@ Tput.prototype.compile = function(this: TputInterface, info: TerminfoData): any 
   return info;
 };
 
-Tput.prototype.inject = function(this: TputInterface, info: any): void {
+Tput.prototype.inject = function (this: TputInterface, info: any): void {
   var self = this,
     methods = info.methods || info;
 
-  Object.keys(methods).forEach(function(key) {
+  Object.keys(methods).forEach(function (key) {
     if (typeof methods[key] !== 'function') {
       self[key] = methods[key];
       return;
     }
-    self[key] = function() {
+    self[key] = function () {
       var args = Array.prototype.slice.call(arguments);
       return methods[key].call(self, args);
     };
@@ -754,7 +773,7 @@ Tput.prototype.inject = function(this: TputInterface, info: any): void {
   }
 
   this.features = info.features;
-  Object.keys(info.features).forEach(function(key) {
+  Object.keys(info.features).forEach(function (key) {
     if (key === 'padding') {
       if (!info.features.padding && self.options.padding !== true) {
         self.padding = false;
@@ -768,7 +787,12 @@ Tput.prototype.inject = function(this: TputInterface, info: any): void {
 // See:
 // ~/ncurses/ncurses/tinfo/lib_tparm.c
 // ~/ncurses/ncurses/tinfo/comp_scan.c
-Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key: string, str: any): Function {
+Tput.prototype._compile = function (
+  this: TputInterface,
+  info: TerminfoData,
+  key: string,
+  str: any
+): Function {
   var v: any;
 
   this._debug('Compiling %s: %s', key, JSON.stringify(str));
@@ -801,24 +825,26 @@ Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key:
           .replace(/\n/g, '\\n');
         process.stdout.write(v + '\n');
       }
-      return function() { return str; };
+      return function () {
+        return str;
+      };
     } catch (e) {
       return noop;
     }
   }
 
-  var tkey = info.name + '.' + key
-    , header = 'var v, dyn = {}, stat = {}, stack = [], out = [];'
-    , footer = ';return out.join("");'
-    , code = header
-    , val = str
-    , buff = ''
-    , cap
-    , ch
-    , fi
-    , then
-    , els
-    , end;
+  var tkey = info.name + '.' + key,
+    header = 'var v, dyn = {}, stat = {}, stack = [], out = [];',
+    footer = ';return out.join("");',
+    code = header,
+    val = str,
+    buff = '',
+    cap,
+    ch,
+    fi,
+    then,
+    els,
+    end;
 
   function read(regex, no) {
     cap = regex.exec(val);
@@ -972,10 +998,12 @@ Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key:
     // %s   print pop() like %s in printf
     if (read(/^%((?::-|[+# ]){1,4})?(\d+(?:\.\d+)?)?([doxXsc])/)) {
       if (this.printf || cap[1] || cap[2] || ~'oxX'.indexOf(cap[3])) {
-        echo('sprintf("'+ cap[0].replace(':-', '-') + '", stack.pop())');
+        echo('sprintf("' + cap[0].replace(':-', '-') + '", stack.pop())');
       } else if (cap[3] === 'c') {
-        echo('(v = stack.pop(), isFinite(v) '
-          + '? String.fromCharCode(v || 0200) : "")');
+        echo(
+          '(v = stack.pop(), isFinite(v) ' +
+            '? String.fromCharCode(v || 0200) : "")'
+        );
       } else {
         echo('stack.pop()');
       }
@@ -1052,9 +1080,13 @@ Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key:
     if (read(/^%([+\-*\/m&|\^=><])/)) {
       if (ch === '=') ch = '===';
       else if (ch === 'm') ch = '%';
-      expr('(v = stack.pop(),'
-        + ' stack.push(v = (stack.pop() ' + ch + ' v) || 0),'
-        + ' v)');
+      expr(
+        '(v = stack.pop(),' +
+          ' stack.push(v = (stack.pop() ' +
+          ch +
+          ' v) || 0),' +
+          ' v)'
+      );
       continue;
     }
 
@@ -1062,9 +1094,11 @@ Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key:
     //   logical AND and OR operations (for conditionals)
     if (read(/^%([AO])/)) {
       // Are we supposed to store the result on the stack?
-      expr('(stack.push(v = (stack.pop() '
-        + (ch === 'A' ? '&&' : '||')
-        + ' stack.pop())), v)');
+      expr(
+        '(stack.push(v = (stack.pop() ' +
+          (ch === 'A' ? '&&' : '||') +
+          ' stack.pop())), v)'
+      );
       continue;
     }
 
@@ -1122,9 +1156,12 @@ Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key:
       els = val.indexOf('%e');
       end = val.indexOf('%;');
       if (end === -1) end = Infinity;
-      if (then !== -1 && then < end
-          && (fi === -1 || then < fi)
-          && (els === -1 || then < els)) {
+      if (
+        then !== -1 &&
+        then < end &&
+        (fi === -1 || then < fi) &&
+        (els === -1 || then < els)
+      ) {
         stmt('} else if (');
       } else {
         stmt('} else {');
@@ -1159,14 +1196,15 @@ Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key:
   v = code.slice(header.length, -footer.length);
   if (!v.length) {
     code = 'return "";';
-  } else if (v = /^out\.push\(("(?:[^"]|\\")+")\)$/.exec(v)) {
+  } else if ((v = /^out\.push\(("(?:[^"]|\\")+")\)$/.exec(v))) {
     code = 'return ' + v[1] + ';';
   } else {
     // Turn `(stack.push(v = params[0]), v),out.push(stack.pop())`
     // into `out.push(params[0])`.
     code = code.replace(
       /\(stack\.push\(v = params\[(\d+)\]\), v\),out\.push\(stack\.pop\(\)\)/g,
-      'out.push(params[$1])');
+      'out.push(params[$1])'
+    );
 
     // Remove unnecessary variable initializations.
     v = code.slice(header.length, -footer.length);
@@ -1178,7 +1216,8 @@ Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key:
     // Turn `var out = [];out.push("foo"),` into `var out = ["foo"];`.
     code = code.replace(
       /out = \[\];out\.push\(("(?:[^"]|\\")+")\),/,
-      'out = [$1];');
+      'out = [$1];'
+    );
   }
 
   // Terminfos `wyse350-vb`, and `wy350-w`
@@ -1214,7 +1253,7 @@ Tput.prototype._compile = function(this: TputInterface, info: TerminfoData, key:
 };
 
 // See: ~/ncurses/ncurses/tinfo/lib_tputs.c
-Tput.prototype._print = function(code, print, done) {
+Tput.prototype._print = function (code, print, done) {
   var xon = !this.bools.needs_xon_xoff || this.bools.xon_xoff;
 
   print = print || write;
@@ -1225,19 +1264,19 @@ Tput.prototype._print = function(code, print, done) {
     return done();
   }
 
-  var parts = code.split(/(?=\$<[\d.]+[*\/]{0,2}>)/)
-    , i = 0;
+  var parts = code.split(/(?=\$<[\d.]+[*\/]{0,2}>)/),
+    i = 0;
 
   (function next() {
     if (i === parts.length) {
       return done();
     }
 
-    var part = parts[i++]
-      , padding = /^\$<([\d.]+)([*\/]{0,2})>/.exec(part)
-      , amount
-      , suffix;
-      // , affect;
+    var part = parts[i++],
+      padding = /^\$<([\d.]+)([*\/]{0,2})>/.exec(part),
+      amount,
+      suffix;
+    // , affect;
 
     if (!padding) {
       print(part);
@@ -1279,7 +1318,7 @@ Tput.prototype._print = function(code, print, done) {
       // }
     }
 
-    return setTimeout(function() {
+    return setTimeout(function () {
       print(part);
       return next();
     }, amount);
@@ -1288,10 +1327,10 @@ Tput.prototype._print = function(code, print, done) {
 
 // A small helper function if we want
 // to easily output text with setTimeouts.
-Tput.print = function() {
+Tput.print = function () {
   var fake = {
     padding: true,
-    bools: { needs_xon_xoff: true, xon_xoff: false }
+    bools: { needs_xon_xoff: true, xon_xoff: false },
   };
   return Tput.prototype._print.apply(fake, arguments);
 };
@@ -1305,15 +1344,15 @@ Tput.cpaths = [
   (process.env.TERMPATH || '').split(/[: ]/),
   (process.env.HOME || '') + '/.termcap',
   '/usr/share/misc/termcap',
-  '/etc/termcap'
+  '/etc/termcap',
 ];
 
-Tput.prototype.readTermcap = function(term) {
-  var self = this
-    , terms
-    , term_
-    , root
-    , paths;
+Tput.prototype.readTermcap = function (term) {
+  var self = this,
+    terms,
+    term_,
+    root,
+    paths;
 
   term = term || this.terminal;
 
@@ -1359,12 +1398,15 @@ Tput.prototype.readTermcap = function(term) {
         ? terms[term.strings.tc].names
         : [term.strings.tc];
 
-      self._debug('%s inherits from %s.',
-        term.names.join('/'), names.join('/'));
+      self._debug(
+        '%s inherits from %s.',
+        term.names.join('/'),
+        names.join('/')
+      );
 
       var inherit = tc(terms[term.strings.tc]);
       if (inherit) {
-        ['bools', 'numbers', 'strings'].forEach(function(type) {
+        ['bools', 'numbers', 'strings'].forEach(function (type) {
           merge(term[type], inherit[type]);
         });
       }
@@ -1378,12 +1420,10 @@ Tput.prototype.readTermcap = function(term) {
   return root;
 };
 
-Tput.prototype._tryCap = function(file, term) {
+Tput.prototype._tryCap = function (file, term) {
   if (!file) return;
 
-  var terms
-    , data
-    , i;
+  var terms, data, i;
 
   if (Array.isArray(file)) {
     for (i = 0; i < file.length; i++) {
@@ -1395,9 +1435,7 @@ Tput.prototype._tryCap = function(file, term) {
 
   // If the termcap string starts with `/`,
   // ncurses considers it a filename.
-  data = file[0] === '/'
-    ? tryRead(file)
-    : file;
+  data = file[0] === '/' ? tryRead(file) : file;
 
   if (!data) return;
 
@@ -1433,17 +1471,17 @@ Tput.prototype._tryCap = function(file, term) {
 //  :sc=\E7:rc=\E8:cs=\E[%i%d;%dr:vs=\E[?7l:ve=\E[?7h:\
 //  :mi:al=\E[L:dc=\E[P:dl=\E[M:ei=\E[4l:im=\E[4h:
 
-Tput.prototype.parseTermcap = function(data, file) {
-  var terms = {}
-    , parts
-    , term
-    , entries
-    , fields
-    , field
-    , names
-    , i
-    , j
-    , k;
+Tput.prototype.parseTermcap = function (data, file) {
+  var terms = {},
+    parts,
+    term,
+    entries,
+    fields,
+    field,
+    names,
+    i,
+    j,
+    k;
 
   // remove escaped newlines
   data = data.replace(/\\\n[ \t]*/g, '');
@@ -1466,10 +1504,8 @@ Tput.prototype.parseTermcap = function(data, file) {
           name: names[0],
           names: names,
           desc: names.pop(),
-          file: ~file.indexOf(path.sep)
-            ? path.resolve(file)
-            : file,
-          termcap: true
+          file: ~file.indexOf(path.sep) ? path.resolve(file) : file,
+          termcap: true,
         };
 
         for (k = 0; k < names.length; k++) {
@@ -1503,23 +1539,23 @@ Tput.prototype.parseTermcap = function(data, file) {
  *  man termcap
  */
 
-Tput.prototype.translateTermcap = function(info) {
-  var self = this
-    , out = {};
+Tput.prototype.translateTermcap = function (info) {
+  var self = this,
+    out = {};
 
   if (!info) return;
 
   this._debug(info);
 
-  ['name', 'names', 'desc', 'file', 'termcap'].forEach(function(key) {
+  ['name', 'names', 'desc', 'file', 'termcap'].forEach(function (key) {
     out[key] = info[key];
   });
 
   // Separate aliases for termcap
-  var map = (function() {
+  var map = (function () {
     var out = {};
 
-    Object.keys(Tput.alias).forEach(function(key) {
+    Object.keys(Tput.alias).forEach(function (key) {
       var aliases = Tput.alias[key];
       out[aliases.termcap] = key;
     });
@@ -1529,9 +1565,9 @@ Tput.prototype.translateTermcap = function(info) {
 
   // Translate termcap cap names to terminfo cap names.
   // e.g. `up` -> `cursor_up`
-  ['bools', 'numbers', 'strings'].forEach(function(key) {
+  ['bools', 'numbers', 'strings'].forEach(function (key) {
     out[key] = {};
-    Object.keys(info[key]).forEach(function(cap) {
+    Object.keys(info[key]).forEach(function (cap) {
       if (key === 'strings') {
         info.strings[cap] = self._captoinfo(cap, info.strings[cap], 1);
       }
@@ -1551,11 +1587,11 @@ Tput.prototype.translateTermcap = function(info) {
   return out;
 };
 
-Tput.prototype.compileTermcap = function(term) {
+Tput.prototype.compileTermcap = function (term) {
   return this.compile(this.readTermcap(term));
 };
 
-Tput.prototype.injectTermcap = function(term) {
+Tput.prototype.injectTermcap = function (term) {
   return this.inject(this.compileTermcap(term));
 };
 
@@ -1572,7 +1608,7 @@ Tput.prototype.injectTermcap = function(term) {
  *    pad translations if >=0
  */
 
-Tput.prototype._captoinfo = function(cap, s, parameterized) {
+Tput.prototype._captoinfo = function (cap, s, parameterized) {
   var self = this;
 
   var capstart;
@@ -1581,17 +1617,17 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
     parameterized = 0;
   }
 
-  var MAX_PUSHED = 16
-    , stack = [];
+  var MAX_PUSHED = 16,
+    stack = [];
 
-  var stackptr = 0
-    , onstack = 0
-    , seenm = 0
-    , seenn = 0
-    , seenr = 0
-    , param = 1
-    , i = 0
-    , out = '';
+  var stackptr = 0,
+    onstack = 0,
+    seenm = 0,
+    seenn = 0,
+    seenr = 0,
+    param = 1,
+    i = 0,
+    out = '';
 
   function warn() {
     var args = Array.prototype.slice.call(arguments);
@@ -1609,15 +1645,15 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
 
   // convert a character to a terminfo push
   function cvtchar(sp) {
-    var c = '\0'
-      , len;
+    var c = '\0',
+      len;
 
     var j = i;
 
     switch (sp[j]) {
       case '\\':
         switch (sp[++j]) {
-          case '\'':
+          case "'":
           case '$':
           case '\\':
           case '%':
@@ -1634,8 +1670,10 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
           case '3':
             len = 1;
             while (isdigit(sp[j])) {
-              c = String.fromCharCode(8 * c.charCodeAt(0)
-                + (sp[j++].charCodeAt(0) - '0'.charCodeAt(0)));
+              c = String.fromCharCode(
+                8 * c.charCodeAt(0) +
+                  (sp[j++].charCodeAt(0) - '0'.charCodeAt(0))
+              );
               len++;
             }
             break;
@@ -1653,22 +1691,23 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
         c = sp[j];
         len = 1;
     }
-    if (isgraph(c) && c !== ',' && c !== '\'' && c !== '\\' && c !== ':') {
-      out += '%\'';
+    if (isgraph(c) && c !== ',' && c !== "'" && c !== '\\' && c !== ':') {
+      out += "%'";
       out += c;
-      out += '\'';
+      out += "'";
     } else {
       out += '%{';
       if (c.charCodeAt(0) > 99) {
         out += String.fromCharCode(
-          (c.charCodeAt(0) / 100 | 0) + '0'.charCodeAt(0));
+          ((c.charCodeAt(0) / 100) | 0) + '0'.charCodeAt(0)
+        );
       }
       if (c.charCodeAt(0) > 9) {
         out += String.fromCharCode(
-          (c.charCodeAt(0) / 10 | 0) % 10 + '0'.charCodeAt(0));
+          (((c.charCodeAt(0) / 10) | 0) % 10) + '0'.charCodeAt(0)
+        );
       }
-      out += String.fromCharCode(
-        c.charCodeAt(0) % 10 + '0'.charCodeAt(0));
+      out += String.fromCharCode((c.charCodeAt(0) % 10) + '0'.charCodeAt(0));
       out += '}';
     }
 
@@ -1729,7 +1768,7 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
   function pop() {
     if (stackptr === 0) {
       if (onstack === 0) {
-        warn('I\'m confused');
+        warn("I'm confused");
       } else {
         onstack = 0;
       }
@@ -1748,8 +1787,12 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
   function invalid() {
     out += '%';
     i--;
-    warn('unknown %% code %s (%#x) in %s',
-      JSON.stringify(s[i]), s[i].charCodeAt(0), cap);
+    warn(
+      'unknown %% code %s (%#x) in %s',
+      JSON.stringify(s[i]),
+      s[i].charCodeAt(0),
+      cap
+    );
   }
 
   // skip the initial padding (if we haven't been told not to)
@@ -1757,7 +1800,7 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
   if (s == null) s = '';
 
   if (parameterized >= 0 && isdigit(s[i])) {
-    for (capstart = i;; i++) {
+    for (capstart = i; ; i++) {
       if (!(isdigit(s[i]) || s[i] === '*' || s[i] === '.')) {
         break;
       }
@@ -1816,10 +1859,16 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
             out += '%+%;';
             break;
           case 'a':
-            if ((s[i] === '=' || s[i] === '+' || s[i] === '-'
-                || s[i] === '*' || s[i] === '/')
-                && (s[i + 1] === 'p' || s[i + 1] === 'c')
-                && s[i + 2] !== '\0' && s[i + 2]) {
+            if (
+              (s[i] === '=' ||
+                s[i] === '+' ||
+                s[i] === '-' ||
+                s[i] === '*' ||
+                s[i] === '/') &&
+              (s[i + 1] === 'p' || s[i + 1] === 'c') &&
+              s[i + 2] !== '\0' &&
+              s[i + 2]
+            ) {
               var l;
               l = 2;
               if (s[i] !== '=') {
@@ -1833,7 +1882,7 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
                 }
                 l++;
               } else {
-                i += 2, l += cvtchar(s), i -= 2;
+                (i += 2), (l += cvtchar(s)), (i -= 2);
               }
               switch (s[i]) {
                 case '+':
@@ -1876,15 +1925,15 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
             pop();
             break;
           case 's':
-// #ifdef WATERLOO
-//          i += cvtchar(s);
-//          getparm(param, 1);
-//          out += '%-';
-// #else
+            // #ifdef WATERLOO
+            //          i += cvtchar(s);
+            //          getparm(param, 1);
+            //          out += '%-';
+            // #else
             getparm(param, 1);
             out += '%s';
             pop();
-// #endif /* WATERLOO */
+            // #endif /* WATERLOO */
             break;
           case '-':
             i += cvtchar(s);
@@ -1905,7 +1954,7 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
               invalid(); // goto
               break;
             }
-            // FALLTHRU
+          // FALLTHRU
           case '2':
             getparm(param, 1);
             out += '%2d';
@@ -1933,77 +1982,77 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
             break;
         }
         break;
-// #ifdef REVISIBILIZE
-//    case '\\':
-//      out += s[i++];
-//      out += s[i++];
-//      break;
-//    case '\n':
-//      out += '\\n';
-//      i++;
-//      break;
-//    case '\t':
-//      out += '\\t';
-//      i++;
-//      break;
-//    case '\r':
-//      out += '\\r';
-//      i++;
-//      break;
-//    case '\200':
-//      out += '\\0';
-//      i++;
-//      break;
-//    case '\f':
-//      out += '\\f';
-//      i++;
-//      break;
-//    case '\b':
-//      out += '\\b';
-//      i++;
-//      break;
-//    case ' ':
-//      out += '\\s';
-//      i++;
-//      break;
-//    case '^':
-//      out += '\\^';
-//      i++;
-//      break;
-//    case ':':
-//      out += '\\:';
-//      i++;
-//      break;
-//    case ',':
-//      out += '\\,';
-//      i++;
-//      break;
-//    default:
-//      if (s[i] === '\033') {
-//        out += '\\E';
-//        i++;
-//      } else if (s[i].charCodeAt(0) > 0 && s[i].charCodeAt(0) < 32) {
-//        out += '^';
-//        out += String.fromCharCode(s[i].charCodeAt(0) + '@'.charCodeAt(0));
-//        i++;
-//      } else if (s[i].charCodeAt(0) <= 0 || s[i].charCodeAt(0) >= 127) {
-//        out += '\\';
-//        out += String.fromCharCode(
-//          ((s[i].charCodeAt(0) & 0300) >> 6) + '0'.charCodeAt(0));
-//        out += String.fromCharCode(
-//          ((s[i].charCodeAt(0) & 0070) >> 3) + '0'.charCodeAt(0));
-//        out += String.fromCharCode(
-//          (s[i].charCodeAt(0) & 0007) + '0'.charCodeAt(0));
-//        i++;
-//      } else {
-//        out += s[i++];
-//      }
-//      break;
-// #else
+      // #ifdef REVISIBILIZE
+      //    case '\\':
+      //      out += s[i++];
+      //      out += s[i++];
+      //      break;
+      //    case '\n':
+      //      out += '\\n';
+      //      i++;
+      //      break;
+      //    case '\t':
+      //      out += '\\t';
+      //      i++;
+      //      break;
+      //    case '\r':
+      //      out += '\\r';
+      //      i++;
+      //      break;
+      //    case '\200':
+      //      out += '\\0';
+      //      i++;
+      //      break;
+      //    case '\f':
+      //      out += '\\f';
+      //      i++;
+      //      break;
+      //    case '\b':
+      //      out += '\\b';
+      //      i++;
+      //      break;
+      //    case ' ':
+      //      out += '\\s';
+      //      i++;
+      //      break;
+      //    case '^':
+      //      out += '\\^';
+      //      i++;
+      //      break;
+      //    case ':':
+      //      out += '\\:';
+      //      i++;
+      //      break;
+      //    case ',':
+      //      out += '\\,';
+      //      i++;
+      //      break;
+      //    default:
+      //      if (s[i] === '\033') {
+      //        out += '\\E';
+      //        i++;
+      //      } else if (s[i].charCodeAt(0) > 0 && s[i].charCodeAt(0) < 32) {
+      //        out += '^';
+      //        out += String.fromCharCode(s[i].charCodeAt(0) + '@'.charCodeAt(0));
+      //        i++;
+      //      } else if (s[i].charCodeAt(0) <= 0 || s[i].charCodeAt(0) >= 127) {
+      //        out += '\\';
+      //        out += String.fromCharCode(
+      //          ((s[i].charCodeAt(0) & 0300) >> 6) + '0'.charCodeAt(0));
+      //        out += String.fromCharCode(
+      //          ((s[i].charCodeAt(0) & 0070) >> 3) + '0'.charCodeAt(0));
+      //        out += String.fromCharCode(
+      //          (s[i].charCodeAt(0) & 0007) + '0'.charCodeAt(0));
+      //        i++;
+      //      } else {
+      //        out += s[i++];
+      //      }
+      //      break;
+      // #else
       default:
         out += s[i++];
         break;
-// #endif
+      // #endif
     }
   }
 
@@ -2011,7 +2060,7 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
   // of the string as mandatory padding.
   if (capstart != null) {
     out += '$<';
-    for (i = capstart;; i++) {
+    for (i = capstart; ; i++) {
       if (isdigit(s[i]) || s[i] === '*' || s[i] === '.') {
         out += s[i];
       } else {
@@ -2022,8 +2071,12 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
   }
 
   if (s !== out) {
-    warn('Translating %s from %s to %s.',
-      cap, JSON.stringify(s), JSON.stringify(out));
+    warn(
+      'Translating %s from %s to %s.',
+      cap,
+      JSON.stringify(s),
+      JSON.stringify(out)
+    );
   }
 
   return out;
@@ -2033,18 +2086,18 @@ Tput.prototype._captoinfo = function(cap, s, parameterized) {
  * Compile All Terminfo
  */
 
-Tput.prototype.getAll = function() {
-  var dir = this._prefix()
-    , list = asort(fs.readdirSync(dir))
-    , infos = [];
+Tput.prototype.getAll = function () {
+  var dir = this._prefix(),
+    list = asort(fs.readdirSync(dir)),
+    infos = [];
 
-  list.forEach(function(letter) {
+  list.forEach(function (letter) {
     var terms = asort(fs.readdirSync(path.resolve(dir, letter)));
     infos.push.apply(infos, terms);
   });
 
   function asort(obj) {
-    return obj.sort(function(a, b) {
+    return obj.sort(function (a, b) {
       a = a.toLowerCase().charCodeAt(0);
       b = b.toLowerCase().charCodeAt(0);
       return a - b;
@@ -2054,11 +2107,11 @@ Tput.prototype.getAll = function() {
   return infos;
 };
 
-Tput.prototype.compileAll = function(start) {
-  var self = this
-    , all = {};
+Tput.prototype.compileAll = function (start) {
+  var self = this,
+    all = {};
 
-  this.getAll().forEach(function(name) {
+  this.getAll().forEach(function (name) {
     if (start && name !== start) {
       return;
     } else {
@@ -2074,7 +2127,7 @@ Tput.prototype.compileAll = function(start) {
  * Detect Features / Quirks
  */
 
-Tput.prototype.detectFeatures = function(info) {
+Tput.prototype.detectFeatures = function (info) {
   var data = this.parseACS(info);
   info.features = {
     unicode: this.detectUnicode(info),
@@ -2084,12 +2137,12 @@ Tput.prototype.detectFeatures = function(info) {
     padding: this.detectPadding(info),
     setbuf: this.detectSetbuf(info),
     acsc: data.acsc,
-    acscr: data.acscr
+    acscr: data.acscr,
   };
   return info.features;
 };
 
-Tput.prototype.detectUnicode = function() {
+Tput.prototype.detectUnicode = function () {
   if (process.env.NCURSES_FORCE_UNICODE != null) {
     return !!+process.env.NCURSES_FORCE_UNICODE;
   }
@@ -2098,12 +2151,16 @@ Tput.prototype.detectUnicode = function() {
     return this.options.forceUnicode;
   }
 
-  var LANG = process.env.LANG
-    + ':' + process.env.LANGUAGE
-    + ':' + process.env.LC_ALL
-    + ':' + process.env.LC_CTYPE;
+  var LANG =
+    process.env.LANG +
+    ':' +
+    process.env.LANGUAGE +
+    ':' +
+    process.env.LC_ALL +
+    ':' +
+    process.env.LC_CTYPE;
 
-  return /utf-?8/i.test(LANG) || (this.GetConsoleCP() === 65001);
+  return /utf-?8/i.test(LANG) || this.GetConsoleCP() === 65001;
 };
 
 // For some reason TERM=linux has smacs/rmacs, but it maps to `^[[11m`
@@ -2117,7 +2174,7 @@ Tput.prototype.detectUnicode = function() {
 // ~/ncurses/ncurses/tinfo/lib_acs.c
 // ~/ncurses/ncurses/tinfo/tinfo_driver.c
 // ~/ncurses/ncurses/tinfo/lib_setup.c
-Tput.prototype.detectBrokenACS = function(info) {
+Tput.prototype.detectBrokenACS = function (info) {
   // ncurses-compatible env variable.
   if (process.env.NCURSES_NO_UTF8_ACS != null) {
     return !!+process.env.NCURSES_NO_UTF8_ACS;
@@ -2142,15 +2199,19 @@ Tput.prototype.detectBrokenACS = function(info) {
   }
 
   // screen termcap is bugged?
-  if (this.termcap
-      && info.name.indexOf('screen') === 0
-      && process.env.TERMCAP
-      && ~process.env.TERMCAP.indexOf('screen')
-      && ~process.env.TERMCAP.indexOf('hhII00')) {
-    if (~info.strings.enter_alt_charset_mode.indexOf('\x0e')
-        || ~info.strings.enter_alt_charset_mode.indexOf('\x0f')
-        || ~info.strings.set_attributes.indexOf('\x0e')
-        || ~info.strings.set_attributes.indexOf('\x0f')) {
+  if (
+    this.termcap &&
+    info.name.indexOf('screen') === 0 &&
+    process.env.TERMCAP &&
+    ~process.env.TERMCAP.indexOf('screen') &&
+    ~process.env.TERMCAP.indexOf('hhII00')
+  ) {
+    if (
+      ~info.strings.enter_alt_charset_mode.indexOf('\x0e') ||
+      ~info.strings.enter_alt_charset_mode.indexOf('\x0f') ||
+      ~info.strings.set_attributes.indexOf('\x0e') ||
+      ~info.strings.set_attributes.indexOf('\x0f')
+    ) {
       return true;
     }
   }
@@ -2161,29 +2222,32 @@ Tput.prototype.detectBrokenACS = function(info) {
 // If enter_pc_charset is the same as enter_alt_charset,
 // the terminal does not support SCLD as ACS.
 // See: ~/ncurses/ncurses/tinfo/lib_acs.c
-Tput.prototype.detectPCRomSet = function(info) {
+Tput.prototype.detectPCRomSet = function (info) {
   var s = info.strings;
-  if (s.enter_pc_charset_mode && s.enter_alt_charset_mode
-      && s.enter_pc_charset_mode === s.enter_alt_charset_mode
-      && s.exit_pc_charset_mode === s.exit_alt_charset_mode) {
+  if (
+    s.enter_pc_charset_mode &&
+    s.enter_alt_charset_mode &&
+    s.enter_pc_charset_mode === s.enter_alt_charset_mode &&
+    s.exit_pc_charset_mode === s.exit_alt_charset_mode
+  ) {
     return true;
   }
   return false;
 };
 
-Tput.prototype.detectMagicCookie = function() {
+Tput.prototype.detectMagicCookie = function () {
   return process.env.NCURSES_NO_MAGIC_COOKIE == null;
 };
 
-Tput.prototype.detectPadding = function() {
+Tput.prototype.detectPadding = function () {
   return process.env.NCURSES_NO_PADDING == null;
 };
 
-Tput.prototype.detectSetbuf = function() {
+Tput.prototype.detectSetbuf = function () {
   return process.env.NCURSES_NO_SETBUF == null;
 };
 
-Tput.prototype.parseACS = function(info) {
+Tput.prototype.parseACS = function (info) {
   var data = {};
 
   data.acsc = {};
@@ -2197,10 +2261,10 @@ Tput.prototype.parseACS = function(info) {
   }
 
   // See: ~/ncurses/ncurses/tinfo/lib_acs.c: L208
-  Object.keys(Tput.acsc).forEach(function(ch) {
-    var acs_chars = info.strings.acs_chars || ''
-      , i = acs_chars.indexOf(ch)
-      , next = acs_chars[i + 1];
+  Object.keys(Tput.acsc).forEach(function (ch) {
+    var acs_chars = info.strings.acs_chars || '',
+      i = acs_chars.indexOf(ch),
+      next = acs_chars[i + 1];
 
     if (!next || i === -1 || !Tput.acsc[next]) {
       return;
@@ -2213,7 +2277,7 @@ Tput.prototype.parseACS = function(info) {
   return data;
 };
 
-Tput.prototype.GetConsoleCP = function() {
+Tput.prototype.GetConsoleCP = function () {
   var ccp;
 
   if (process.platform !== 'win32') {
@@ -2232,16 +2296,14 @@ Tput.prototype.GetConsoleCP = function() {
     ccp = cp.execFileSync(process.env.WINDIR + '\\system32\\chcp.com', [], {
       stdio: ['ignore', 'pipe', 'ignore'],
       encoding: 'ascii',
-      timeout: 1500
+      timeout: 1500,
     });
     // ccp = cp.execSync('chcp', {
     //   stdio: ['ignore', 'pipe', 'ignore'],
     //   encoding: 'ascii',
     //   timeout: 1500
     // });
-  } catch (e) {
-    ;
-  }
+  } catch (e) {}
 
   ccp = /\d+/.exec(ccp);
 
@@ -2265,7 +2327,7 @@ function noop() {
 noop.unsupported = true;
 
 function merge(a, b) {
-  Object.keys(b).forEach(function(key) {
+  Object.keys(b).forEach(function (key) {
     a[key] = b[key];
   });
   return a;
@@ -2298,17 +2360,17 @@ function tryRead(file) {
  */
 
 function sprintf(src) {
-  var params = Array.prototype.slice.call(arguments, 1)
-    , rule = /%([\-+# ]{1,4})?(\d+(?:\.\d+)?)?([doxXsc])/g
-    , i = 0;
+  var params = Array.prototype.slice.call(arguments, 1),
+    rule = /%([\-+# ]{1,4})?(\d+(?:\.\d+)?)?([doxXsc])/g,
+    i = 0;
 
-  return src.replace(rule, function(_, flag, width, type) {
-    var flags = (flag || '').split('')
-      , param = params[i] != null ? params[i] : ''
-      , initial = param
+  return src.replace(rule, function (_, flag, width, type) {
+    var flags = (flag || '').split(''),
+      param = params[i] != null ? params[i] : '',
+      initial = param,
       // , width = +width
-      , opt = {}
-      , pre = '';
+      opt = {},
+      pre = '';
 
     i++;
 
@@ -2328,13 +2390,11 @@ function sprintf(src) {
       case 's': // string
         break;
       case 'c': // char
-        param = isFinite(param)
-          ? String.fromCharCode(param || 0x80)
-          : '';
+        param = isFinite(param) ? String.fromCharCode(param || 0x80) : '';
         break;
     }
 
-    flags.forEach(function(flag) {
+    flags.forEach(function (flag) {
       switch (flag) {
         // left-justify by width
         case '-':
@@ -2395,7 +2455,7 @@ function sprintf(src) {
     }
 
     if (opt.left) {
-      if (width > (pre.length + param.length)) {
+      if (width > pre.length + param.length) {
         width -= pre.length + param.length;
         pre = Array(width + 1).join(' ') + pre;
       }
@@ -2413,8 +2473,8 @@ Tput._alias = require('./alias');
 
 Tput.alias = {};
 
-['bools', 'numbers', 'strings'].forEach(function(type) {
-  Object.keys(Tput._alias[type]).forEach(function(key) {
+['bools', 'numbers', 'strings'].forEach(function (type) {
+  Object.keys(Tput._alias[type]).forEach(function (key) {
     var aliases = Tput._alias[type][key];
     Tput.alias[key] = [aliases[0]];
     Tput.alias[key].terminfo = aliases[0];
@@ -2435,14 +2495,14 @@ Tput.alias.micro_col_size.push('micro_char_size');
 
 Tput.aliasMap = {};
 
-Object.keys(Tput.alias).forEach(function(key) {
+Object.keys(Tput.alias).forEach(function (key) {
   Tput.aliasMap[key] = key;
-  Tput.alias[key].forEach(function(k) {
+  Tput.alias[key].forEach(function (k) {
     Tput.aliasMap[k] = key;
   });
 });
 
-Tput.prototype.has = function(name) {
+Tput.prototype.has = function (name) {
   name = Tput.aliasMap[name];
 
   var val = this.all[name];
@@ -2460,17 +2520,18 @@ Tput.prototype.has = function(name) {
  * Fallback Termcap Entry
  */
 
-Tput.termcap = ''
-  + 'vt102|dec vt102:'
-  + ':do=^J:co#80:li#24:cl=50\\E[;H\\E[2J:'
-  + ':le=^H:bs:cm=5\\E[%i%d;%dH:nd=2\\E[C:up=2\\E[A:'
-  + ':ce=3\\E[K:cd=50\\E[J:so=2\\E[7m:se=2\\E[m:us=2\\E[4m:ue=2\\E[m:'
-  + ':md=2\\E[1m:mr=2\\E[7m:mb=2\\E[5m:me=2\\E[m:is=\\E[1;24r\\E[24;1H:'
-  + ':rs=\\E>\\E[?3l\\E[?4l\\E[?5l\\E[?7h\\E[?8h:ks=\\E[?1h\\E=:ke=\\E[?1l\\E>:'
-  + ':ku=\\EOA:kd=\\EOB:kr=\\EOC:kl=\\EOD:kb=^H:\\\n'
-  + ':ho=\\E[H:k1=\\EOP:k2=\\EOQ:k3=\\EOR:k4=\\EOS:pt:sr=5\\EM:vt#3:'
-  + ':sc=\\E7:rc=\\E8:cs=\\E[%i%d;%dr:vs=\\E[?7l:ve=\\E[?7h:'
-  + ':mi:al=\\E[L:dc=\\E[P:dl=\\E[M:ei=\\E[4l:im=\\E[4h:';
+Tput.termcap =
+  '' +
+  'vt102|dec vt102:' +
+  ':do=^J:co#80:li#24:cl=50\\E[;H\\E[2J:' +
+  ':le=^H:bs:cm=5\\E[%i%d;%dH:nd=2\\E[C:up=2\\E[A:' +
+  ':ce=3\\E[K:cd=50\\E[J:so=2\\E[7m:se=2\\E[m:us=2\\E[4m:ue=2\\E[m:' +
+  ':md=2\\E[1m:mr=2\\E[7m:mb=2\\E[5m:me=2\\E[m:is=\\E[1;24r\\E[24;1H:' +
+  ':rs=\\E>\\E[?3l\\E[?4l\\E[?5l\\E[?7h\\E[?8h:ks=\\E[?1h\\E=:ke=\\E[?1l\\E>:' +
+  ':ku=\\EOA:kd=\\EOB:kr=\\EOC:kl=\\EOD:kb=^H:\\\n' +
+  ':ho=\\E[H:k1=\\EOP:k2=\\EOQ:k3=\\EOR:k4=\\EOS:pt:sr=5\\EM:vt#3:' +
+  ':sc=\\E7:rc=\\E8:cs=\\E[%i%d;%dr:vs=\\E[?7l:ve=\\E[?7h:' +
+  ':mi:al=\\E[L:dc=\\E[P:dl=\\E[M:ei=\\E[4l:im=\\E[4h:';
 
 /**
  * Terminfo Data
@@ -2522,7 +2583,7 @@ Tput.bools = [
   'gnu_has_meta_key',
   'linefeed_is_newline',
   'has_hardware_tabs',
-  'return_does_clr_eol'
+  'return_does_clr_eol',
 ];
 
 Tput.numbers = [
@@ -2566,7 +2627,7 @@ Tput.numbers = [
   'new_line_delay',
   'backspace_delay',
   'horizontal_tab_delay',
-  'number_of_function_keys'
+  'number_of_function_keys',
 ];
 
 Tput.strings = [
@@ -2985,43 +3046,44 @@ Tput.strings = [
   'acs_plus',
   'memory_lock',
   'memory_unlock',
-  'box_chars_1'
+  'box_chars_1',
 ];
 
 // DEC Special Character and Line Drawing Set.
 // Taken from tty.js.
-Tput.acsc = {    // (0
+Tput.acsc = {
+  // (0
   '`': '\u25c6', // '◆'
-  'a': '\u2592', // '▒'
-  'b': '\u0009', // '\t'
-  'c': '\u000c', // '\f'
-  'd': '\u000d', // '\r'
-  'e': '\u000a', // '\n'
-  'f': '\u00b0', // '°'
-  'g': '\u00b1', // '±'
-  'h': '\u2424', // '\u2424' (NL)
-  'i': '\u000b', // '\v'
-  'j': '\u2518', // '┘'
-  'k': '\u2510', // '┐'
-  'l': '\u250c', // '┌'
-  'm': '\u2514', // '└'
-  'n': '\u253c', // '┼'
-  'o': '\u23ba', // '⎺'
-  'p': '\u23bb', // '⎻'
-  'q': '\u2500', // '─'
-  'r': '\u23bc', // '⎼'
-  's': '\u23bd', // '⎽'
-  't': '\u251c', // '├'
-  'u': '\u2524', // '┤'
-  'v': '\u2534', // '┴'
-  'w': '\u252c', // '┬'
-  'x': '\u2502', // '│'
-  'y': '\u2264', // '≤'
-  'z': '\u2265', // '≥'
+  a: '\u2592', // '▒'
+  b: '\u0009', // '\t'
+  c: '\u000c', // '\f'
+  d: '\u000d', // '\r'
+  e: '\u000a', // '\n'
+  f: '\u00b0', // '°'
+  g: '\u00b1', // '±'
+  h: '\u2424', // '\u2424' (NL)
+  i: '\u000b', // '\v'
+  j: '\u2518', // '┘'
+  k: '\u2510', // '┐'
+  l: '\u250c', // '┌'
+  m: '\u2514', // '└'
+  n: '\u253c', // '┼'
+  o: '\u23ba', // '⎺'
+  p: '\u23bb', // '⎻'
+  q: '\u2500', // '─'
+  r: '\u23bc', // '⎼'
+  s: '\u23bd', // '⎽'
+  t: '\u251c', // '├'
+  u: '\u2524', // '┤'
+  v: '\u2534', // '┴'
+  w: '\u252c', // '┬'
+  x: '\u2502', // '│'
+  y: '\u2264', // '≤'
+  z: '\u2265', // '≥'
   '{': '\u03c0', // 'π'
   '|': '\u2260', // '≠'
   '}': '\u00a3', // '£'
-  '~': '\u00b7'  // '·'
+  '~': '\u00b7', // '·'
 };
 
 // Convert ACS unicode characters to the
@@ -3057,7 +3119,7 @@ Tput.utoa = Tput.prototype.utoa = {
   '\u03c0': '?', // 'π'
   '\u2260': '=', // '≠'
   '\u00a3': '?', // '£'
-  '\u00b7': '*'  // '·'
+  '\u00b7': '*', // '·'
 };
 
 /**

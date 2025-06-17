@@ -72,8 +72,12 @@ Message.prototype.__proto__ = Box.prototype;
 
 Message.prototype.type = 'message';
 
-Message.prototype.log =
-Message.prototype.display = function(this: MessageInterface, text: string, time?: number | (() => void), callback?: () => void): void {
+Message.prototype.log = Message.prototype.display = function (
+  this: MessageInterface,
+  text: string,
+  time?: number | (() => void),
+  callback?: () => void
+): void {
   const self = this;
 
   if (typeof time === 'function') {
@@ -99,37 +103,42 @@ Message.prototype.display = function(this: MessageInterface, text: string, time?
   this.screen.render();
 
   if (time === Infinity || time === -1 || time === 0) {
-    const end = function() {
+    const end = function () {
       if ((end as any).done) return;
       (end as any).done = true;
       if (self.scrollable) {
         try {
           self.screen.restoreFocus();
-        } catch (e) {
-          ;
-        }
+        } catch (e) {}
       }
       self.hide();
       self.screen.render();
       if (callback) callback();
     };
 
-    setTimeout(function() {
+    setTimeout(function () {
       self.onScreenEvent('keypress', function fn(ch: string, key: KeyData) {
         if (key.name === 'mouse') return;
         if (self.scrollable) {
-          if ((key.name === 'up' || (self.options.vi && key.name === 'k'))
-            || (key.name === 'down' || (self.options.vi && key.name === 'j'))
-            || (self.options.vi && key.name === 'u' && key.ctrl)
-            || (self.options.vi && key.name === 'd' && key.ctrl)
-            || (self.options.vi && key.name === 'b' && key.ctrl)
-            || (self.options.vi && key.name === 'f' && key.ctrl)
-            || (self.options.vi && key.name === 'g' && !key.shift)
-            || (self.options.vi && key.name === 'g' && key.shift)) {
+          if (
+            key.name === 'up' ||
+            (self.options.vi && key.name === 'k') ||
+            key.name === 'down' ||
+            (self.options.vi && key.name === 'j') ||
+            (self.options.vi && key.name === 'u' && key.ctrl) ||
+            (self.options.vi && key.name === 'd' && key.ctrl) ||
+            (self.options.vi && key.name === 'b' && key.ctrl) ||
+            (self.options.vi && key.name === 'f' && key.ctrl) ||
+            (self.options.vi && key.name === 'g' && !key.shift) ||
+            (self.options.vi && key.name === 'g' && key.shift)
+          ) {
             return;
           }
         }
-        if (self.options.ignoreKeys && self.options.ignoreKeys.indexOf(key.name) !== -1) {
+        if (
+          self.options.ignoreKeys &&
+          self.options.ignoreKeys.indexOf(key.name) !== -1
+        ) {
           return;
         }
         self.removeScreenEvent('keypress', fn);
@@ -147,14 +156,22 @@ Message.prototype.display = function(this: MessageInterface, text: string, time?
     return;
   }
 
-  setTimeout(function() {
-    self.hide();
-    self.screen.render();
-    if (callback) callback();
-  }, (time as number) * 1000);
+  setTimeout(
+    function () {
+      self.hide();
+      self.screen.render();
+      if (callback) callback();
+    },
+    (time as number) * 1000
+  );
 };
 
-Message.prototype.error = function(this: MessageInterface, text: string, time?: number, callback?: () => void): void {
+Message.prototype.error = function (
+  this: MessageInterface,
+  text: string,
+  time?: number,
+  callback?: () => void
+): void {
   return this.display('{red-fg}Error: ' + text + '{/red-fg}', time, callback);
 };
 

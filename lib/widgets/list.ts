@@ -56,7 +56,7 @@ interface ListKey {
 
 interface ListStyle {
   selected?: { [key: string]: any };
-  item?: { 
+  item?: {
     [key: string]: any;
     hover?: { [key: string]: any };
     focus?: { [key: string]: any };
@@ -144,12 +144,13 @@ function List(this: ListInterface, options?: ListOptions) {
   }
 
   // Legacy: for apps written before the addition of item attributes.
-  ['bg', 'fg', 'bold', 'underline',
-   'blink', 'inverse', 'invisible'].forEach(function(name: string) {
-    if (self.style[name] != null && self.style.item![name] == null) {
-      self.style.item![name] = self.style[name];
+  ['bg', 'fg', 'bold', 'underline', 'blink', 'inverse', 'invisible'].forEach(
+    function (name: string) {
+      if (self.style[name] != null && self.style.item![name] == null) {
+        self.style.item![name] = self.style[name];
+      }
     }
-  });
+  );
 
   if (this.options.itemHoverBg) {
     this.options.itemHoverEffects = { bg: this.options.itemHoverBg };
@@ -162,7 +163,7 @@ function List(this: ListInterface, options?: ListOptions) {
   if (this.options.itemFocusEffects) {
     this.style.item!.focus = this.options.itemFocusEffects;
   }
-  
+
   if (this.options.itemHeight) {
     this.style.item!.height = this.options.itemHeight;
   }
@@ -180,18 +181,18 @@ function List(this: ListInterface, options?: ListOptions) {
 
   if (options.mouse) {
     this.screen._listenMouse(this);
-    this.on('element wheeldown', function() {
+    this.on('element wheeldown', function () {
       self.select(self.selected + 2);
       self.screen.render();
     });
-    this.on('element wheelup', function() {
+    this.on('element wheelup', function () {
       self.select(self.selected - 2);
       self.screen.render();
     });
   }
 
   if (options.keys) {
-    this.on('keypress', function(ch: string, key: ListKey) {
+    this.on('keypress', function (ch: string, key: ListKey) {
       if (key.name === 'up' || (options!.vi && key.name === 'k')) {
         self.up();
         self.screen.render();
@@ -202,8 +203,10 @@ function List(this: ListInterface, options?: ListOptions) {
         self.screen.render();
         return;
       }
-      if (key.name === 'enter'
-          || (options!.vi && key.name === 'l' && !key.shift)) {
+      if (
+        key.name === 'enter' ||
+        (options!.vi && key.name === 'l' && !key.shift)
+      ) {
         self.enterSelected();
         return;
       }
@@ -217,7 +220,7 @@ function List(this: ListInterface, options?: ListOptions) {
         return;
       }
       if (options!.vi && key.name === 'd' && key.ctrl) {
-        self.move((self.height - self.iheight) / 2 | 0);
+        self.move(((self.height - self.iheight) / 2) | 0);
         self.screen.render();
         return;
       }
@@ -239,18 +242,19 @@ function List(this: ListInterface, options?: ListOptions) {
       if (options!.vi && key.name === 'm' && key.shift) {
         // TODO: Maybe use Math.min(this.items.length,
         // ... for calculating visible items elsewhere.
-        const visible = Math.min(
-          self.height - self.iheight,
-          self.items.length) / 2 | 0;
+        const visible =
+          (Math.min(self.height - self.iheight, self.items.length) / 2) | 0;
         self.move(self.childBase + visible - self.selected);
         self.screen.render();
         return;
       }
       if (options!.vi && key.name === 'l' && key.shift) {
         // XXX This goes one too far on lists with an odd number of items.
-        self.down(self.childBase
-          + Math.min(self.height - self.iheight, self.items.length)
-          - self.selected);
+        self.down(
+          self.childBase +
+            Math.min(self.height - self.iheight, self.items.length) -
+            self.selected
+        );
         self.screen.render();
         return;
       }
@@ -269,9 +273,13 @@ function List(this: ListInterface, options?: ListOptions) {
         if (typeof self.options.search !== 'function') {
           return;
         }
-        return self.options.search(function(err: any, value?: string) {
-          if (typeof err === 'string' || typeof err === 'function'
-              || typeof err === 'number' || (err && err.test)) {
+        return self.options.search(function (err: any, value?: string) {
+          if (
+            typeof err === 'string' ||
+            typeof err === 'function' ||
+            typeof err === 'number' ||
+            (err && err.test)
+          ) {
             value = err;
             err = null;
           }
@@ -283,7 +291,7 @@ function List(this: ListInterface, options?: ListOptions) {
     });
   }
 
-  this.on('resize', function() {
+  this.on('resize', function () {
     var visible = self.height - self.iheight;
     // if (self.selected < visible - 1) {
     if (visible >= self.selected + 1) {
@@ -296,7 +304,7 @@ function List(this: ListInterface, options?: ListOptions) {
     }
   });
 
-  this.on('adopt', function(el) {
+  this.on('adopt', function (el) {
     if (!~self.items.indexOf(el)) {
       el.fixed = true;
     }
@@ -304,7 +312,7 @@ function List(this: ListInterface, options?: ListOptions) {
 
   // Ensure children are removed from the
   // item list if they are items.
-  this.on('remove', function(el) {
+  this.on('remove', function (el) {
     self.removeItem(el);
   });
 }
@@ -313,7 +321,7 @@ List.prototype.__proto__ = Box.prototype;
 
 List.prototype.type = 'list';
 
-List.prototype.createItem = function(content) {
+List.prototype.createItem = function (content) {
   var self = this;
 
   // Note: Could potentially use Button here.
@@ -323,12 +331,12 @@ List.prototype.createItem = function(content) {
     align: this.align || 'left',
     top: 0,
     left: 0,
-    right: (this.scrollbar ? 1 : 0),
+    right: this.scrollbar ? 1 : 0,
     tags: this.parseTags,
     height: this.style.item.height || 1,
     hoverEffects: this.mouse ? this.style.item.hover : null,
     focusEffects: this.mouse ? this.style.item.focus : null,
-    autoFocus: false
+    autoFocus: false,
   };
 
   if (!this.screen.autoPadding) {
@@ -344,16 +352,18 @@ List.prototype.createItem = function(content) {
     options.width = 'shrink';
   }
 
-  ['bg', 'fg', 'bold', 'underline',
-   'blink', 'inverse', 'invisible'].forEach(function(name) {
-    options[name] = function() {
-      var attr = self.items[self.selected] === item && self.interactive
-        ? self.style.selected[name]
-        : self.style.item[name];
-      if (typeof attr === 'function') attr = attr(item);
-      return attr;
-    };
-  });
+  ['bg', 'fg', 'bold', 'underline', 'blink', 'inverse', 'invisible'].forEach(
+    function (name) {
+      options[name] = function () {
+        var attr =
+          self.items[self.selected] === item && self.interactive
+            ? self.style.selected[name]
+            : self.style.item[name];
+        if (typeof attr === 'function') attr = attr(item);
+        return attr;
+      };
+    }
+  );
 
   if (this.style.transparent) {
     options.transparent = true;
@@ -362,7 +372,7 @@ List.prototype.createItem = function(content) {
   var item = new Box(options);
 
   if (this.mouse) {
-    item.on('click', function() {
+    item.on('click', function () {
       self.focus();
       if (self.items[self.selected] === item) {
         self.emit('action', item, self.selected);
@@ -380,30 +390,33 @@ List.prototype.createItem = function(content) {
 };
 
 List.prototype.add =
-List.prototype.addItem =
-List.prototype.appendItem = function(content) {
-  content = typeof content === 'string' ? content : content.getContent();
+  List.prototype.addItem =
+  List.prototype.appendItem =
+    function (content) {
+      content = typeof content === 'string' ? content : content.getContent();
 
-  var item = this.createItem(content);
-  item.position.top = this.items.map(i => i.height).reduce((a, b) => a + b, 0);
-  if (!this.screen.autoPadding) {
-    item.position.top = this.itop + this.items.length;
-  }
+      var item = this.createItem(content);
+      item.position.top = this.items
+        .map(i => i.height)
+        .reduce((a, b) => a + b, 0);
+      if (!this.screen.autoPadding) {
+        item.position.top = this.itop + this.items.length;
+      }
 
-  this.ritems.push(content);
-  this.items.push(item);
-  this.append(item);
+      this.ritems.push(content);
+      this.items.push(item);
+      this.append(item);
 
-  if (this.items.length === 1) {
-    this.select(0);
-  }
+      if (this.items.length === 1) {
+        this.select(0);
+      }
 
-  this.emit('add item');
+      this.emit('add item');
 
-  return item;
-};
+      return item;
+    };
 
-List.prototype.removeItem = function(child) {
+List.prototype.removeItem = function (child) {
   var i = this.getItemIndex(child);
   if (~i && this.items[i]) {
     child = this.items.splice(i, 1)[0];
@@ -420,7 +433,7 @@ List.prototype.removeItem = function(child) {
   return child;
 };
 
-List.prototype.insertItem = function(child, content) {
+List.prototype.insertItem = function (child, content) {
   content = typeof content === 'string' ? content : content.getContent();
   var i = this.getItemIndex(child);
   if (!~i) return;
@@ -439,11 +452,11 @@ List.prototype.insertItem = function(child, content) {
   this.emit('insert item');
 };
 
-List.prototype.getItem = function(child) {
+List.prototype.getItem = function (child) {
   return this.items[this.getItemIndex(child)];
 };
 
-List.prototype.setItem = function(child, content) {
+List.prototype.setItem = function (child, content) {
   content = typeof content === 'string' ? content : content.getContent();
   var i = this.getItemIndex(child);
   if (!~i) return;
@@ -451,15 +464,15 @@ List.prototype.setItem = function(child, content) {
   this.ritems[i] = content;
 };
 
-List.prototype.clearItems = function() {
+List.prototype.clearItems = function () {
   return this.setItems([]);
 };
 
-List.prototype.setItems = function(items) {
-  var original = this.items.slice()
-    , selected = this.selected
-    , sel = this.ritems[this.selected]
-    , i = 0;
+List.prototype.setItems = function (items) {
+  var original = this.items.slice(),
+    selected = this.selected,
+    sel = this.ritems[this.selected],
+    i = 0;
 
   items = items.slice();
 
@@ -492,25 +505,25 @@ List.prototype.setItems = function(items) {
   this.emit('set items');
 };
 
-List.prototype.pushItem = function(content) {
+List.prototype.pushItem = function (content) {
   this.appendItem(content);
   return this.items.length;
 };
 
-List.prototype.popItem = function() {
+List.prototype.popItem = function () {
   return this.removeItem(this.items.length - 1);
 };
 
-List.prototype.unshiftItem = function(content) {
+List.prototype.unshiftItem = function (content) {
   this.insertItem(0, content);
   return this.items.length;
 };
 
-List.prototype.shiftItem = function() {
+List.prototype.shiftItem = function () {
   return this.removeItem(0);
 };
 
-List.prototype.spliceItem = function(child, n) {
+List.prototype.spliceItem = function (child, n) {
   var self = this;
   var i = this.getItemIndex(child);
   if (!~i) return;
@@ -519,30 +532,32 @@ List.prototype.spliceItem = function(child, n) {
   while (n--) {
     removed.push(this.removeItem(i));
   }
-  items.forEach(function(item) {
+  items.forEach(function (item) {
     self.insertItem(i++, item);
   });
   return removed;
 };
 
-List.prototype.find =
-List.prototype.fuzzyFind = function(search, back) {
-  var start = this.selected + (back ? -1 : 1)
-    , i;
+List.prototype.find = List.prototype.fuzzyFind = function (search, back) {
+  var start = this.selected + (back ? -1 : 1),
+    i;
 
   if (typeof search === 'number') search += '';
 
   if (search && search[0] === '/' && search[search.length - 1] === '/') {
     try {
       search = new RegExp(search.slice(1, -1));
-    } catch (e) {
-      ;
-    }
+    } catch (e) {}
   }
 
-  var test = typeof search === 'string'
-    ? function(item) { return !!~item.indexOf(search); }
-    : (search.test ? search.test.bind(search) : search);
+  var test =
+    typeof search === 'string'
+      ? function (item) {
+          return !!~item.indexOf(search);
+        }
+      : search.test
+        ? search.test.bind(search)
+        : search;
 
   if (typeof test !== 'function') {
     if (this.screen.options.debug) {
@@ -570,7 +585,7 @@ List.prototype.fuzzyFind = function(search, back) {
   return this.selected;
 };
 
-List.prototype.getItemIndex = function(child) {
+List.prototype.getItemIndex = function (child) {
   if (typeof child === 'number') {
     return child;
   } else if (typeof child === 'string') {
@@ -587,7 +602,7 @@ List.prototype.getItemIndex = function(child) {
   }
 };
 
-List.prototype.select = function(index) {
+List.prototype.select = function (index) {
   if (!this.interactive) {
     return;
   }
@@ -621,19 +636,19 @@ List.prototype.select = function(index) {
   this.emit('select item', this.items[this.selected], this.selected);
 };
 
-List.prototype.move = function(offset) {
+List.prototype.move = function (offset) {
   this.select(this.selected + offset);
 };
 
-List.prototype.up = function(offset) {
+List.prototype.up = function (offset) {
   this.move(-(offset || 1));
 };
 
-List.prototype.down = function(offset) {
+List.prototype.down = function (offset) {
   this.move(offset || 1);
 };
 
-List.prototype.pick = function(label, callback) {
+List.prototype.pick = function (label, callback) {
   if (!callback) {
     callback = label;
     label = null;
@@ -658,7 +673,7 @@ List.prototype.pick = function(label, callback) {
   this.select(0);
   if (label) this.setLabel(label);
   this.screen.render();
-  this.once('action', function(el, selected) {
+  this.once('action', function (el, selected) {
     if (label) self.removeLabel();
     self.screen.restoreFocus();
     self.hide();
@@ -668,13 +683,13 @@ List.prototype.pick = function(label, callback) {
   });
 };
 
-List.prototype.enterSelected = function(i) {
+List.prototype.enterSelected = function (i) {
   if (i != null) this.select(i);
   this.emit('action', this.items[this.selected], this.selected);
   this.emit('select', this.items[this.selected], this.selected);
 };
 
-List.prototype.cancelSelected = function(i) {
+List.prototype.cancelSelected = function (i) {
   if (i != null) this.select(i);
   this.emit('action');
   this.emit('cancel');

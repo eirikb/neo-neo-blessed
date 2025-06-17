@@ -5,9 +5,42 @@
  */
 
 /**
- * Blessed
+ * The main blessed namespace that provides access to all widgets and functionality.
+ *
+ * @example
+ * ```typescript
+ * import blessed from 'neo-neo-blessed';
+ *
+ * const screen = blessed.screen({
+ *   smartCSR: true
+ * });
+ *
+ * const box = blessed.box({
+ *   parent: screen,
+ *   top: 'center',
+ *   left: 'center',
+ *   width: '50%',
+ *   height: '50%',
+ *   content: 'Hello World!',
+ *   tags: true,
+ *   border: {
+ *     type: 'line'
+ *   },
+ *   style: {
+ *     fg: 'white',
+ *     bg: 'magenta',
+ *     border: {
+ *       fg: '#f0f0f0'
+ *     },
+ *     hover: {
+ *       bg: 'green'
+ *     }
+ *   }
+ * });
+ *
+ * screen.render();
+ * ```
  */
-
 function blessed() {
   return blessed.program.apply(null, arguments);
 }

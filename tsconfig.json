@@ -21,13 +21,13 @@
     "strict": false,
     "noImplicitAny": false,
     "noImplicitThis": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": false,
+    "forceConsistentCasingInFileNames": true,
     "declaration": false,
     "declarationMap": false,
     "sourceMap": false,
@@ -36,15 +36,13 @@
     "noEmit": false,
     "skipDefaultLibCheck": true,
     "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
     "resolveJsonModule": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
-  "include": [
-    "index.ts",
-    "lib/colors.ts",
-    "lib/unicode.ts",
-    "lib/widgets/*.ts"
-  ],
+  "include": ["lib/colors.ts", "lib/unicode.ts"],
   "exclude": [
     "node_modules",
     "dist",

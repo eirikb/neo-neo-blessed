@@ -8,8 +8,8 @@
  * Modules
  */
 
-var path = require('path')
-  , fs = require('fs');
+var path = require('path'),
+  fs = require('fs');
 
 var helpers = require('../helpers');
 
@@ -53,7 +53,7 @@ interface FileManagerInterface extends List {
   screen: FileManagerScreen;
   options: FileManagerOptions;
   hidden: boolean;
-  
+
   // Methods
   refresh(cwd?: string | Function, callback?: Function): any;
   pick(cwd?: string | Function, callback?: Function): void;
@@ -93,27 +93,30 @@ function FileManager(this: FileManagerInterface, options?: FileManagerOptions) {
     this._label.setContent(options.label.replace('%path', this.cwd));
   }
 
-  this.on('select', function(item: any) {
-    var value = item.content.replace(/\{[^{}]+\}/g, '').replace(/@$/, '')
-      , file = path.resolve(self.cwd, value);
+  this.on('select', function (item: any) {
+    var value = item.content.replace(/\{[^{}]+\}/g, '').replace(/@$/, ''),
+      file = path.resolve(self.cwd, value);
 
-    return fs.stat(file, function(err: NodeJS.ErrnoException | null, stat?: fs.Stats) {
-      if (err) {
-        return self.emit('error', err, file);
-      }
-      self.file = file;
-      self.value = file;
-      if (stat.isDirectory()) {
-        self.emit('cd', file, self.cwd);
-        self.cwd = file;
-        if (options.label && ~options.label.indexOf('%path')) {
-          self._label.setContent(options.label.replace('%path', file));
+    return fs.stat(
+      file,
+      function (err: NodeJS.ErrnoException | null, stat?: fs.Stats) {
+        if (err) {
+          return self.emit('error', err, file);
         }
-        self.refresh();
-      } else {
-        self.emit('file', file);
+        self.file = file;
+        self.value = file;
+        if (stat.isDirectory()) {
+          self.emit('cd', file, self.cwd);
+          self.cwd = file;
+          if (options.label && ~options.label.indexOf('%path')) {
+            self._label.setContent(options.label.replace('%path', file));
+          }
+          self.refresh();
+        } else {
+          self.emit('file', file);
+        }
       }
-    });
+    );
   });
 }
 
@@ -121,7 +124,11 @@ FileManager.prototype.__proto__ = List.prototype;
 
 FileManager.prototype.type = 'file-manager';
 
-FileManager.prototype.refresh = function(this: FileManagerInterface, cwd?: string | Function, callback?: Function) {
+FileManager.prototype.refresh = function (
+  this: FileManagerInterface,
+  cwd?: string | Function,
+  callback?: Function
+) {
   if (!callback) {
     callback = cwd;
     cwd = null;
@@ -132,83 +139,86 @@ FileManager.prototype.refresh = function(this: FileManagerInterface, cwd?: strin
   if (cwd) this.cwd = cwd;
   else cwd = this.cwd;
 
-  return fs.readdir(cwd as string, function(err: NodeJS.ErrnoException | null, list?: string[]) {
-    if (err && err.code === 'ENOENT') {
-      self.cwd = cwd !== process.env.HOME
-        ? process.env.HOME
-        : '/';
-      return self.refresh(callback);
-    }
-
-    if (err) {
-      if (callback) return callback(err);
-      return self.emit('error', err, cwd);
-    }
-
-    var dirs: FileItem[] = []
-      , files: FileItem[] = [];
-
-    list.unshift('..');
-
-    list!.forEach(function(name: string) {
-      var f = path.resolve(cwd as string, name)
-        , stat: fs.Stats | undefined;
-
-      try {
-        stat = fs.lstatSync(f);
-      } catch (e) {
-        ;
+  return fs.readdir(
+    cwd as string,
+    function (err: NodeJS.ErrnoException | null, list?: string[]) {
+      if (err && err.code === 'ENOENT') {
+        self.cwd = cwd !== process.env.HOME ? process.env.HOME : '/';
+        return self.refresh(callback);
       }
 
-      if ((stat && stat.isDirectory()) || name === '..') {
-        dirs.push({
-          name: name,
-          text: '{light-blue-fg}' + name + '{/light-blue-fg}/',
-          dir: true
-        });
-      } else if (stat && stat.isSymbolicLink()) {
-        files.push({
-          name: name,
-          text: '{light-cyan-fg}' + name + '{/light-cyan-fg}@',
-          dir: false
-        });
-      } else {
-        files.push({
-          name: name,
-          text: name,
-          dir: false
-        });
+      if (err) {
+        if (callback) return callback(err);
+        return self.emit('error', err, cwd);
       }
-    });
 
-    dirs = helpers.asort(dirs);
-    files = helpers.asort(files);
+      var dirs: FileItem[] = [],
+        files: FileItem[] = [];
 
-    list = dirs.concat(files).map(function(data: FileItem) {
-      return data.text;
-    });
+      list.unshift('..');
 
-    self.setItems(list);
-    self.select(0);
-    self.screen.render();
+      list!.forEach(function (name: string) {
+        var f = path.resolve(cwd as string, name),
+          stat: fs.Stats | undefined;
 
-    self.emit('refresh');
+        try {
+          stat = fs.lstatSync(f);
+        } catch (e) {}
 
-    if (callback) callback();
-  });
+        if ((stat && stat.isDirectory()) || name === '..') {
+          dirs.push({
+            name: name,
+            text: '{light-blue-fg}' + name + '{/light-blue-fg}/',
+            dir: true,
+          });
+        } else if (stat && stat.isSymbolicLink()) {
+          files.push({
+            name: name,
+            text: '{light-cyan-fg}' + name + '{/light-cyan-fg}@',
+            dir: false,
+          });
+        } else {
+          files.push({
+            name: name,
+            text: name,
+            dir: false,
+          });
+        }
+      });
+
+      dirs = helpers.asort(dirs);
+      files = helpers.asort(files);
+
+      list = dirs.concat(files).map(function (data: FileItem) {
+        return data.text;
+      });
+
+      self.setItems(list);
+      self.select(0);
+      self.screen.render();
+
+      self.emit('refresh');
+
+      if (callback) callback();
+    }
+  );
 };
 
-FileManager.prototype.pick = function(this: FileManagerInterface, cwd?: string | Function, callback?: Function) {
+FileManager.prototype.pick = function (
+  this: FileManagerInterface,
+  cwd?: string | Function,
+  callback?: Function
+) {
   if (!callback) {
     callback = cwd;
     cwd = null;
   }
 
-  var self = this
-    , focused = this.screen.focused === this
-    , hidden = this.hidden
-    , onfile
-    , oncancel;
+  var self = this,
+    focused = this.screen.focused === this,
+    hidden = this.hidden,
+    onfile,
+    oncancel;
 
   function resume() {
     self.removeListener('file', onfile);
@@ -222,17 +232,23 @@ FileManager.prototype.pick = function(this: FileManagerInterface, cwd?: string |
     self.screen.render();
   }
 
-  this.on('file', onfile = function(file: string) {
-    resume();
-    return callback(null, file);
-  });
+  this.on(
+    'file',
+    (onfile = function (file: string) {
+      resume();
+      return callback(null, file);
+    })
+  );
 
-  this.on('cancel', oncancel = function() {
-    resume();
-    return callback();
-  });
+  this.on(
+    'cancel',
+    (oncancel = function () {
+      resume();
+      return callback();
+    })
+  );
 
-  this.refresh(cwd as string, function(err?: NodeJS.ErrnoException) {
+  this.refresh(cwd as string, function (err?: NodeJS.ErrnoException) {
     if (err) return callback(err);
 
     if (hidden) {
@@ -248,7 +264,11 @@ FileManager.prototype.pick = function(this: FileManagerInterface, cwd?: string |
   });
 };
 
-FileManager.prototype.reset = function(this: FileManagerInterface, cwd?: string | Function, callback?: Function) {
+FileManager.prototype.reset = function (
+  this: FileManagerInterface,
+  cwd?: string | Function,
+  callback?: Function
+) {
   if (!callback) {
     callback = cwd;
     cwd = null;

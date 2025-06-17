@@ -8,8 +8,8 @@
  * Modules
  */
 
-var fs = require('fs')
-  , cp = require('child_process');
+var fs = require('fs'),
+  cp = require('child_process');
 
 var helpers = require('../helpers');
 
@@ -93,7 +93,7 @@ interface OverlayImageInterface extends Box {
   aleft: number;
   atop: number;
   shrink?: boolean;
-  
+
   // Methods
   spawn(file: string, args: string[], opt?: any, callback?: Function): any;
   setImage(img: string, callback?: Function): any;
@@ -117,7 +117,10 @@ interface OverlayImageInterface extends Box {
  * https://github.com/hut/ranger/blob/master/ranger/ext/img_display.py
  */
 
-function OverlayImage(this: OverlayImageInterface, options?: OverlayImageOptions) {
+function OverlayImage(
+  this: OverlayImageInterface,
+  options?: OverlayImageOptions
+) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -136,9 +139,10 @@ function OverlayImage(this: OverlayImageInterface, options?: OverlayImageOptions
     if (fs.existsSync(OverlayImage.w3mdisplay)) {
       OverlayImage.hasW3MDisplay = true;
     } else if (options.search !== false) {
-      var file = helpers.findFile('/usr', 'w3mimgdisplay')
-              || helpers.findFile('/lib', 'w3mimgdisplay')
-              || helpers.findFile('/bin', 'w3mimgdisplay');
+      var file =
+        helpers.findFile('/usr', 'w3mimgdisplay') ||
+        helpers.findFile('/lib', 'w3mimgdisplay') ||
+        helpers.findFile('/bin', 'w3mimgdisplay');
       if (file) {
         OverlayImage.hasW3MDisplay = true;
         OverlayImage.w3mdisplay = file;
@@ -148,27 +152,27 @@ function OverlayImage(this: OverlayImageInterface, options?: OverlayImageOptions
     }
   }
 
-  this.on('hide', function() {
+  this.on('hide', function () {
     self._lastFile = self.file;
     self.clearImage();
   });
 
-  this.on('show', function() {
+  this.on('show', function () {
     if (!self._lastFile) return;
     self.setImage(self._lastFile);
   });
 
-  this.on('detach', function() {
+  this.on('detach', function () {
     self._lastFile = self.file;
     self.clearImage();
   });
 
-  this.on('attach', function() {
+  this.on('attach', function () {
     if (!self._lastFile) return;
     self.setImage(self._lastFile);
   });
 
-  this.onScreenEvent('resize', function() {
+  this.onScreenEvent('resize', function () {
     self._needsRatio = true;
   });
 
@@ -199,7 +203,7 @@ function OverlayImage(this: OverlayImageInterface, options?: OverlayImageOptions
   //   recurse(self.screen);
   // });
 
-  this.onScreenEvent('render', function() {
+  this.onScreenEvent('render', function () {
     self.screen.program.flush();
     if (!self._noImage) {
       self.setImage(self.file);
@@ -217,19 +221,25 @@ OverlayImage.prototype.type = 'overlayimage';
 
 OverlayImage.w3mdisplay = '/usr/lib/w3m/w3mimgdisplay';
 
-OverlayImage.prototype.spawn = function(this: OverlayImageInterface, file: string, args: string[], opt?: any, callback?: Function) {
-  var spawn = require('child_process').spawn
-    , ps;
+OverlayImage.prototype.spawn = function (
+  this: OverlayImageInterface,
+  file: string,
+  args: string[],
+  opt?: any,
+  callback?: Function
+) {
+  var spawn = require('child_process').spawn,
+    ps;
 
   opt = opt || {};
   ps = spawn(file, args, opt);
 
-  ps.on('error', function(err) {
+  ps.on('error', function (err) {
     if (!callback) return;
     return callback(err);
   });
 
-  ps.on('exit', function(code) {
+  ps.on('exit', function (code) {
     if (!callback) return;
     if (code !== 0) return callback(new Error('Exit Code: ' + code));
     return callback(null, code === 0);
@@ -238,7 +248,11 @@ OverlayImage.prototype.spawn = function(this: OverlayImageInterface, file: strin
   return ps;
 };
 
-OverlayImage.prototype.setImage = function(this: OverlayImageInterface, img: string, callback?: Function) {
+OverlayImage.prototype.setImage = function (
+  this: OverlayImageInterface,
+  img: string,
+  callback?: Function
+) {
   var self = this;
 
   if (this._settingImage) {
@@ -248,7 +262,7 @@ OverlayImage.prototype.setImage = function(this: OverlayImageInterface, img: str
   }
   this._settingImage = true;
 
-  var reset = function() {
+  var reset = function () {
     self._settingImage = false;
     self._queue = self._queue || [];
     var item = self._queue.shift();
@@ -271,14 +285,14 @@ OverlayImage.prototype.setImage = function(this: OverlayImageInterface, img: str
 
   this.file = img;
 
-  return this.getPixelRatio(function(err, ratio) {
+  return this.getPixelRatio(function (err, ratio) {
     if (err) {
       reset();
       if (!callback) return;
       return callback(err);
     }
 
-    return self.renderImage(img, ratio, function(err, success) {
+    return self.renderImage(img, ratio, function (err, success) {
       if (err) {
         reset();
         if (!callback) return;
@@ -289,20 +303,22 @@ OverlayImage.prototype.setImage = function(this: OverlayImageInterface, img: str
         delete self.shrink;
         delete self.options.shrink;
         self.options.autofit = true;
-        return self.imageSize(function(err, size) {
+        return self.imageSize(function (err, size) {
           if (err) {
             reset();
             if (!callback) return;
             return callback(err);
           }
 
-          if (self._lastSize
-              && ratio.tw === self._lastSize.tw
-              && ratio.th === self._lastSize.th
-              && size.width === self._lastSize.width
-              && size.height === self._lastSize.height
-              && self.aleft === self._lastSize.aleft
-              && self.atop === self._lastSize.atop) {
+          if (
+            self._lastSize &&
+            ratio.tw === self._lastSize.tw &&
+            ratio.th === self._lastSize.th &&
+            size.width === self._lastSize.width &&
+            size.height === self._lastSize.height &&
+            self.aleft === self._lastSize.aleft &&
+            self.atop === self._lastSize.atop
+          ) {
             reset();
             if (!callback) return;
             return callback(null, success);
@@ -314,11 +330,11 @@ OverlayImage.prototype.setImage = function(this: OverlayImageInterface, img: str
             width: size.width,
             height: size.height,
             aleft: self.aleft,
-            atop: self.atop
+            atop: self.atop,
           };
 
-          self.position.width = size.width / ratio.tw | 0;
-          self.position.height = size.height / ratio.th | 0;
+          self.position.width = (size.width / ratio.tw) | 0;
+          self.position.height = (size.height / ratio.th) | 0;
 
           self._noImage = true;
           self.screen.render();
@@ -336,11 +352,20 @@ OverlayImage.prototype.setImage = function(this: OverlayImageInterface, img: str
   });
 };
 
-OverlayImage.prototype.renderImage = function(this: OverlayImageInterface, img: string, ratio: PixelRatio, callback?: Function) {
+OverlayImage.prototype.renderImage = function (
+  this: OverlayImageInterface,
+  img: string,
+  ratio: PixelRatio,
+  callback?: Function
+) {
   var self = this;
 
   if (cp.execSync) {
-    callback = callback || function(err, result) { return result; };
+    callback =
+      callback ||
+      function (err, result) {
+        return result;
+      };
     try {
       return callback(null, this.renderImageSync(img, ratio));
     } catch (e) {
@@ -361,7 +386,7 @@ OverlayImage.prototype.renderImage = function(this: OverlayImageInterface, img: 
   // clearImage unsets these:
   var _file = self.file;
   var _lastSize = self._lastSize;
-  return self.clearImage(function(err) {
+  return self.clearImage(function (err) {
     if (err) return callback(err);
 
     self.file = _file;
@@ -370,34 +395,42 @@ OverlayImage.prototype.renderImage = function(this: OverlayImageInterface, img: 
     var opt = {
       stdio: 'pipe',
       env: process.env,
-      cwd: process.env.HOME
+      cwd: process.env.HOME,
     };
 
-    var ps = self.spawn(OverlayImage.w3mdisplay, [], opt, function(err, success) {
-      if (!callback) return;
-      return err
-        ? callback(err)
-        : callback(null, success);
-    });
+    var ps = self.spawn(
+      OverlayImage.w3mdisplay,
+      [],
+      opt,
+      function (err, success) {
+        if (!callback) return;
+        return err ? callback(err) : callback(null, success);
+      }
+    );
 
-    var width = self.width * ratio.tw | 0
-      , height = self.height * ratio.th | 0
-      , aleft = self.aleft * ratio.tw | 0
-      , atop = self.atop * ratio.th | 0;
+    var width = (self.width * ratio.tw) | 0,
+      height = (self.height * ratio.th) | 0,
+      aleft = (self.aleft * ratio.tw) | 0,
+      atop = (self.atop * ratio.th) | 0;
 
-    var input = '0;1;'
-      + aleft + ';'
-      + atop + ';'
-      + width + ';'
-      + height + ';;;;;'
-      + img
-      + '\n4;\n3;\n';
+    var input =
+      '0;1;' +
+      aleft +
+      ';' +
+      atop +
+      ';' +
+      width +
+      ';' +
+      height +
+      ';;;;;' +
+      img +
+      '\n4;\n3;\n';
 
     self._props = {
       aleft: aleft,
       atop: atop,
       width: width,
-      height: height
+      height: height,
     };
 
     ps.stdin.write(input);
@@ -405,9 +438,16 @@ OverlayImage.prototype.renderImage = function(this: OverlayImageInterface, img: 
   });
 };
 
-OverlayImage.prototype.clearImage = function(this: OverlayImageInterface, callback?: Function) {
+OverlayImage.prototype.clearImage = function (
+  this: OverlayImageInterface,
+  callback?: Function
+) {
   if (cp.execSync) {
-    callback = callback || function(err, result) { return result; };
+    callback =
+      callback ||
+      function (err, result) {
+        return result;
+      };
     try {
       return callback(null, this.clearImageSync());
     } catch (e) {
@@ -428,20 +468,23 @@ OverlayImage.prototype.clearImage = function(this: OverlayImageInterface, callba
   var opt = {
     stdio: 'pipe',
     env: process.env,
-    cwd: process.env.HOME
+    cwd: process.env.HOME,
   };
 
-  var ps = this.spawn(OverlayImage.w3mdisplay, [], opt, function(err, success) {
-    if (!callback) return;
-    return err
-      ? callback(err)
-      : callback(null, success);
-  });
+  var ps = this.spawn(
+    OverlayImage.w3mdisplay,
+    [],
+    opt,
+    function (err, success) {
+      if (!callback) return;
+      return err ? callback(err) : callback(null, success);
+    }
+  );
 
-  var width = this._props.width + 2
-    , height = this._props.height + 2
-    , aleft = this._props.aleft
-    , atop = this._props.atop;
+  var width = this._props.width + 2,
+    height = this._props.height + 2,
+    aleft = this._props.aleft,
+    atop = this._props.atop;
 
   if (this._drag) {
     aleft -= 10;
@@ -450,12 +493,8 @@ OverlayImage.prototype.clearImage = function(this: OverlayImageInterface, callba
     height += 10;
   }
 
-  var input = '6;'
-   + aleft + ';'
-   + atop + ';'
-   + width + ';'
-   + height
-   + '\n4;\n3;\n';
+  var input =
+    '6;' + aleft + ';' + atop + ';' + width + ';' + height + '\n4;\n3;\n';
 
   delete this.file;
   delete this._props;
@@ -465,11 +504,18 @@ OverlayImage.prototype.clearImage = function(this: OverlayImageInterface, callba
   ps.stdin.end();
 };
 
-OverlayImage.prototype.imageSize = function(this: OverlayImageInterface, callback?: Function) {
+OverlayImage.prototype.imageSize = function (
+  this: OverlayImageInterface,
+  callback?: Function
+) {
   var img = this.file;
 
   if (cp.execSync) {
-    callback = callback || function(err, result) { return result; };
+    callback =
+      callback ||
+      function (err, result) {
+        return result;
+      };
     try {
       return callback(null, this.imageSizeSync());
     } catch (e) {
@@ -490,7 +536,7 @@ OverlayImage.prototype.imageSize = function(this: OverlayImageInterface, callbac
   var opt = {
     stdio: 'pipe',
     env: process.env,
-    cwd: process.env.HOME
+    cwd: process.env.HOME,
   };
 
   var ps = this.spawn(OverlayImage.w3mdisplay, [], opt);
@@ -499,22 +545,22 @@ OverlayImage.prototype.imageSize = function(this: OverlayImageInterface, callbac
 
   ps.stdout.setEncoding('utf8');
 
-  ps.stdout.on('data', function(data) {
+  ps.stdout.on('data', function (data) {
     buf += data;
   });
 
-  ps.on('error', function(err) {
+  ps.on('error', function (err) {
     if (!callback) return;
     return callback(err);
   });
 
-  ps.on('exit', function() {
+  ps.on('exit', function () {
     if (!callback) return;
     var size = buf.trim().split(/\s+/);
     return callback(null, {
       raw: buf.trim(),
       width: +size[0],
-      height: +size[1]
+      height: +size[1],
     });
   });
 
@@ -524,11 +570,18 @@ OverlayImage.prototype.imageSize = function(this: OverlayImageInterface, callbac
   ps.stdin.end();
 };
 
-OverlayImage.prototype.termSize = function(this: OverlayImageInterface, callback?: Function) {
+OverlayImage.prototype.termSize = function (
+  this: OverlayImageInterface,
+  callback?: Function
+) {
   var self = this;
 
   if (cp.execSync) {
-    callback = callback || function(err, result) { return result; };
+    callback =
+      callback ||
+      function (err, result) {
+        return result;
+      };
     try {
       return callback(null, this.termSizeSync());
     } catch (e) {
@@ -544,7 +597,7 @@ OverlayImage.prototype.termSize = function(this: OverlayImageInterface, callback
   var opt = {
     stdio: 'pipe',
     env: process.env,
-    cwd: process.env.HOME
+    cwd: process.env.HOME,
   };
 
   var ps = this.spawn(OverlayImage.w3mdisplay, ['-test'], opt);
@@ -553,16 +606,16 @@ OverlayImage.prototype.termSize = function(this: OverlayImageInterface, callback
 
   ps.stdout.setEncoding('utf8');
 
-  ps.stdout.on('data', function(data) {
+  ps.stdout.on('data', function (data) {
     buf += data;
   });
 
-  ps.on('error', function(err) {
+  ps.on('error', function (err) {
     if (!callback) return;
     return callback(err);
   });
 
-  ps.on('exit', function() {
+  ps.on('exit', function () {
     if (!callback) return;
 
     if (!buf.trim()) {
@@ -576,18 +629,25 @@ OverlayImage.prototype.termSize = function(this: OverlayImageInterface, callback
     return callback(null, {
       raw: buf.trim(),
       width: +size[0],
-      height: +size[1]
+      height: +size[1],
     });
   });
 
   ps.stdin.end();
 };
 
-OverlayImage.prototype.getPixelRatio = function(this: OverlayImageInterface, callback?: Function) {
+OverlayImage.prototype.getPixelRatio = function (
+  this: OverlayImageInterface,
+  callback?: Function
+) {
   var self = this;
 
   if (cp.execSync) {
-    callback = callback || function(err, result) { return result; };
+    callback =
+      callback ||
+      function (err, result) {
+        return result;
+      };
     try {
       return callback(null, this.getPixelRatioSync());
     } catch (e) {
@@ -601,12 +661,12 @@ OverlayImage.prototype.getPixelRatio = function(this: OverlayImageInterface, cal
     return callback(null, this._ratio);
   }
 
-  return this.termSize(function(err, dimensions) {
+  return this.termSize(function (err, dimensions) {
     if (err) return callback(err);
 
     self._ratio = {
       tw: dimensions.width / self.screen.width,
-      th: dimensions.height / self.screen.height
+      th: dimensions.height / self.screen.height,
     };
 
     self._needsRatio = false;
@@ -615,7 +675,11 @@ OverlayImage.prototype.getPixelRatio = function(this: OverlayImageInterface, cal
   });
 };
 
-OverlayImage.prototype.renderImageSync = function(this: OverlayImageInterface, img: string, ratio: PixelRatio): boolean {
+OverlayImage.prototype.renderImageSync = function (
+  this: OverlayImageInterface,
+  img: string,
+  ratio: PixelRatio
+): boolean {
   if (OverlayImage.hasW3MDisplay === false) {
     throw new Error('W3M Image Display not available.');
   }
@@ -633,24 +697,29 @@ OverlayImage.prototype.renderImageSync = function(this: OverlayImageInterface, i
   this.file = _file;
   this._lastSize = _lastSize;
 
-  var width = this.width * ratio.tw | 0
-    , height = this.height * ratio.th | 0
-    , aleft = this.aleft * ratio.tw | 0
-    , atop = this.atop * ratio.th | 0;
+  var width = (this.width * ratio.tw) | 0,
+    height = (this.height * ratio.th) | 0,
+    aleft = (this.aleft * ratio.tw) | 0,
+    atop = (this.atop * ratio.th) | 0;
 
-  var input = '0;1;'
-    + aleft + ';'
-    + atop + ';'
-    + width + ';'
-    + height + ';;;;;'
-    + img
-    + '\n4;\n3;\n';
+  var input =
+    '0;1;' +
+    aleft +
+    ';' +
+    atop +
+    ';' +
+    width +
+    ';' +
+    height +
+    ';;;;;' +
+    img +
+    '\n4;\n3;\n';
 
   this._props = {
     aleft: aleft,
     atop: atop,
     width: width,
-    height: height
+    height: height,
   };
 
   try {
@@ -658,16 +727,16 @@ OverlayImage.prototype.renderImageSync = function(this: OverlayImageInterface, i
       env: process.env,
       encoding: 'utf8',
       input: input,
-      timeout: 1000
+      timeout: 1000,
     });
-  } catch (e) {
-    ;
-  }
+  } catch (e) {}
 
   return true;
 };
 
-OverlayImage.prototype.clearImageSync = function(this: OverlayImageInterface): boolean {
+OverlayImage.prototype.clearImageSync = function (
+  this: OverlayImageInterface
+): boolean {
   if (OverlayImage.hasW3MDisplay === false) {
     throw new Error('W3M Image Display not available.');
   }
@@ -676,10 +745,10 @@ OverlayImage.prototype.clearImageSync = function(this: OverlayImageInterface): b
     return false;
   }
 
-  var width = this._props.width + 2
-    , height = this._props.height + 2
-    , aleft = this._props.aleft
-    , atop = this._props.atop;
+  var width = this._props.width + 2,
+    height = this._props.height + 2,
+    aleft = this._props.aleft,
+    atop = this._props.atop;
 
   if (this._drag) {
     aleft -= 10;
@@ -688,12 +757,8 @@ OverlayImage.prototype.clearImageSync = function(this: OverlayImageInterface): b
     height += 10;
   }
 
-  var input = '6;'
-   + aleft + ';'
-   + atop + ';'
-   + width + ';'
-   + height
-   + '\n4;\n3;\n';
+  var input =
+    '6;' + aleft + ';' + atop + ';' + width + ';' + height + '\n4;\n3;\n';
 
   delete this.file;
   delete this._props;
@@ -704,16 +769,16 @@ OverlayImage.prototype.clearImageSync = function(this: OverlayImageInterface): b
       env: process.env,
       encoding: 'utf8',
       input: input,
-      timeout: 1000
+      timeout: 1000,
     });
-  } catch (e) {
-    ;
-  }
+  } catch (e) {}
 
   return true;
 };
 
-OverlayImage.prototype.imageSizeSync = function(this: OverlayImageInterface): ImageSize {
+OverlayImage.prototype.imageSizeSync = function (
+  this: OverlayImageInterface
+): ImageSize {
   var img = this.file;
 
   if (OverlayImage.hasW3MDisplay === false) {
@@ -732,22 +797,24 @@ OverlayImage.prototype.imageSizeSync = function(this: OverlayImageInterface): Im
       env: process.env,
       encoding: 'utf8',
       input: input,
-      timeout: 1000
+      timeout: 1000,
     });
-  } catch (e) {
-    ;
-  }
+  } catch (e) {}
 
   var size = buf.trim().split(/\s+/);
 
   return {
     raw: buf.trim(),
     width: +size[0],
-    height: +size[1]
+    height: +size[1],
   };
 };
 
-OverlayImage.prototype.termSizeSync = function(this: OverlayImageInterface, _?: any, recurse?: number): ImageSize {
+OverlayImage.prototype.termSizeSync = function (
+  this: OverlayImageInterface,
+  _?: any,
+  recurse?: number
+): ImageSize {
   if (OverlayImage.hasW3MDisplay === false) {
     throw new Error('W3M Image Display not available.');
   }
@@ -758,11 +825,9 @@ OverlayImage.prototype.termSizeSync = function(this: OverlayImageInterface, _?: 
     buf = cp.execFileSync(OverlayImage.w3mdisplay, ['-test'], {
       env: process.env,
       encoding: 'utf8',
-      timeout: 1000
+      timeout: 1000,
     });
-  } catch (e) {
-    ;
-  }
+  } catch (e) {}
 
   if (!buf.trim()) {
     // Bug: w3mimgdisplay will sometimes
@@ -779,11 +844,13 @@ OverlayImage.prototype.termSizeSync = function(this: OverlayImageInterface, _?: 
   return {
     raw: buf.trim(),
     width: +size[0],
-    height: +size[1]
+    height: +size[1],
   };
 };
 
-OverlayImage.prototype.getPixelRatioSync = function(this: OverlayImageInterface): PixelRatio {
+OverlayImage.prototype.getPixelRatioSync = function (
+  this: OverlayImageInterface
+): PixelRatio {
   // XXX We could cache this, but sometimes it's better
   // to recalculate to be pixel perfect.
   if (this._ratio && !this._needsRatio) {
@@ -795,13 +862,16 @@ OverlayImage.prototype.getPixelRatioSync = function(this: OverlayImageInterface)
 
   this._ratio = {
     tw: dimensions.width / this.screen.width,
-    th: dimensions.height / this.screen.height
+    th: dimensions.height / this.screen.height,
   };
 
   return this._ratio;
 };
 
-OverlayImage.prototype.displayImage = function(this: OverlayImageInterface, callback?: Function) {
+OverlayImage.prototype.displayImage = function (
+  this: OverlayImageInterface,
+  callback?: Function
+) {
   return this.screen.displayImage(this.file, callback);
 };
 
