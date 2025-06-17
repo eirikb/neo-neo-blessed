@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * scrollabletext.js - scrollable text element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,16 +8,29 @@
  * Modules
  */
 
-var Node = require('./node');
-var ScrollableBox = require('./scrollablebox');
+const Node = require('./node');
+const ScrollableBox = require('./scrollablebox');
+
+/**
+ * Type definitions
+ */
+
+interface ScrollableTextOptions {
+  alwaysScroll?: boolean;
+  [key: string]: any;
+}
+
+interface ScrollableTextInterface extends ScrollableBox {
+  type: string;
+}
 
 /**
  * ScrollableText
  */
 
-function ScrollableText(options) {
+function ScrollableText(this: ScrollableTextInterface, options?: ScrollableTextOptions) {
   if (!(this instanceof Node)) {
-    return new ScrollableText(options);
+    return new (ScrollableText as any)(options);
   }
   options = options || {};
   options.alwaysScroll = true;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * line.js - line element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,21 +8,46 @@
  * Modules
  */
 
-var Node = require('./node');
-var Box = require('./box');
+const Node = require('./node');
+const Box = require('./box');
+
+/**
+ * Type definitions
+ */
+
+interface LineOptions {
+  orientation?: 'vertical' | 'horizontal';
+  type?: string;
+  ch?: string;
+  width?: number;
+  height?: number;
+  [key: string]: any;
+}
+
+interface Border {
+  type: string;
+  __proto__: any;
+}
+
+interface LineInterface extends Box {
+  type: string;
+  ch: string;
+  border: Border;
+  style: any;
+}
 
 /**
  * Line
  */
 
-function Line(options) {
+function Line(this: LineInterface, options?: LineOptions) {
   if (!(this instanceof Node)) {
-    return new Line(options);
+    return new (Line as any)(options);
   }
 
   options = options || {};
 
-  var orientation = options.orientation || 'vertical';
+  const orientation = options.orientation || 'vertical';
   delete options.orientation;
 
   if (orientation === 'vertical') {

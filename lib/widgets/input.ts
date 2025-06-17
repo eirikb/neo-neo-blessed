@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * input.js - abstract input element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,16 +8,28 @@
  * Modules
  */
 
-var Node = require('./node');
-var Box = require('./box');
+const Node = require('./node');
+const Box = require('./box');
+
+/**
+ * Type definitions
+ */
+
+interface InputOptions {
+  [key: string]: any;
+}
+
+interface InputInterface extends Box {
+  type: string;
+}
 
 /**
  * Input
  */
 
-function Input(options) {
+function Input(this: InputInterface, options?: InputOptions) {
   if (!(this instanceof Node)) {
-    return new Input(options);
+    return new (Input as any)(options);
   }
   options = options || {};
   Box.call(this, options);

@@ -8,25 +8,38 @@
  * Modules
  */
 
-var Node = require("./node");
-var Element = require("./element");
+const Node = require('./node');
+const Element = require('./element');
+
+/**
+ * Type definitions
+ */
+
+interface TextOptions {
+  shrink?: boolean | string;
+  [key: string]: any;
+}
+
+interface TextInterface extends Element {
+  type: string;
+}
 
 /**
  * Text
  */
 
-function Text(options) {
+function Text(this: TextInterface, options?: TextOptions) {
   if (!(this instanceof Node)) {
-    return new Text(options);
+    return new (Text as any)(options);
   }
   options = options || {};
-  options.shrink = "shrink" in options ? options.shrink : true;
+  options.shrink = 'shrink' in options ? options.shrink : true;
   Element.call(this, options);
 }
 
 Text.prototype.__proto__ = Element.prototype;
 
-Text.prototype.type = "text";
+Text.prototype.type = 'text';
 
 /**
  * Expose
