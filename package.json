@@ -20,6 +20,7 @@
     "build-watch": "tsc --watch",
     "build:tests": "esbuild test/*.ts --outdir=test-dist --format=cjs --target=es2018",
     "type-check": "echo 'TypeScript type checking limited to colors.ts and unicode.ts due to legacy codebase complexity' && tsc --noEmit",
+    "type-check:strict": "tsc --project tsconfig.strict.json --noEmit",
     "lint": "eslint lib/",
     "test": "tsx test-runner.ts",
     "test:fast": "./run-fast-tests.sh",
@@ -61,6 +62,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.3",
+    "@types/pngjs": "^6.0.5",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
     "esbuild": "^0.25.5",

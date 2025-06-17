@@ -6,7 +6,6 @@
 
 import { PNG } from 'pngjs';
 import * as fs from 'fs';
-import * as path from 'path';
 
 interface ImageOptions {
   colors?: any;
@@ -25,7 +24,7 @@ interface CellMap {
 
 interface ImageResult {
   cellmap: CellMap;
-  frames?: any[];
+  frames?: any[] | undefined;
   play?(callback: (bmp: any, cellmap: CellMap) => void): any;
   pause?(): any;
   stop?(): any;
@@ -36,7 +35,6 @@ class ModernImageProcessor {
   private options: ImageOptions;
   private colors: any;
   private png: PNG | null = null;
-  private format: string;
 
   constructor(file: string | Buffer, options: ImageOptions = {}) {
     this.options = options;
@@ -54,15 +52,13 @@ class ModernImageProcessor {
       buf = fs.readFileSync(file);
     }
 
-    // Detect format
+    // Detect format and load image
     if (buf.readUInt32BE(0) === 0x89504e47) {
-      this.format = 'png';
+      // PNG format
       this.png = PNG.sync.read(buf);
     } else if (buf.slice(0, 3).toString('ascii') === 'GIF') {
-      this.format = 'gif';
       throw new Error('GIF format not yet supported in modern implementation');
     } else if (buf.readUInt16BE(0) === 0xffd8) {
-      this.format = 'jpg';
       throw new Error('JPEG format not yet supported in modern implementation');
     } else {
       throw new Error('Unsupported image format');
@@ -90,10 +86,10 @@ class ModernImageProcessor {
       const row: number[][] = [];
       for (let x = 0; x < width; x++) {
         const idx = (width * y + x) << 2;
-        const r = data[idx];
-        const g = data[idx + 1];
-        const b = data[idx + 2];
-        const a = data[idx + 3];
+        const r = data[idx] ?? 0;
+        const g = data[idx + 1] ?? 0;
+        const b = data[idx + 2] ?? 0;
+        const a = data[idx + 3] ?? 255;
         row.push([r, g, b, a]);
       }
       bmp.push(row);
@@ -106,10 +102,10 @@ class ModernImageProcessor {
     const cellmap: any[] = [];
     const scale = this.options.scale || 0.2;
     const height = bmp.length;
-    const width = bmp[0].length;
+    const width = bmp[0]?.length ?? 0;
 
-    let cmwidth = this.options.width;
-    let cmheight = this.options.height;
+    let cmwidth = this.options.width || 0;
+    let cmheight = this.options.height || 0;
 
     let actualScale = scale;
     if (cmwidth) {
@@ -162,14 +158,14 @@ class ModernImageProcessor {
     // This is a simplified version - the original tng.js had complex color matching
     const [r, g, b, a] = pixel;
 
-    if (a < 128) {
+    if ((a ?? 255) < 128) {
       // Transparent pixel
       return { char: ' ', fg: 'default', bg: 'default' };
     }
 
     // Use the colors module to find the best matching color
     if (this.colors && this.colors.match) {
-      const color = this.colors.match(r, g, b);
+      const color = this.colors.match(r ?? 0, g ?? 0, b ?? 0);
       return {
         char: '█', // Full block character
         fg: color,
@@ -178,7 +174,7 @@ class ModernImageProcessor {
     }
 
     // Fallback: basic grayscale
-    const gray = Math.round((r + g + b) / 3);
+    const gray = Math.round(((r ?? 0) + (g ?? 0) + (b ?? 0)) / 3);
     const char = gray > 128 ? '█' : gray > 64 ? '▓' : gray > 32 ? '▒' : '░';
 
     return {
@@ -198,11 +194,7 @@ function processImage(
 
   const result: ImageResult = {
     cellmap: processor.createCellmap(),
-    frames: undefined, // GIF support would go here
-    play: undefined,
-    pause: undefined,
-    stop: undefined,
-    renderElement: undefined,
+    // GIF support would go here
   };
 
   return result;

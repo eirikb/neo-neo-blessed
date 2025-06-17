@@ -1,4 +1,4 @@
-Start; /**
+/**
  * unicode.ts - modern unicode utilities using npm packages
  * Copyright (c) 2025, Contributors (MIT License).
  * Replaces embedded unicode libraries with proper npm dependencies
@@ -52,8 +52,8 @@ function charWidth(str: string | number, i?: number): number {
       return 1;
     case 'A': // Ambiguous
       // Handle CJK Ambiguous based on environment variable
-      if (process.env.NCURSES_CJK_WIDTH) {
-        return +process.env.NCURSES_CJK_WIDTH || 1;
+      if (process.env['NCURSES_CJK_WIDTH']) {
+        return +process.env['NCURSES_CJK_WIDTH'] || 1;
       }
       return 1;
     default:
@@ -230,14 +230,17 @@ const chars = {
 };
 
 // All wide chars including surrogate pairs.
-chars.all = new RegExp(
-  '(' +
-    chars.swide.source.slice(1, -1) +
-    '|' +
-    chars.wide.source.slice(1, -1) +
-    ')',
-  'g'
-);
+const charsWithAll = {
+  ...chars,
+  all: new RegExp(
+    '(' +
+      chars.swide.source.slice(1, -1) +
+      '|' +
+      chars.wide.source.slice(1, -1) +
+      ')',
+    'g'
+  ),
+};
 
 // Backward compatibility - these were exports in the original
 let blessed: any;
@@ -269,7 +272,7 @@ function ensureCombiningInitialized() {
 const combiningProxy = new Proxy(
   {},
   {
-    get(target, prop) {
+    get(_target, prop) {
       ensureCombiningInitialized();
       return (combining as any)[prop];
     },
@@ -286,7 +289,7 @@ const combiningProxy = new Proxy(
   isCombining,
   codePointAt,
   fromCodePoint,
-  chars,
+  chars: charsWithAll,
   blessed,
 };
 
@@ -298,7 +301,7 @@ export {
   isCombining,
   codePointAt,
   fromCodePoint,
-  chars,
+  charsWithAll as chars,
   combining,
   combiningTable,
 };

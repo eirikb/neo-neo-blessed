@@ -149,7 +149,7 @@ export default [
     },
     rules: {
       // TypeScript specific rules (lenient for migration)
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn', // Changed to warn
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -159,11 +159,49 @@ export default [
       ],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/prefer-optional-chain': 'off',
-      '@typescript-eslint/prefer-nullish-coalescing': 'off',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'warn', // Changed to warn
+      '@typescript-eslint/prefer-optional-chain': 'warn', // Changed to warn
+      '@typescript-eslint/prefer-nullish-coalescing': 'warn', // Changed to warn
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn', // Changed to warn
       '@typescript-eslint/no-inferrable-types': 'off',
+
+      // Disable base ESLint rules that conflict with TypeScript
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
+      'no-redeclare': 'off',
+    },
+  },
+
+  // Stricter rules for modernized files
+  {
+    files: ['lib/unicode.ts', 'lib/image-processor.ts'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        sourceType: 'module',
+        ecmaVersion: 2018,
+        project: './tsconfig.strict.json',
+        tsconfigRootDir: '.',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      // Stricter TypeScript rules for modernized files
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/explicit-function-return-type': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
 
       // Disable base ESLint rules that conflict with TypeScript
       'no-unused-vars': 'off',
