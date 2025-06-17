@@ -1,0 +1,54 @@
+{
+  "ts-node": {
+    "transpileOnly": true,
+    "files": false,
+    "compilerOptions": {
+      "allowJs": true,
+      "checkJs": false,
+      "noImplicitAny": false,
+      "strict": false,
+      "target": "ES2018",
+      "module": "CommonJS"
+    }
+  },
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "CommonJS",
+    "lib": ["ES2018"],
+    "types": ["node"],
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": false,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": false,
+    "skipDefaultLibCheck": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "resolveJsonModule": true,
+    "noErrorTruncation": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["lib/colors.ts", "lib/unicode.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "example",
+    "test-runner.js",
+    "debug-tty.js"
+  ]
+}

@@ -13,11 +13,23 @@
     }
   ],
   "scripts": {
-    "lint": "eslint lib/"
+    "build": "npm run build:esbuild",
+    "build:esbuild": "esbuild lib/*.ts lib/widgets/*.ts --outdir=dist --format=cjs --target=es2018 --sourcemap --minify",
+    "build:dev": "esbuild lib/*.ts lib/widgets/*.ts --outdir=dist --format=cjs --target=es2018 --sourcemap",
+    "build:tsc": "tsc",
+    "build-watch": "tsc --watch",
+    "build:tests": "esbuild test/*.ts --outdir=test-dist --format=cjs --target=es2018",
+    "type-check": "echo 'TypeScript type checking limited to colors.ts and unicode.ts due to legacy codebase complexity' && tsc --noEmit",
+    "lint": "eslint lib/",
+    "test": "tsx test-runner.ts",
+    "test:fast": "./run-fast-tests.sh",
+    "dev": "tsx",
+    "prepare": "husky"
   },
   "version": "0.0.0-development",
   "license": "MIT",
-  "main": "./lib/blessed.js",
+  "main": "./index.js",
+  "types": "./index.d.ts",
   "bin": "./bin/tput.js",
   "preferGlobal": false,
   "repository": "git://github.com/eirikb/neo-neo-blessed.git",
@@ -48,10 +60,25 @@
     ]
   },
   "devDependencies": {
-    "eslint": "^5.10.0"
+    "@types/node": "^24.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
+    "@typescript-eslint/parser": "^8.34.1",
+    "esbuild": "^0.25.5",
+    "eslint": "^8.57.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.5.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "node-pty": "^0.9.0",
     "term.js": "0.0.7"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,json,md}": [
+      "prettier --write"
+    ]
   }
 }
