@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * message.js - message element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,16 +8,58 @@
  * Modules
  */
 
-var Node = require('./node');
-var Box = require('./box');
+const Node = require('./node');
+const Box = require('./box');
+
+/**
+ * Type definitions
+ */
+
+interface MessageOptions {
+  tags?: boolean;
+  vi?: boolean;
+  mouse?: boolean;
+  ignoreKeys?: string[];
+  [key: string]: any;
+}
+
+interface KeyData {
+  name: string;
+  ctrl?: boolean;
+  shift?: boolean;
+}
+
+interface MouseData {
+  action: string;
+}
+
+interface MessageScreen {
+  saveFocus(): void;
+  restoreFocus(): void;
+  render(): void;
+}
+
+interface MessageInterface extends Box {
+  type: string;
+  scrollable?: boolean;
+  options: MessageOptions;
+  screen: MessageScreen;
+  show(): void;
+  hide(): void;
+  focus(): void;
+  scrollTo(position: number): void;
+  setContent(text: string): void;
+  onScreenEvent(event: string, listener: (...args: any[]) => void): void;
+  removeScreenEvent(event: string, listener: (...args: any[]) => void): void;
+}
 
 /**
  * Message / Error
  */
 
-function Message(options) {
+function Message(this: MessageInterface, options?: MessageOptions) {
   if (!(this instanceof Node)) {
-    return new Message(options);
+    return new (Message as any)(options);
   }
 
   options = options || {};
@@ -32,8 +73,8 @@ Message.prototype.__proto__ = Box.prototype;
 Message.prototype.type = 'message';
 
 Message.prototype.log =
-Message.prototype.display = function(text, time, callback) {
-  var self = this;
+Message.prototype.display = function(this: MessageInterface, text: string, time?: number | (() => void), callback?: () => void): void {
+  const self = this;
 
   if (typeof time === 'function') {
     callback = time;
@@ -58,9 +99,9 @@ Message.prototype.display = function(text, time, callback) {
   this.screen.render();
 
   if (time === Infinity || time === -1 || time === 0) {
-    var end = function() {
-      if (end.done) return;
-      end.done = true;
+    const end = function() {
+      if ((end as any).done) return;
+      (end as any).done = true;
       if (self.scrollable) {
         try {
           self.screen.restoreFocus();
@@ -74,7 +115,7 @@ Message.prototype.display = function(text, time, callback) {
     };
 
     setTimeout(function() {
-      self.onScreenEvent('keypress', function fn(ch, key) {
+      self.onScreenEvent('keypress', function fn(ch: string, key: KeyData) {
         if (key.name === 'mouse') return;
         if (self.scrollable) {
           if ((key.name === 'up' || (self.options.vi && key.name === 'k'))
@@ -88,7 +129,7 @@ Message.prototype.display = function(text, time, callback) {
             return;
           }
         }
-        if (self.options.ignoreKeys && ~self.options.ignoreKeys.indexOf(key.name)) {
+        if (self.options.ignoreKeys && self.options.ignoreKeys.indexOf(key.name) !== -1) {
           return;
         }
         self.removeScreenEvent('keypress', fn);
@@ -96,7 +137,7 @@ Message.prototype.display = function(text, time, callback) {
       });
       // XXX May be affected by new element.options.mouse option.
       if (!self.options.mouse) return;
-      self.onScreenEvent('mouse', function fn(data) {
+      self.onScreenEvent('mouse', function fn(data: MouseData) {
         if (data.action === 'mousemove') return;
         self.removeScreenEvent('mouse', fn);
         end();
@@ -110,10 +151,10 @@ Message.prototype.display = function(text, time, callback) {
     self.hide();
     self.screen.render();
     if (callback) callback();
-  }, time * 1000);
+  }, (time as number) * 1000);
 };
 
-Message.prototype.error = function(text, time, callback) {
+Message.prototype.error = function(this: MessageInterface, text: string, time?: number, callback?: () => void): void {
   return this.display('{red-fg}Error: ' + text + '{/red-fg}', time, callback);
 };
 

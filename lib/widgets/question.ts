@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * question.js - question element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,17 +8,56 @@
  * Modules
  */
 
-var Node = require('./node');
-var Box = require('./box');
-var Button = require('./button');
+const Node = require('./node');
+const Box = require('./box');
+const Button = require('./button');
+
+/**
+ * Type definitions
+ */
+
+interface QuestionOptions {
+  hidden?: boolean;
+  [key: string]: any;
+}
+
+interface QuestionKey {
+  name: string;
+}
+
+interface QuestionScreen {
+  saveFocus(): void;
+  restoreFocus(): void;
+  render(): void;
+}
+
+interface QuestionButton {
+  on(event: string, listener: () => void): void;
+  removeListener(event: string, listener: () => void): void;
+}
+
+interface QuestionInterface extends Box {
+  type: string;
+  screen: QuestionScreen;
+  _: {
+    okay: QuestionButton;
+    cancel: QuestionButton;
+  };
+  show(): void;
+  hide(): void;
+  focus(): void;
+  setContent(text: string): void;
+  onScreenEvent(event: string, listener: (...args: any[]) => void): void;
+  removeScreenEvent(event: string, listener: (...args: any[]) => void): void;
+}
 
 /**
  * Question
  */
 
-function Question(options) {
+function Question(this: QuestionInterface, options?: QuestionOptions) {
   if (!(this instanceof Node)) {
-    return new Question(options);
+    return new (Question as any)(options);
   }
 
   options = options || {};
@@ -63,9 +101,11 @@ Question.prototype.__proto__ = Box.prototype;
 
 Question.prototype.type = 'question';
 
-Question.prototype.ask = function(text, callback) {
-  var self = this;
-  var press, okay, cancel;
+Question.prototype.ask = function(this: QuestionInterface, text: string, callback: (err: any, data: boolean) => void): void {
+  const self = this;
+  let press: (ch: string, key: QuestionKey) => void;
+  let okay: () => void;
+  let cancel: () => void;
 
   // Keep above:
   // var parent = this.parent;
@@ -75,7 +115,7 @@ Question.prototype.ask = function(text, callback) {
   this.show();
   this.setContent(' ' + text);
 
-  this.onScreenEvent('keypress', press = function(ch, key) {
+  this.onScreenEvent('keypress', press = function(ch: string, key: QuestionKey) {
     if (key.name === 'mouse') return;
     if (key.name !== 'enter'
         && key.name !== 'escape'
@@ -98,7 +138,7 @@ Question.prototype.ask = function(text, callback) {
   this.screen.saveFocus();
   this.focus();
 
-  function done(err, data) {
+  function done(err: any, data: boolean) {
     self.hide();
     self.screen.restoreFocus();
     self.removeScreenEvent('keypress', press);
