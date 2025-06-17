@@ -244,6 +244,7 @@ Terminal.prototype.bootstrap = function (this: TerminalInterface): void {
     offsetParent: null,
     appendChild: function () {},
     removeChild: function () {},
+    remove: function () {}, // For xterm.js DOM removal
     setAttribute: function () {},
     getAttribute: function () {},
     style: {},
@@ -284,6 +285,19 @@ Terminal.prototype.bootstrap = function (this: TerminalInterface): void {
     },
     cancelAnimationFrame: function (id: any) {
       clearTimeout(id);
+    },
+    // Timer functions for xterm.js
+    clearInterval: function (id: any) {
+      clearInterval(id);
+    },
+    setInterval: function (callback: Function, delay: number) {
+      return setInterval(callback, delay);
+    },
+    clearTimeout: function (id: any) {
+      clearTimeout(id);
+    },
+    setTimeout: function (callback: Function, delay: number) {
+      return setTimeout(callback, delay);
     },
   };
 

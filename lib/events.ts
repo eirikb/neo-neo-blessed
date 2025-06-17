@@ -36,11 +36,18 @@ function EventEmitter(this: EventEmitterInterface) {
   if (!this._events) this._events = {};
 }
 
-EventEmitter.prototype.setMaxListeners = function(this: EventEmitterInterface, n: number): void {
+EventEmitter.prototype.setMaxListeners = function (
+  this: EventEmitterInterface,
+  n: number
+): void {
   this._maxListeners = n;
 };
 
-EventEmitter.prototype.addListener = function(this: EventEmitterInterface, type: string, listener: Listener): void {
+EventEmitter.prototype.addListener = function (
+  this: EventEmitterInterface,
+  type: string,
+  listener: Listener
+): void {
   if (!this._events![type]) {
     this._events![type] = listener;
   } else if (typeof this._events![type] === 'function') {
@@ -53,7 +60,11 @@ EventEmitter.prototype.addListener = function(this: EventEmitterInterface, type:
 
 EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
-EventEmitter.prototype.removeListener = function(this: EventEmitterInterface, type: string, listener: Listener): void {
+EventEmitter.prototype.removeListener = function (
+  this: EventEmitterInterface,
+  type: string,
+  listener: Listener
+): void {
   const handler = this._events![type];
   if (!handler) return;
 
@@ -75,7 +86,10 @@ EventEmitter.prototype.removeListener = function(this: EventEmitterInterface, ty
 
 EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
 
-EventEmitter.prototype.removeAllListeners = function(this: EventEmitterInterface, type?: string): void {
+EventEmitter.prototype.removeAllListeners = function (
+  this: EventEmitterInterface,
+  type?: string
+): void {
   if (type) {
     delete this._events![type];
   } else {
@@ -83,7 +97,11 @@ EventEmitter.prototype.removeAllListeners = function(this: EventEmitterInterface
   }
 };
 
-EventEmitter.prototype.once = function(this: EventEmitterInterface, type: string, listener: Listener): EventEmitterInterface {
+EventEmitter.prototype.once = function (
+  this: EventEmitterInterface,
+  type: string,
+  listener: Listener
+): EventEmitterInterface {
   const self = this;
   function on(this: EventEmitterInterface, ...args: any[]): any {
     self.removeListener(type, on);
@@ -93,13 +111,24 @@ EventEmitter.prototype.once = function(this: EventEmitterInterface, type: string
   return this.on(type, on);
 };
 
-EventEmitter.prototype.listeners = function(this: EventEmitterInterface, type: string): Listener[] {
-  const handler = this._events![type];
-  return typeof handler === 'function' ? [handler] : (handler as Listener[]) || [];
+EventEmitter.prototype.listeners = function (
+  this: EventEmitterInterface,
+  type: string
+): Listener[] {
+  if (!this._events) return [];
+  const handler = this._events[type];
+  return typeof handler === 'function'
+    ? [handler]
+    : (handler as Listener[]) || [];
 };
 
-EventEmitter.prototype._emit = function(this: EventEmitterInterface, type: string, args: any[]): any {
-  const handler = this._events![type];
+EventEmitter.prototype._emit = function (
+  this: EventEmitterInterface,
+  type: string,
+  args: any[]
+): any {
+  if (!this._events) return;
+  const handler = this._events[type];
   let ret: any;
 
   // if (type !== 'event') {
@@ -108,7 +137,7 @@ EventEmitter.prototype._emit = function(this: EventEmitterInterface, type: strin
 
   if (!handler) {
     if (type === 'error') {
-      throw new args[0];
+      throw new args[0]();
     }
     return;
   }
@@ -127,7 +156,11 @@ EventEmitter.prototype._emit = function(this: EventEmitterInterface, type: strin
   return ret !== false;
 };
 
-EventEmitter.prototype.emit = function(this: EventEmitterInterface, type: string, ...eventArgs: any[]): boolean {
+EventEmitter.prototype.emit = function (
+  this: EventEmitterInterface,
+  type: string,
+  ...eventArgs: any[]
+): boolean {
   const args = slice.call(arguments, 1);
   const params = slice.call(arguments);
   let el: EventEmitterInterface | undefined = this;
@@ -155,7 +188,7 @@ EventEmitter.prototype.emit = function(this: EventEmitterInterface, type: string
     if (el._emit(elementType, args) === false) {
       return false;
     }
-  } while (el = el.parent);
+  } while ((el = el.parent));
 
   return true;
 };

@@ -1,4 +1,4 @@
-/**
+Start; /**
  * unicode.ts - modern unicode utilities using npm packages
  * Copyright (c) 2025, Contributors (MIT License).
  * Replaces embedded unicode libraries with proper npm dependencies
