@@ -8,49 +8,80 @@
  * Modules
  */
 
-var fs = require('fs');
+const fs = require('fs');
+const unicode = require('./unicode');
 
-var unicode = require('./unicode');
+/**
+ * Type definitions
+ */
+
+interface SortableItem {
+  name: string;
+}
+
+interface IndexedItem {
+  index: number;
+}
+
+interface Style {
+  [key: string]: string | boolean;
+}
+
+interface TagResult {
+  open: string;
+  close: string;
+}
+
+interface Screen {
+  global?: any;
+}
+
+interface Element {
+  parseTags?: boolean;
+  screen?: Screen;
+  sattr?(style: any): any;
+  _parseTags?(text: string): string;
+}
 
 /**
  * Helpers
  */
 
-var helpers = exports;
+const helpers = {} as any;
 
-helpers.merge = function(a, b) {
-  Object.keys(b).forEach(function(key) {
+helpers.merge = function(a: any, b: any): any {
+  Object.keys(b).forEach(function(key: string) {
     a[key] = b[key];
   });
   return a;
 };
 
-helpers.asort = function(obj) {
-  return obj.sort(function(a, b) {
-    a = a.name.toLowerCase();
-    b = b.name.toLowerCase();
+helpers.asort = function(obj: SortableItem[]): SortableItem[] {
+  return obj.sort(function(a: SortableItem, b: SortableItem) {
+    let aName = a.name.toLowerCase();
+    let bName = b.name.toLowerCase();
 
-    if (a[0] === '.' && b[0] === '.') {
-      a = a[1];
-      b = b[1];
+    if (aName[0] === '.' && bName[0] === '.') {
+      aName = aName[1];
+      bName = bName[1];
     } else {
-      a = a[0];
-      b = b[0];
+      aName = aName[0];
+      bName = bName[0];
     }
 
-    return a > b ? 1 : (a < b ? -1 : 0);
+    return aName > bName ? 1 : (aName < bName ? -1 : 0);
   });
 };
 
-helpers.hsort = function(obj) {
-  return obj.sort(function(a, b) {
+helpers.hsort = function(obj: IndexedItem[]): IndexedItem[] {
+  return obj.sort(function(a: IndexedItem, b: IndexedItem) {
     return b.index - a.index;
   });
 };
 
-helpers.findFile = function(start, target) {
-  return (function read(dir) {
-    var files, file, stat, out;
+helpers.findFile = function(start: string, target: string): string | null {
+  return (function read(dir: string): string | null {
+    let files: string[], file: string, stat: any, out: string | null;
 
     if (dir === '/dev' || dir === '/sys'
         || dir === '/proc' || dir === '/net') {
@@ -63,7 +94,7 @@ helpers.findFile = function(start, target) {
       files = [];
     }
 
-    for (var i = 0; i < files.length; i++) {
+    for (let i = 0; i < files.length; i++) {
       file = files[i];
 
       if (file === target) {
@@ -87,23 +118,23 @@ helpers.findFile = function(start, target) {
 };
 
 // Escape text for tag-enabled elements.
-helpers.escape = function(text) {
-  return text.replace(/[{}]/g, function(ch) {
+helpers.escape = function(text: string): string {
+  return text.replace(/[{}]/g, function(ch: string) {
     return ch === '{' ? '{open}' : '{close}';
   });
 };
 
-helpers.parseTags = function(text, screen) {
+helpers.parseTags = function(text: string, screen?: Screen): string {
   return helpers.Element.prototype._parseTags.call(
     { parseTags: true, screen: screen || helpers.Screen.global }, text);
 };
 
-helpers.generateTags = function(style, text) {
-  var open = ''
-    , close = '';
+helpers.generateTags = function(style: Style | null, text?: string | null): string | TagResult {
+  let open = '';
+  let close = '';
 
-  Object.keys(style || {}).forEach(function(key) {
-    var val = style[key];
+  Object.keys(style || {}).forEach(function(key: string) {
+    let val = (style as Style)[key];
     if (typeof val === 'string') {
       val = val.replace(/^light(?!-)/, 'light-');
       val = val.replace(/^bright(?!-)/, 'bright-');
@@ -117,7 +148,7 @@ helpers.generateTags = function(style, text) {
     }
   });
 
-  if (text !== null) {
+  if (text != null) {
     return open + text + close;
   }
 
@@ -127,22 +158,22 @@ helpers.generateTags = function(style, text) {
   };
 };
 
-helpers.attrToBinary = function(style, element) {
+helpers.attrToBinary = function(style: any, element?: Element): any {
   return helpers.Element.prototype.sattr.call(element || {}, style);
 };
 
-helpers.stripTags = function(text) {
+helpers.stripTags = function(text: string): string {
   if (!text) return '';
   return text
     .replace(/{(\/?)([\w\-,;!#]*)}/g, '')
     .replace(/\x1b\[[\d;]*m/g, '');
 };
 
-helpers.cleanTags = function(text) {
+helpers.cleanTags = function(text: string): string {
   return helpers.stripTags(text).trim();
 };
 
-helpers.dropUnicode = function(text) {
+helpers.dropUnicode = function(text: string): string {
   if (!text) return '';
   return text
     .replace(unicode.chars.all, '??')
@@ -163,3 +194,5 @@ helpers.__defineGetter__('Element', function() {
   }
   return helpers._element;
 });
+
+module.exports = helpers;

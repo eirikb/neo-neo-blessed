@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "build": "npm run build:esbuild",
-    "build:esbuild": "esbuild lib/*.ts lib/widgets/*.ts --outdir=dist --format=cjs --target=es2018 --sourcemap",
+    "build:esbuild": "esbuild lib/*.ts lib/widgets/*.ts --outdir=dist --format=cjs --target=es2018 --sourcemap --minify",
+    "build:dev": "esbuild lib/*.ts lib/widgets/*.ts --outdir=dist --format=cjs --target=es2018 --sourcemap",
     "build:tsc": "tsc",
     "build-watch": "tsc --watch",
     "build:tests": "esbuild test/*.ts --outdir=test-dist --format=cjs --target=es2018",

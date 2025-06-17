@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * box.js - box element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,16 +8,28 @@
  * Modules
  */
 
-var Node = require('./node');
-var Element = require('./element');
+const Node = require('./node');
+const Element = require('./element');
+
+/**
+ * Type definitions
+ */
+
+interface BoxOptions {
+  [key: string]: any;
+}
+
+interface BoxInterface extends Element {
+  type: string;
+}
 
 /**
  * Box
  */
 
-function Box(options) {
+function Box(this: BoxInterface, options?: BoxOptions) {
   if (!(this instanceof Node)) {
-    return new Box(options);
+    return new (Box as any)(options);
   }
   options = options || {};
   Element.call(this, options);
