@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * textbox.js - textbox element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,16 +8,54 @@
  * Modules
  */
 
-var Node = require('./node');
-var Textarea = require('./textarea');
+const Node = require('./node');
+const Textarea = require('./textarea');
+
+/**
+ * Type definitions
+ */
+
+interface TextboxOptions {
+  scrollable?: boolean;
+  secret?: boolean;
+  censor?: boolean;
+  [key: string]: any;
+}
+
+interface TextboxKey {
+  name: string;
+}
+
+interface TextboxScreen {
+  tabc: string;
+}
+
+interface TextboxInterface extends Textarea {
+  type: string;
+  secret?: boolean;
+  censor?: boolean;
+  value: string;
+  _value: string;
+  width: number;
+  iwidth: number;
+  screen: TextboxScreen;
+  __listener?: (ch: string, key: TextboxKey) => void;
+  __olistener: (ch: string, key: TextboxKey) => any;
+  _listener: (ch: string, key: TextboxKey) => any;
+  _done: (err: any, value?: string) => void;
+  setContent(content: string): void;
+  _updateCursor(): void;
+  setValue(value?: string): void;
+  submit(): any;
+}
 
 /**
  * Textbox
  */
 
-function Textbox(options) {
+function Textbox(this: TextboxInterface, options?: TextboxOptions) {
   if (!(this instanceof Node)) {
-    return new Textbox(options);
+    return new (Textbox as any)(options);
   }
 
   options = options || {};
@@ -36,7 +73,7 @@ Textbox.prototype.__proto__ = Textarea.prototype;
 Textbox.prototype.type = 'textbox';
 
 Textbox.prototype.__olistener = Textbox.prototype._listener;
-Textbox.prototype._listener = function(ch, key) {
+Textbox.prototype._listener = function(this: TextboxInterface, ch: string, key: TextboxKey): any {
   if (key.name === 'enter') {
     this._done(null, this.value);
     return;
@@ -44,8 +81,8 @@ Textbox.prototype._listener = function(ch, key) {
   return this.__olistener(ch, key);
 };
 
-Textbox.prototype.setValue = function(value) {
-  var visible, val;
+Textbox.prototype.setValue = function(this: TextboxInterface, value?: string): void {
+  let visible: number, val: string;
   if (value == null) {
     value = this.value;
   }
@@ -66,7 +103,7 @@ Textbox.prototype.setValue = function(value) {
   }
 };
 
-Textbox.prototype.submit = function() {
+Textbox.prototype.submit = function(this: TextboxInterface): any {
   if (!this.__listener) return;
   return this.__listener('\r', { name: 'enter' });
 };

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * layout.js - layout element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,16 +8,88 @@
  * Modules
  */
 
-var Node = require('./node');
-var Element = require('./element');
+const Node = require('./node');
+const Element = require('./element');
+
+/**
+ * Type definitions
+ */
+
+interface LayoutOptions {
+  width?: number;
+  height?: number;
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+  layout?: 'inline' | 'grid';
+  renderer?: (coords: LayoutCoords) => LayoutIterator;
+  [key: string]: any;
+}
+
+interface LayoutCoords {
+  xi: number;
+  xl: number;
+  yi: number;
+  yl: number;
+}
+
+interface LayoutPosition {
+  left: number;
+  top: number;
+  width?: number;
+}
+
+interface LayoutPadding {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+interface LayoutChild {
+  shrink?: boolean;
+  width: number;
+  height: number;
+  position: LayoutPosition;
+  lpos?: LayoutCoords;
+  index?: number;
+  screen: {
+    _ci: number;
+  };
+  render(): void;
+}
+
+interface LayoutIterator {
+  (el: LayoutChild, i: number): boolean | void;
+}
+
+interface LayoutInterface extends Element {
+  type: string;
+  options: LayoutOptions;
+  children: LayoutChild[];
+  lpos?: LayoutCoords;
+  border?: boolean;
+  tpadding?: boolean;
+  padding?: LayoutPadding;
+  renderer: (coords: LayoutCoords) => LayoutIterator;
+  isRendered(el: LayoutChild): boolean;
+  getLast(i: number): LayoutChild | undefined;
+  getLastCoords(i: number): LayoutCoords | undefined;
+  _renderCoords(): LayoutCoords | undefined;
+  render(): LayoutCoords | undefined;
+  _emit(event: string, args?: any[]): void;
+  _getCoords(get?: boolean): LayoutCoords | undefined;
+  _render(): any;
+}
 
 /**
  * Layout
  */
 
-function Layout(options) {
+function Layout(this: LayoutInterface, options?: LayoutOptions) {
   if (!(this instanceof Node)) {
-    return new Layout(options);
+    return new (Layout as any)(options);
   }
 
   options = options || {};
@@ -43,64 +114,65 @@ Layout.prototype.__proto__ = Element.prototype;
 
 Layout.prototype.type = 'layout';
 
-Layout.prototype.isRendered = function(el) {
+Layout.prototype.isRendered = function(this: LayoutInterface, el: LayoutChild): boolean {
   if (!el.lpos) return false;
   return (el.lpos.xl - el.lpos.xi) > 0
       && (el.lpos.yl - el.lpos.yi) > 0;
 };
 
-Layout.prototype.getLast = function(i) {
+Layout.prototype.getLast = function(this: LayoutInterface, i: number): LayoutChild | undefined {
   while (this.children[--i]) {
-    var el = this.children[i];
+    const el = this.children[i];
     if (this.isRendered(el)) return el;
   }
 };
 
-Layout.prototype.getLastCoords = function(i) {
-  var last = this.getLast(i);
+Layout.prototype.getLastCoords = function(this: LayoutInterface, i: number): LayoutCoords | undefined {
+  const last = this.getLast(i);
   if (last) return last.lpos;
 };
 
-Layout.prototype._renderCoords = function() {
-  var coords = this._getCoords(true);
-  var children = this.children;
+Layout.prototype._renderCoords = function(this: LayoutInterface): LayoutCoords | undefined {
+  const coords = this._getCoords(true);
+  const children = this.children;
   this.children = [];
   this._render();
   this.children = children;
   return coords;
 };
 
-Layout.prototype.renderer = function(coords) {
-  var self = this;
+Layout.prototype.renderer = function(this: LayoutInterface, coords: LayoutCoords): LayoutIterator {
+  const self = this;
 
   // The coordinates of the layout element
-  var width = coords.xl - coords.xi
-    , height = coords.yl - coords.yi
-    , xi = coords.xi
-    , yi = coords.yi;
+  const width = coords.xl - coords.xi;
+  const height = coords.yl - coords.yi;
+  const xi = coords.xi;
+  const yi = coords.yi;
 
   // The current row offset in cells (which row are we on?)
-  var rowOffset = 0;
+  let rowOffset = 0;
 
   // The index of the first child in the row
-  var rowIndex = 0;
-  var lastRowIndex = 0;
+  let rowIndex = 0;
+  let lastRowIndex = 0;
 
   // Figure out the highest width child
+  let highWidth = 0;
   if (this.options.layout === 'grid') {
-    var highWidth = this.children.reduce(function(out, el) {
+    highWidth = this.children.reduce(function(out: number, el: LayoutChild): number {
       out = Math.max(out, el.width);
       return out;
     }, 0);
   }
 
-  return function iterator(el, i) {
+  return function iterator(el: LayoutChild, i: number): boolean | void {
     // Make our children shrinkable. If they don't have a height, for
     // example, calculate it for them.
     el.shrink = true;
 
     // Find the previous rendered child's coordinates
-    var last = self.getLast(i);
+    const last = self.getLast(i);
 
     // If there is no previously rendered element, we are on the first child.
     if (!last) {
@@ -110,14 +182,14 @@ Layout.prototype.renderer = function(coords) {
       // Otherwise, figure out where to place this child. We'll start by
       // setting it's `left`/`x` coordinate to right after the previous
       // rendered element. This child will end up directly to the right of it.
-      el.position.left = last.lpos.xl - xi;
+      el.position.left = last.lpos!.xl - xi;
 
       // Make sure the position matches the highest width element
       if (self.options.layout === 'grid') {
         // Compensate with width:
         // el.position.width = el.width + (highWidth - el.width);
         // Compensate with position:
-        el.position.left += highWidth - (last.lpos.xl - last.lpos.xi);
+        el.position.left += highWidth - (last.lpos!.xl - last.lpos!.xi);
       }
 
       // If our child does not overlap the right side of the Layout, set it's
@@ -129,9 +201,9 @@ Layout.prototype.renderer = function(coords) {
         // Otherwise we need to start a new row and calculate a new
         // `rowOffset` and `rowIndex` (the index of the child on the current
         // row).
-        rowOffset += self.children.slice(rowIndex, i).reduce(function(out, el) {
+        rowOffset += self.children.slice(rowIndex, i).reduce(function(out: number, el: LayoutChild): number {
           if (!self.isRendered(el)) return out;
-          out = Math.max(out, el.lpos.yl - el.lpos.yi);
+          out = Math.max(out, el.lpos!.yl - el.lpos!.yi);
           return out;
         }, 0);
         lastRowIndex = rowIndex;
@@ -143,12 +215,12 @@ Layout.prototype.renderer = function(coords) {
 
     // Make sure the elements on lower rows graviatate up as much as possible
     if (self.options.layout === 'inline') {
-      var above = null;
-      var abovea = Infinity;
-      for (var j = lastRowIndex; j < rowIndex; j++) {
-        var l = self.children[j];
+      let above: LayoutChild | null = null;
+      let abovea = Infinity;
+      for (let j = lastRowIndex; j < rowIndex; j++) {
+        const l = self.children[j];
         if (!self.isRendered(l)) continue;
-        var abs = Math.abs(el.position.left - (l.lpos.xi - xi));
+        const abs = Math.abs(el.position.left - (l.lpos!.xi - xi));
         // if (abs < abovea && (l.lpos.xl - l.lpos.xi) <= el.width) {
         if (abs < abovea) {
           above = l;
@@ -156,7 +228,7 @@ Layout.prototype.renderer = function(coords) {
         }
       }
       if (above) {
-        el.position.top = above.lpos.yl - yi;
+        el.position.top = above.lpos!.yl - yi;
       }
     }
 
@@ -169,10 +241,10 @@ Layout.prototype.renderer = function(coords) {
   };
 };
 
-Layout.prototype.render = function() {
+Layout.prototype.render = function(this: LayoutInterface): LayoutCoords | undefined {
   this._emit('prerender');
 
-  var coords = this._renderCoords();
+  const coords = this._renderCoords();
   if (!coords) {
     delete this.lpos;
     return;
@@ -192,23 +264,23 @@ Layout.prototype.render = function() {
 
   if (this.border) coords.xi++, coords.xl--, coords.yi++, coords.yl--;
   if (this.tpadding) {
-    coords.xi += this.padding.left, coords.xl -= this.padding.right;
-    coords.yi += this.padding.top, coords.yl -= this.padding.bottom;
+    coords.xi += this.padding!.left, coords.xl -= this.padding!.right;
+    coords.yi += this.padding!.top, coords.yl -= this.padding!.bottom;
   }
 
-  var iterator = this.renderer(coords);
+  const iterator = this.renderer(coords);
 
   if (this.border) coords.xi--, coords.xl++, coords.yi--, coords.yl++;
   if (this.tpadding) {
-    coords.xi -= this.padding.left, coords.xl += this.padding.right;
-    coords.yi -= this.padding.top, coords.yl += this.padding.bottom;
+    coords.xi -= this.padding!.left, coords.xl += this.padding!.right;
+    coords.yi -= this.padding!.top, coords.yl += this.padding!.bottom;
   }
 
-  this.children.forEach(function(el, i) {
+  this.children.forEach(function(el: LayoutChild, i: number) {
     if (el.screen._ci !== -1) {
       el.index = el.screen._ci++;
     }
-    var rendered = iterator(el, i);
+    const rendered = iterator(el, i);
     if (rendered === false) {
       delete el.lpos;
       return;

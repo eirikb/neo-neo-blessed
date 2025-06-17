@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * scrollablebox.js - scrollable box element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -13,10 +12,145 @@ var Node = require('./node');
 var Box = require('./box');
 
 /**
+ * Interfaces
+ */
+
+interface ScrollbarStyle {
+  fg?: string;
+  bg?: string;
+  bold?: boolean;
+  underline?: boolean;
+  inverse?: boolean;
+  invisible?: boolean;
+}
+
+interface ScrollbarConfig {
+  ch?: string;
+  style?: ScrollbarStyle;
+  fg?: string;
+  bg?: string;
+  bold?: boolean;
+  underline?: boolean;
+  inverse?: boolean;
+  invisible?: boolean;
+  track?: TrackConfig;
+}
+
+interface TrackConfig {
+  ch?: string;
+  style?: ScrollbarStyle;
+  fg?: string;
+  bg?: string;
+  bold?: boolean;
+  underline?: boolean;
+  inverse?: boolean;
+  invisible?: boolean;
+}
+
+interface ScrollableBoxOptions {
+  scrollable?: boolean;
+  baseLimit?: number;
+  alwaysScroll?: boolean;
+  scrollbar?: ScrollbarConfig;
+  track?: TrackConfig;
+  mouse?: boolean;
+  keys?: boolean;
+  ignoreKeys?: boolean;
+  vi?: boolean;
+  [key: string]: any;
+}
+
+interface ScrollableBoxStyle {
+  scrollbar?: ScrollbarStyle;
+  track?: ScrollbarStyle;
+  [key: string]: any;
+}
+
+interface MouseData {
+  x: number;
+  y: number;
+  action: string;
+  button?: string;
+}
+
+interface KeyData {
+  name: string;
+  ctrl?: boolean;
+  shift?: boolean;
+  meta?: boolean;
+}
+
+interface ScrollableBoxScreen {
+  _dragging?: any;
+  render(): void;
+  cleanSides(element: any): boolean;
+  deleteLine(count: number, top: number, left: number, bottom: number): void;
+  insertLine(count: number, top: number, left: number, bottom: number): void;
+}
+
+interface ScrollableBoxCoords {
+  xi: number;
+  xl: number;
+  yi: number;
+  yl: number;
+}
+
+interface ScrollableBoxInterface extends Box {
+  type: string;
+  scrollable: boolean;
+  childOffset: number;
+  childBase: number;
+  baseLimit: number;
+  alwaysScroll?: boolean;
+  scrollbar?: ScrollbarConfig;
+  track?: TrackConfig;
+  style: ScrollableBoxStyle;
+  screen: ScrollableBoxScreen;
+  options: ScrollableBoxOptions;
+  _scrollingBar?: boolean;
+  _drag?: any;
+  _isList?: boolean;
+  items?: any[];
+  lpos?: ScrollableBoxCoords & { _scrollBottom?: number };
+  children: any[];
+  _clines: any[];
+  aleft: number;
+  atop: number;
+  width: number;
+  height: number;
+  iright: number;
+  iheight: number;
+  itop: number;
+  ibottom: number;
+  rtop: number;
+  detached: boolean;
+  shrink?: boolean;
+  reallyScrollable: boolean;
+  
+  // Methods
+  _scrollBottom(): number;
+  setScroll(offset: number, always?: boolean): any;
+  scrollTo(offset: number, always?: boolean): any;
+  getScroll(): number;
+  scroll(offset: number, always?: boolean): any;
+  _recalculateIndex(): number;
+  resetScroll(): any;
+  getScrollHeight(): number;
+  getScrollPerc(s?: boolean): number;
+  setScrollPerc(i: number): any;
+  parseContent(): void;
+  emit(event: string): any;
+  on(event: string, listener: Function): void;
+  onScreenEvent(event: string, listener: Function): void;
+  removeScreenEvent(event: string, listener: Function): void;
+  _getCoords(get?: boolean, noscroll?: boolean): ScrollableBoxCoords | null;
+}
+
+/**
  * ScrollableBox
  */
 
-function ScrollableBox(options) {
+function ScrollableBox(this: ScrollableBoxInterface, options?: ScrollableBoxOptions) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -69,7 +203,7 @@ function ScrollableBox(options) {
     }
     // Allow controlling of the scrollbar via the mouse:
     if (options.mouse) {
-      this.on('mousedown', function(data) {
+      this.on('mousedown', function(data: MouseData) {
         if (self._scrollingBar) {
           // Do not allow dragging on the scrollbar:
           delete self.screen._dragging;
@@ -87,7 +221,7 @@ function ScrollableBox(options) {
           self.screen.render();
           var smd, smu;
           self._scrollingBar = true;
-          self.onScreenEvent('mousedown', smd = function(data) {
+          self.onScreenEvent('mousedown', smd = function(data: MouseData) {
             var y = data.y - self.atop;
             var perc = y / self.height;
             self.setScrollPerc(perc * 100 | 0);
@@ -118,7 +252,7 @@ function ScrollableBox(options) {
   }
 
   if (options.keys && !options.ignoreKeys) {
-    this.on('keypress', function(ch, key) {
+    this.on('keypress', function(ch: string, key: KeyData) {
       if (key.name === 'up' || (options.vi && key.name === 'k')) {
         self.scroll(-1);
         self.screen.render();

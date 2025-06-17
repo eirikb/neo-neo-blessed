@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * filemanager.js - file manager element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -18,10 +17,62 @@ var Node = require('./node');
 var List = require('./list');
 
 /**
+ * Interfaces
+ */
+
+interface FileManagerOptions {
+  cwd?: string;
+  label?: string;
+  parseTags?: boolean;
+  [key: string]: any;
+}
+
+interface FileItem {
+  name: string;
+  text: string;
+  dir: boolean;
+}
+
+interface FileManagerLabel {
+  setContent(content: string): void;
+}
+
+interface FileManagerScreen {
+  focused: any;
+  render(): void;
+  saveFocus(): void;
+  restoreFocus(): void;
+}
+
+interface FileManagerInterface extends List {
+  type: string;
+  cwd: string;
+  file: string;
+  value: string;
+  _label: FileManagerLabel;
+  screen: FileManagerScreen;
+  options: FileManagerOptions;
+  hidden: boolean;
+  
+  // Methods
+  refresh(cwd?: string | Function, callback?: Function): any;
+  pick(cwd?: string | Function, callback?: Function): void;
+  reset(cwd?: string | Function, callback?: Function): void;
+  emit(event: string, ...args: any[]): any;
+  on(event: string, listener: Function): void;
+  removeListener(event: string, listener: Function): void;
+  setItems(items: string[]): void;
+  select(index: number): void;
+  hide(): void;
+  show(): void;
+  focus(): void;
+}
+
+/**
  * FileManager
  */
 
-function FileManager(options) {
+function FileManager(this: FileManagerInterface, options?: FileManagerOptions) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -42,11 +93,11 @@ function FileManager(options) {
     this._label.setContent(options.label.replace('%path', this.cwd));
   }
 
-  this.on('select', function(item) {
+  this.on('select', function(item: any) {
     var value = item.content.replace(/\{[^{}]+\}/g, '').replace(/@$/, '')
       , file = path.resolve(self.cwd, value);
 
-    return fs.stat(file, function(err, stat) {
+    return fs.stat(file, function(err: NodeJS.ErrnoException | null, stat?: fs.Stats) {
       if (err) {
         return self.emit('error', err, file);
       }
@@ -70,7 +121,7 @@ FileManager.prototype.__proto__ = List.prototype;
 
 FileManager.prototype.type = 'file-manager';
 
-FileManager.prototype.refresh = function(cwd, callback) {
+FileManager.prototype.refresh = function(this: FileManagerInterface, cwd?: string | Function, callback?: Function) {
   if (!callback) {
     callback = cwd;
     cwd = null;
@@ -81,7 +132,7 @@ FileManager.prototype.refresh = function(cwd, callback) {
   if (cwd) this.cwd = cwd;
   else cwd = this.cwd;
 
-  return fs.readdir(cwd, function(err, list) {
+  return fs.readdir(cwd as string, function(err: NodeJS.ErrnoException | null, list?: string[]) {
     if (err && err.code === 'ENOENT') {
       self.cwd = cwd !== process.env.HOME
         ? process.env.HOME
@@ -94,14 +145,14 @@ FileManager.prototype.refresh = function(cwd, callback) {
       return self.emit('error', err, cwd);
     }
 
-    var dirs = []
-      , files = [];
+    var dirs: FileItem[] = []
+      , files: FileItem[] = [];
 
     list.unshift('..');
 
-    list.forEach(function(name) {
-      var f = path.resolve(cwd, name)
-        , stat;
+    list!.forEach(function(name: string) {
+      var f = path.resolve(cwd as string, name)
+        , stat: fs.Stats | undefined;
 
       try {
         stat = fs.lstatSync(f);
@@ -133,7 +184,7 @@ FileManager.prototype.refresh = function(cwd, callback) {
     dirs = helpers.asort(dirs);
     files = helpers.asort(files);
 
-    list = dirs.concat(files).map(function(data) {
+    list = dirs.concat(files).map(function(data: FileItem) {
       return data.text;
     });
 
@@ -147,7 +198,7 @@ FileManager.prototype.refresh = function(cwd, callback) {
   });
 };
 
-FileManager.prototype.pick = function(cwd, callback) {
+FileManager.prototype.pick = function(this: FileManagerInterface, cwd?: string | Function, callback?: Function) {
   if (!callback) {
     callback = cwd;
     cwd = null;
@@ -171,7 +222,7 @@ FileManager.prototype.pick = function(cwd, callback) {
     self.screen.render();
   }
 
-  this.on('file', onfile = function(file) {
+  this.on('file', onfile = function(file: string) {
     resume();
     return callback(null, file);
   });
@@ -181,7 +232,7 @@ FileManager.prototype.pick = function(cwd, callback) {
     return callback();
   });
 
-  this.refresh(cwd, function(err) {
+  this.refresh(cwd as string, function(err?: NodeJS.ErrnoException) {
     if (err) return callback(err);
 
     if (hidden) {
@@ -197,7 +248,7 @@ FileManager.prototype.pick = function(cwd, callback) {
   });
 };
 
-FileManager.prototype.reset = function(cwd, callback) {
+FileManager.prototype.reset = function(this: FileManagerInterface, cwd?: string | Function, callback?: Function) {
   if (!callback) {
     callback = cwd;
     cwd = null;

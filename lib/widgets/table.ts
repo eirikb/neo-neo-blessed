@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * table.js - table element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -13,10 +12,89 @@ var Node = require('./node');
 var Box = require('./box');
 
 /**
+ * Interfaces
+ */
+
+interface TableStyle {
+  border?: any;
+  header?: any;
+  cell?: any;
+  [key: string]: any;
+}
+
+interface TableBorder {
+  left?: boolean;
+  right?: boolean;
+  top?: boolean;
+  bottom?: boolean;
+}
+
+interface TableOptions {
+  shrink?: boolean;
+  style?: TableStyle;
+  align?: 'left' | 'center' | 'right';
+  height?: number;
+  pad?: number;
+  rows?: string[][];
+  data?: string[][];
+  noCellBorders?: boolean;
+  fillCellBorders?: boolean;
+  [key: string]: any;
+}
+
+interface TablePosition {
+  width?: number;
+  [key: string]: any;
+}
+
+interface TableScreen {
+  lines: any[][];
+  render(): void;
+}
+
+interface TableCoords {
+  xi: number;
+  xl: number;
+  yi: number;
+  yl: number;
+}
+
+interface TableInterface extends Box {
+  type: string;
+  pad: number;
+  rows: string[][];
+  _maxes?: number[];
+  align: 'left' | 'center' | 'right';
+  style: TableStyle;
+  position: TablePosition;
+  width: number;
+  screen: TableScreen;
+  border?: TableBorder;
+  options: TableOptions;
+  detached: boolean;
+  iright: number;
+  ibottom: number;
+  itop: number;
+  ileft: number;
+  iheight: number;
+  
+  // Methods
+  _calculateMaxes(): number[];
+  setRows(rows: string[][]): void;
+  setData(rows: string[][]): void;
+  render(): TableCoords | undefined;
+  _render(): TableCoords | undefined;
+  strWidth(str: string): number;
+  setContent(content: string): void;
+  sattr(style: any): number;
+  on(event: string, listener: Function): void;
+}
+
+/**
  * Table
  */
 
-function Table(options) {
+function Table(this: TableInterface, options?: TableOptions) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -59,16 +137,16 @@ Table.prototype.__proto__ = Box.prototype;
 
 Table.prototype.type = 'table';
 
-Table.prototype._calculateMaxes = function() {
+Table.prototype._calculateMaxes = function(this: TableInterface) {
   var self = this;
-  var maxes = [];
+  var maxes: number[] = [];
 
   if (this.detached) return;
 
   this.rows = this.rows || [];
 
-  this.rows.forEach(function(row) {
-    row.forEach(function(cell, i) {
+  this.rows.forEach(function(row: string[]) {
+    row.forEach(function(cell: string, i: number) {
       var clen = self.strWidth(cell);
       if (!maxes[i] || maxes[i] < clen) {
         maxes[i] = clen;
@@ -76,7 +154,7 @@ Table.prototype._calculateMaxes = function() {
     });
   });
 
-  var total = maxes.reduce(function(total, max) {
+  var total = maxes.reduce(function(total: number, max: number) {
     return total + max;
   }, 0);
   total += maxes.length + 1;
@@ -92,14 +170,14 @@ Table.prototype._calculateMaxes = function() {
     var missing = this.width - total;
     var w = missing / maxes.length | 0;
     var wr = missing % maxes.length;
-    maxes = maxes.map(function(max, i) {
+    maxes = maxes.map(function(max: number, i: number) {
       if (i === maxes.length - 1) {
         return max + w + wr;
       }
       return max + w;
     });
   } else {
-    maxes = maxes.map(function(max) {
+    maxes = maxes.map(function(max: number) {
       return max + self.pad;
     });
   }
@@ -108,7 +186,7 @@ Table.prototype._calculateMaxes = function() {
 };
 
 Table.prototype.setRows =
-Table.prototype.setData = function(rows) {
+Table.prototype.setData = function(this: TableInterface, rows?: string[][]) {
   var self = this
     , text = ''
     , align = this.align;
@@ -119,9 +197,9 @@ Table.prototype.setData = function(rows) {
 
   if (!this._maxes) return;
 
-  this.rows.forEach(function(row, i) {
+  this.rows.forEach(function(row: string[], i: number) {
     var isFooter = i === self.rows.length - 1;
-    row.forEach(function(cell, i) {
+    row.forEach(function(cell: string, i: number) {
       var width = self._maxes[i];
       var clen = self.strWidth(cell);
 
@@ -167,7 +245,7 @@ Table.prototype.setData = function(rows) {
   this.align = align;
 };
 
-Table.prototype.render = function() {
+Table.prototype.render = function(this: TableInterface) {
   var self = this;
 
   var coords = this._render();
@@ -215,7 +293,7 @@ Table.prototype.render = function() {
   for (i = 0; i < self.rows.length + 1; i++) {
     if (!lines[yi + ry]) break;
     rx = 0;
-    self._maxes.forEach(function(max, i) {
+    self._maxes.forEach(function(max: number, i: number) {
       rx += max;
       if (i === 0) {
         if (!lines[yi + ry][xi + 0]) return;
@@ -306,7 +384,7 @@ Table.prototype.render = function() {
   for (ry = 1; ry < self.rows.length * 2; ry++) {
     if (!lines[yi + ry]) break;
     rx = 0;
-    self._maxes.slice(0, -1).forEach(function(max) {
+    self._maxes.slice(0, -1).forEach(function(max: number) {
       rx += max;
       if (!lines[yi + ry][xi + rx + 1]) return;
       if (ry % 2 !== 0) {
@@ -325,7 +403,7 @@ Table.prototype.render = function() {
       }
     });
     rx = 1;
-    self._maxes.forEach(function(max) {
+    self._maxes.forEach(function(max: number) {
       while (max--) {
         if (ry % 2 === 0) {
           if (!lines[yi + ry]) break;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * listtable.js - list table element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,20 +8,112 @@
  * Modules
  */
 
-var Node = require('./node');
-var Box = require('./box');
-var List = require('./list');
-var Table = require('./table');
+const Node = require('./node');
+const Box = require('./box');
+const List = require('./list');
+const Table = require('./table');
+
+/**
+ * Type definitions
+ */
+
+interface ListTableOptions {
+  normalShrink?: boolean;
+  style?: {
+    border?: { [key: string]: any };
+    header?: { [key: string]: any };
+    cell?: { 
+      [key: string]: any;
+      selected?: { [key: string]: any };
+    };
+    [key: string]: any;
+  };
+  align?: 'left' | 'center' | 'right';
+  border?: {
+    top?: boolean;
+    bottom?: boolean;
+    left?: boolean;
+    right?: boolean;
+    [key: string]: any;
+  };
+  parseTags?: boolean;
+  tags?: boolean;
+  pad?: number;
+  rows?: string[][];
+  data?: string[][];
+  noCellBorders?: boolean;
+  fillCellBorders?: boolean;
+  [key: string]: any;
+}
+
+interface ListTableCoords {
+  xi: number;
+  xl: number;
+  yi: number;
+  yl: number;
+}
+
+interface ListTableLine {
+  dirty?: boolean;
+  [index: number]: [number, string];
+}
+
+interface ListTableScreen {
+  lines: ListTableLine[];
+  autoPadding?: boolean;
+}
+
+interface ListTableHeader {
+  setFront(): void;
+  setContent(content: string): void;
+  rtop?: number;
+}
+
+interface ListTableInterface extends List {
+  type: string;
+  __align: 'left' | 'center' | 'right';
+  _header: ListTableHeader;
+  pad: number;
+  rows: string[][];
+  _maxes?: number[];
+  border?: any;
+  options: ListTableOptions;
+  screen: ListTableScreen;
+  childBase: number;
+  ibottom: number;
+  ileft: number;
+  visible?: boolean;
+  lpos?: any;
+  selected: number;
+  items: any[];
+  ritems: string[];
+  on(event: string, listener: (...args: any[]) => void): void;
+  emit(event: string, ...args: any[]): boolean;
+  clearPos(): void;
+  clearItems(): void;
+  addItem(item: string): void;
+  strWidth(str: string): number;
+  setScroll(offset: number): void;
+  scrollTo(index: number): void;
+  sattr(style: any): number;
+  _calculateMaxes(): void;
+  setRows(rows: string[][]): void;
+  setData(rows: string[][]): void;
+  _select(index: number): void;
+  select(index: number): void;
+  render(): ListTableCoords | undefined;
+  _render(): ListTableCoords | undefined;
+}
 
 /**
  * ListTable
  */
 
-function ListTable(options) {
-  var self = this;
+function ListTable(this: ListTableInterface, options?: ListTableOptions) {
+  const self = this;
 
   if (!(this instanceof Node)) {
-    return new ListTable(options);
+    return new (ListTable as any)(options);
   }
 
   options = options || {};
@@ -36,10 +127,10 @@ function ListTable(options) {
   this.__align = options.align || 'center';
   delete options.align;
 
-  options.style.selected = options.style.cell.selected;
+  options.style.selected = options.style.cell!.selected;
   options.style.item = options.style.cell;
 
-  var border = options.border;
+  const border = options.border;
   if (border
       && border.top === false
       && border.bottom === false
@@ -81,7 +172,7 @@ function ListTable(options) {
   });
 
   this.on('resize', function() {
-    var selected = self.selected;
+    const selected = self.selected;
     self.setData(self.rows);
     self.select(selected);
     self.screen.render();
@@ -95,12 +186,12 @@ ListTable.prototype.type = 'list-table';
 ListTable.prototype._calculateMaxes = Table.prototype._calculateMaxes;
 
 ListTable.prototype.setRows =
-ListTable.prototype.setData = function(rows) {
-  var self = this
-    , align = this.__align
-    , selected = this.selected
-    , original = this.items.slice()
-    , sel = this.ritems[this.selected];
+ListTable.prototype.setData = function(this: ListTableInterface, rows?: string[][]): void {
+  const self = this;
+  const align = this.__align;
+  const selected = this.selected;
+  const original = this.items.slice();
+  let sel = this.ritems[this.selected];
 
   if (this.visible && this.lpos) {
     this.clearPos();
@@ -116,12 +207,12 @@ ListTable.prototype.setData = function(rows) {
 
   this.addItem('');
 
-  this.rows.forEach(function(row, i) {
-    var isHeader = i === 0;
-    var text = '';
-    row.forEach(function(cell, i) {
-      var width = self._maxes[i];
-      var clen = self.strWidth(cell);
+  this.rows.forEach(function(row: string[], i: number) {
+    const isHeader = i === 0;
+    let text = '';
+    row.forEach(function(cell: string, i: number) {
+      const width = self._maxes![i];
+      let clen = self.strWidth(cell);
 
       if (i !== 0) {
         text += ' ';
@@ -176,7 +267,7 @@ ListTable.prototype.setData = function(rows) {
 };
 
 ListTable.prototype._select = ListTable.prototype.select;
-ListTable.prototype.select = function(i) {
+ListTable.prototype.select = function(this: ListTableInterface, i: number): void {
   if (i === 0) {
     i = 1;
   }
@@ -191,28 +282,28 @@ ListTable.prototype.select = function(i) {
   }
 };
 
-ListTable.prototype.render = function() {
-  var self = this;
+ListTable.prototype.render = function(this: ListTableInterface): ListTableCoords | undefined {
+  const self = this;
 
-  var coords = this._render();
+  const coords = this._render();
   if (!coords) return;
 
   this._calculateMaxes();
 
   if (!this._maxes) return coords;
 
-  var lines = this.screen.lines
-    , xi = coords.xi
-    , yi = coords.yi
-    , rx
-    , ry
-    , i;
+  const lines = this.screen.lines;
+  const xi = coords.xi;
+  const yi = coords.yi;
+  let rx: number;
+  let ry: number;
+  let i: number;
 
-  var battr = this.sattr(this.style.border);
+  const battr = this.sattr(this.style.border);
 
-  var height = coords.yl - coords.yi - this.ibottom;
+  const height = coords.yl - coords.yi - this.ibottom;
 
-  var border = this.border;
+  let border = this.border;
   if (!this.border && this.options.border) {
     border = this.options.border;
   }
@@ -224,7 +315,7 @@ ListTable.prototype.render = function() {
   for (i = 0; i < height + 1; i++) {
     if (!lines[yi + ry]) break;
     rx = 0;
-    self._maxes.slice(0, -1).forEach(function(max) {
+    self._maxes!.slice(0, -1).forEach(function(max: number) {
       rx += max;
       if (!lines[yi + ry][xi + rx + 1]) return;
       // center
@@ -260,11 +351,11 @@ ListTable.prototype.render = function() {
   for (ry = 1; ry < height; ry++) {
     if (!lines[yi + ry]) break;
     rx = 0;
-    self._maxes.slice(0, -1).forEach(function(max) {
+    self._maxes!.slice(0, -1).forEach(function(max: number) {
       rx += max;
       if (!lines[yi + ry][xi + rx + 1]) return;
       if (self.options.fillCellBorders !== false) {
-        var lbg = lines[yi + ry][xi + rx][0] & 0x1ff;
+        const lbg = lines[yi + ry][xi + rx][0] & 0x1ff;
         rx++;
         lines[yi + ry][xi + rx][0] = (battr & ~0x1ff) | lbg;
       } else {

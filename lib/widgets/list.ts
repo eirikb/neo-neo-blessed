@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * list.js - list element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -9,20 +8,104 @@
  * Modules
  */
 
-var helpers = require('../helpers');
+const helpers = require('../helpers');
 
-var Node = require('./node');
-var Box = require('./box');
+const Node = require('./node');
+const Box = require('./box');
+
+/**
+ * Type definitions
+ */
+
+interface ListOptions {
+  ignoreKeys?: boolean;
+  scrollable?: boolean;
+  selectedBg?: string;
+  selectedFg?: string;
+  selectedBold?: boolean;
+  selectedUnderline?: boolean;
+  selectedBlink?: boolean;
+  selectedInverse?: boolean;
+  selectedInvisible?: boolean;
+  itemBg?: string;
+  itemFg?: string;
+  itemBold?: boolean;
+  itemUnderline?: boolean;
+  itemBlink?: boolean;
+  itemInverse?: boolean;
+  itemInvisible?: boolean;
+  itemHoverBg?: string;
+  itemHoverEffects?: { [key: string]: any };
+  itemFocusEffects?: { [key: string]: any };
+  itemHeight?: number;
+  interactive?: boolean;
+  mouse?: boolean;
+  items?: string[];
+  keys?: boolean;
+  vi?: boolean;
+  search?: (callback: (err: any, value?: string) => void) => void;
+  [key: string]: any;
+}
+
+interface ListKey {
+  name: string;
+  shift?: boolean;
+  ctrl?: boolean;
+  ch?: string;
+}
+
+interface ListStyle {
+  selected?: { [key: string]: any };
+  item?: { 
+    [key: string]: any;
+    hover?: { [key: string]: any };
+    focus?: { [key: string]: any };
+    height?: number;
+  };
+  [key: string]: any;
+}
+
+interface ListScreen {
+  render(): void;
+  _listenMouse(list: ListInterface): void;
+}
+
+interface ListInterface extends Box {
+  type: string;
+  value: string;
+  items: string[];
+  ritems: string[];
+  selected: number;
+  _isList: boolean;
+  style: ListStyle;
+  interactive: boolean;
+  mouse: boolean;
+  screen: ListScreen;
+  options: ListOptions;
+  height: number;
+  iheight: number;
+  childBase: number;
+  on(event: string, listener: (...args: any[]) => void): void;
+  emit(event: string, ...args: any[]): boolean;
+  add(item: string): void;
+  select(index: number): void;
+  up(): void;
+  down(offset?: number): void;
+  move(offset: number): void;
+  enterSelected(): void;
+  cancelSelected(): void;
+  fuzzyFind(search: string, reverse?: boolean): number;
+}
 
 /**
  * List
  */
 
-function List(options) {
-  var self = this;
+function List(this: ListInterface, options?: ListOptions) {
+  const self = this;
 
   if (!(this instanceof Node)) {
-    return new List(options);
+    return new (List as any)(options);
   }
 
   options = options || {};
@@ -62,9 +145,9 @@ function List(options) {
 
   // Legacy: for apps written before the addition of item attributes.
   ['bg', 'fg', 'bold', 'underline',
-   'blink', 'inverse', 'invisible'].forEach(function(name) {
-    if (self.style[name] != null && self.style.item[name] == null) {
-      self.style.item[name] = self.style[name];
+   'blink', 'inverse', 'invisible'].forEach(function(name: string) {
+    if (self.style[name] != null && self.style.item![name] == null) {
+      self.style.item![name] = self.style[name];
     }
   });
 
@@ -73,15 +156,15 @@ function List(options) {
   }
 
   if (this.options.itemHoverEffects) {
-    this.style.item.hover = this.options.itemHoverEffects;
+    this.style.item!.hover = this.options.itemHoverEffects;
   }
 
   if (this.options.itemFocusEffects) {
-    this.style.item.focus = this.options.itemFocusEffects;
+    this.style.item!.focus = this.options.itemFocusEffects;
   }
   
   if (this.options.itemHeight) {
-    this.style.item.height = this.options.itemHeight;
+    this.style.item!.height = this.options.itemHeight;
   }
 
   this.interactive = options.interactive !== false;
@@ -108,62 +191,62 @@ function List(options) {
   }
 
   if (options.keys) {
-    this.on('keypress', function(ch, key) {
-      if (key.name === 'up' || (options.vi && key.name === 'k')) {
+    this.on('keypress', function(ch: string, key: ListKey) {
+      if (key.name === 'up' || (options!.vi && key.name === 'k')) {
         self.up();
         self.screen.render();
         return;
       }
-      if (key.name === 'down' || (options.vi && key.name === 'j')) {
+      if (key.name === 'down' || (options!.vi && key.name === 'j')) {
         self.down();
         self.screen.render();
         return;
       }
       if (key.name === 'enter'
-          || (options.vi && key.name === 'l' && !key.shift)) {
+          || (options!.vi && key.name === 'l' && !key.shift)) {
         self.enterSelected();
         return;
       }
-      if (key.name === 'escape' || (options.vi && key.name === 'q')) {
+      if (key.name === 'escape' || (options!.vi && key.name === 'q')) {
         self.cancelSelected();
         return;
       }
-      if (options.vi && key.name === 'u' && key.ctrl) {
+      if (options!.vi && key.name === 'u' && key.ctrl) {
         self.move(-((self.height - self.iheight) / 2) | 0);
         self.screen.render();
         return;
       }
-      if (options.vi && key.name === 'd' && key.ctrl) {
+      if (options!.vi && key.name === 'd' && key.ctrl) {
         self.move((self.height - self.iheight) / 2 | 0);
         self.screen.render();
         return;
       }
-      if (options.vi && key.name === 'b' && key.ctrl) {
+      if (options!.vi && key.name === 'b' && key.ctrl) {
         self.move(-(self.height - self.iheight));
         self.screen.render();
         return;
       }
-      if (options.vi && key.name === 'f' && key.ctrl) {
+      if (options!.vi && key.name === 'f' && key.ctrl) {
         self.move(self.height - self.iheight);
         self.screen.render();
         return;
       }
-      if (options.vi && key.name === 'h' && key.shift) {
+      if (options!.vi && key.name === 'h' && key.shift) {
         self.move(self.childBase - self.selected);
         self.screen.render();
         return;
       }
-      if (options.vi && key.name === 'm' && key.shift) {
+      if (options!.vi && key.name === 'm' && key.shift) {
         // TODO: Maybe use Math.min(this.items.length,
         // ... for calculating visible items elsewhere.
-        var visible = Math.min(
+        const visible = Math.min(
           self.height - self.iheight,
           self.items.length) / 2 | 0;
         self.move(self.childBase + visible - self.selected);
         self.screen.render();
         return;
       }
-      if (options.vi && key.name === 'l' && key.shift) {
+      if (options!.vi && key.name === 'l' && key.shift) {
         // XXX This goes one too far on lists with an odd number of items.
         self.down(self.childBase
           + Math.min(self.height - self.iheight, self.items.length)
@@ -171,22 +254,22 @@ function List(options) {
         self.screen.render();
         return;
       }
-      if (options.vi && key.name === 'g' && !key.shift) {
+      if (options!.vi && key.name === 'g' && !key.shift) {
         self.select(0);
         self.screen.render();
         return;
       }
-      if (options.vi && key.name === 'g' && key.shift) {
+      if (options!.vi && key.name === 'g' && key.shift) {
         self.select(self.items.length - 1);
         self.screen.render();
         return;
       }
 
-      if (options.vi && (key.ch === '/' || key.ch === '?')) {
+      if (options!.vi && (key.ch === '/' || key.ch === '?')) {
         if (typeof self.options.search !== 'function') {
           return;
         }
-        return self.options.search(function(err, value) {
+        return self.options.search(function(err: any, value?: string) {
           if (typeof err === 'string' || typeof err === 'function'
               || typeof err === 'number' || (err && err.test)) {
             value = err;
