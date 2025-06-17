@@ -1,0 +1,63 @@
+name: Manual NPM Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0, patch, minor, major)'
+        required: true
+        default: 'patch'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build the project
+        run: npm run build
+      
+      - name: Update package name to neo-neo-bblessed
+        run: |
+          npm pkg set name=neo-neo-bblessed
+          npm pkg set repository.url=git://github.com/${{ github.repository }}.git
+          npm pkg set homepage=https://github.com/${{ github.repository }}
+          npm pkg set bugs.url=https://github.com/${{ github.repository }}/issues
+      
+      - name: Version bump
+        run: |
+          if [[ "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          else
+            npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          fi
+      
+      - name: Publish to NPM
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body: |
+            Published neo-neo-bblessed to npm
+            
+            Changes:
+            - Bun bundling support with inlined terminfo
+            - Improved asset resolution for bundlers
+          draft: false
+          prerelease: false
