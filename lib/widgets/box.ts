@@ -15,13 +15,7 @@ const BlessedElement = require('./element');
  * Type definitions
  */
 
-interface BoxOptions {
-  [key: string]: any;
-}
-
-interface BoxInterface extends any {
-  type: string;
-}
+import { BoxOptions, BoxInterface } from '../types/index';
 
 /**
  * Box

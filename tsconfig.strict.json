@@ -22,6 +22,9 @@
     // Start with the files we've already modernized
     "lib/unicode.ts",
     "lib/image-processor.ts",
-    "lib/types/**/*"
+    "lib/types/**/*",
+    // Include widget files that can use the new type definitions
+    "lib/widgets/box.ts",
+    "lib/events.ts"
   ]
 }

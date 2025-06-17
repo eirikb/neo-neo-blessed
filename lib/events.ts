@@ -10,22 +10,12 @@ const slice = Array.prototype.slice;
  * Type definitions
  */
 
+import { EventEmitterInterface } from './types/index';
+
 type Listener = (...args: any[]) => any;
-type Handler = Listener | Listener[];
 
 interface ListenerWithOriginal extends Listener {
   listener?: Listener;
-}
-
-interface Events {
-  [type: string]: Handler;
-}
-
-interface EventEmitterInterface {
-  _events?: Events;
-  _maxListeners?: number;
-  type?: string;
-  parent?: EventEmitterInterface;
 }
 
 /**
@@ -68,7 +58,7 @@ EventEmitter.prototype.removeListener = function (
   const handler = this._events![type];
   if (!handler) return;
 
-  if (typeof handler === 'function' || (handler as Listener[]).length === 1) {
+  if (typeof handler === 'function' || (handler as Listener[])?.length === 1) {
     delete this._events![type];
     this._emit('removeListener', [type, listener]);
     return;
@@ -76,7 +66,7 @@ EventEmitter.prototype.removeListener = function (
 
   const handlers = handler as ListenerWithOriginal[];
   for (let i = 0; i < handlers.length; i++) {
-    if (handlers[i] === listener || handlers[i].listener === listener) {
+    if (handlers[i] === listener || handlers[i]?.listener === listener) {
       handlers.splice(i, 1);
       this._emit('removeListener', [type, listener]);
       return;
@@ -116,9 +106,9 @@ EventEmitter.prototype.listeners = function (
   type: string
 ): Listener[] {
   if (!this._events) return [];
-  const handler = this._events[type];
+  const handler = this._events?.[type];
   return typeof handler === 'function'
-    ? [handler]
+    ? [handler as Listener]
     : (handler as Listener[]) || [];
 };
 
@@ -128,7 +118,7 @@ EventEmitter.prototype._emit = function (
   args: any[]
 ): any {
   if (!this._events) return;
-  const handler = this._events[type];
+  const handler = this._events?.[type];
   let ret: any;
 
   // if (type !== 'event') {
@@ -143,12 +133,12 @@ EventEmitter.prototype._emit = function (
   }
 
   if (typeof handler === 'function') {
-    return handler.apply(this, args);
+    return handler?.apply(this, args);
   }
 
   const handlers = handler as Listener[];
   for (let i = 0; i < handlers.length; i++) {
-    if (handlers[i].apply(this, args) === false) {
+    if (handlers[i]?.apply(this, args) === false) {
       ret = false;
     }
   }
@@ -159,7 +149,7 @@ EventEmitter.prototype._emit = function (
 EventEmitter.prototype.emit = function (
   this: EventEmitterInterface,
   type: string,
-  ...eventArgs: any[]
+  ..._eventArgs: any[]
 ): boolean {
   const args = slice.call(arguments, 1);
   const params = slice.call(arguments);
@@ -167,7 +157,7 @@ EventEmitter.prototype.emit = function (
 
   this._emit('event', params);
 
-  if (this.type === 'screen') {
+  if ((this as any).type === 'screen') {
     return this._emit(type, args);
   }
 
@@ -188,7 +178,7 @@ EventEmitter.prototype.emit = function (
     if (el._emit(elementType, args) === false) {
       return false;
     }
-  } while ((el = el.parent));
+  } while ((el = (el as any).parent));
 
   return true;
 };
