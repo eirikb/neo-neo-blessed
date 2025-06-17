@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * overlayimage.js - w3m image element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -18,12 +17,107 @@ var Node = require('./node');
 var Box = require('./box');
 
 /**
+ * Interfaces
+ */
+
+interface OverlayImageOptions {
+  w3m?: string;
+  search?: boolean;
+  file?: string;
+  img?: string;
+  shrink?: boolean;
+  autofit?: boolean;
+  [key: string]: any;
+}
+
+interface ImageSize {
+  raw: string;
+  width: number;
+  height: number;
+}
+
+interface PixelRatio {
+  tw: number;
+  th: number;
+}
+
+interface ImageProps {
+  aleft: number;
+  atop: number;
+  width: number;
+  height: number;
+}
+
+interface LastSize {
+  tw: number;
+  th: number;
+  width: number;
+  height: number;
+  aleft: number;
+  atop: number;
+}
+
+interface OverlayImageScreen {
+  width: number;
+  height: number;
+  program: {
+    flush(): void;
+  };
+  render(): void;
+  displayImage(file: string, callback?: Function): any;
+}
+
+interface OverlayImagePosition {
+  width?: number;
+  height?: number;
+  [key: string]: any;
+}
+
+interface OverlayImageInterface extends Box {
+  type: string;
+  file?: string;
+  _lastFile?: string;
+  _needsRatio?: boolean;
+  _noImage?: boolean;
+  _settingImage?: boolean;
+  _queue?: [string, Function?][];
+  _props?: ImageProps;
+  _lastSize?: LastSize;
+  _ratio?: PixelRatio;
+  _drag?: boolean;
+  screen: OverlayImageScreen;
+  options: OverlayImageOptions;
+  position: OverlayImagePosition;
+  width: number;
+  height: number;
+  aleft: number;
+  atop: number;
+  shrink?: boolean;
+  
+  // Methods
+  spawn(file: string, args: string[], opt?: any, callback?: Function): any;
+  setImage(img: string, callback?: Function): any;
+  renderImage(img: string, ratio: PixelRatio, callback?: Function): any;
+  clearImage(callback?: Function): any;
+  imageSize(callback?: Function): any;
+  termSize(callback?: Function): any;
+  getPixelRatio(callback?: Function): any;
+  renderImageSync(img: string, ratio: PixelRatio): boolean;
+  clearImageSync(): boolean;
+  imageSizeSync(): ImageSize;
+  termSizeSync(unused?: any, recurse?: number): ImageSize;
+  getPixelRatioSync(): PixelRatio;
+  displayImage(callback?: Function): any;
+  onScreenEvent(event: string, listener: Function): void;
+}
+
+/**
  * OverlayImage
  * Good example of w3mimgdisplay commands:
  * https://github.com/hut/ranger/blob/master/ranger/ext/img_display.py
  */
 
-function OverlayImage(options) {
+function OverlayImage(this: OverlayImageInterface, options?: OverlayImageOptions) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -123,7 +217,7 @@ OverlayImage.prototype.type = 'overlayimage';
 
 OverlayImage.w3mdisplay = '/usr/lib/w3m/w3mimgdisplay';
 
-OverlayImage.prototype.spawn = function(file, args, opt, callback) {
+OverlayImage.prototype.spawn = function(this: OverlayImageInterface, file: string, args: string[], opt?: any, callback?: Function) {
   var spawn = require('child_process').spawn
     , ps;
 
@@ -144,7 +238,7 @@ OverlayImage.prototype.spawn = function(file, args, opt, callback) {
   return ps;
 };
 
-OverlayImage.prototype.setImage = function(img, callback) {
+OverlayImage.prototype.setImage = function(this: OverlayImageInterface, img: string, callback?: Function) {
   var self = this;
 
   if (this._settingImage) {
@@ -242,7 +336,7 @@ OverlayImage.prototype.setImage = function(img, callback) {
   });
 };
 
-OverlayImage.prototype.renderImage = function(img, ratio, callback) {
+OverlayImage.prototype.renderImage = function(this: OverlayImageInterface, img: string, ratio: PixelRatio, callback?: Function) {
   var self = this;
 
   if (cp.execSync) {
@@ -311,7 +405,7 @@ OverlayImage.prototype.renderImage = function(img, ratio, callback) {
   });
 };
 
-OverlayImage.prototype.clearImage = function(callback) {
+OverlayImage.prototype.clearImage = function(this: OverlayImageInterface, callback?: Function) {
   if (cp.execSync) {
     callback = callback || function(err, result) { return result; };
     try {
@@ -371,7 +465,7 @@ OverlayImage.prototype.clearImage = function(callback) {
   ps.stdin.end();
 };
 
-OverlayImage.prototype.imageSize = function(callback) {
+OverlayImage.prototype.imageSize = function(this: OverlayImageInterface, callback?: Function) {
   var img = this.file;
 
   if (cp.execSync) {
@@ -430,7 +524,7 @@ OverlayImage.prototype.imageSize = function(callback) {
   ps.stdin.end();
 };
 
-OverlayImage.prototype.termSize = function(callback) {
+OverlayImage.prototype.termSize = function(this: OverlayImageInterface, callback?: Function) {
   var self = this;
 
   if (cp.execSync) {
@@ -489,7 +583,7 @@ OverlayImage.prototype.termSize = function(callback) {
   ps.stdin.end();
 };
 
-OverlayImage.prototype.getPixelRatio = function(callback) {
+OverlayImage.prototype.getPixelRatio = function(this: OverlayImageInterface, callback?: Function) {
   var self = this;
 
   if (cp.execSync) {
@@ -521,7 +615,7 @@ OverlayImage.prototype.getPixelRatio = function(callback) {
   });
 };
 
-OverlayImage.prototype.renderImageSync = function(img, ratio) {
+OverlayImage.prototype.renderImageSync = function(this: OverlayImageInterface, img: string, ratio: PixelRatio): boolean {
   if (OverlayImage.hasW3MDisplay === false) {
     throw new Error('W3M Image Display not available.');
   }
@@ -573,7 +667,7 @@ OverlayImage.prototype.renderImageSync = function(img, ratio) {
   return true;
 };
 
-OverlayImage.prototype.clearImageSync = function() {
+OverlayImage.prototype.clearImageSync = function(this: OverlayImageInterface): boolean {
   if (OverlayImage.hasW3MDisplay === false) {
     throw new Error('W3M Image Display not available.');
   }
@@ -619,7 +713,7 @@ OverlayImage.prototype.clearImageSync = function() {
   return true;
 };
 
-OverlayImage.prototype.imageSizeSync = function() {
+OverlayImage.prototype.imageSizeSync = function(this: OverlayImageInterface): ImageSize {
   var img = this.file;
 
   if (OverlayImage.hasW3MDisplay === false) {
@@ -653,7 +747,7 @@ OverlayImage.prototype.imageSizeSync = function() {
   };
 };
 
-OverlayImage.prototype.termSizeSync = function(_, recurse) {
+OverlayImage.prototype.termSizeSync = function(this: OverlayImageInterface, _?: any, recurse?: number): ImageSize {
   if (OverlayImage.hasW3MDisplay === false) {
     throw new Error('W3M Image Display not available.');
   }
@@ -689,7 +783,7 @@ OverlayImage.prototype.termSizeSync = function(_, recurse) {
   };
 };
 
-OverlayImage.prototype.getPixelRatioSync = function() {
+OverlayImage.prototype.getPixelRatioSync = function(this: OverlayImageInterface): PixelRatio {
   // XXX We could cache this, but sometimes it's better
   // to recalculate to be pixel perfect.
   if (this._ratio && !this._needsRatio) {
@@ -707,7 +801,7 @@ OverlayImage.prototype.getPixelRatioSync = function() {
   return this._ratio;
 };
 
-OverlayImage.prototype.displayImage = function(callback) {
+OverlayImage.prototype.displayImage = function(this: OverlayImageInterface, callback?: Function) {
   return this.screen.displayImage(this.file, callback);
 };
 

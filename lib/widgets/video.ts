@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * video.js - video element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -16,13 +15,62 @@ var Box = require('./box');
 var Terminal = require('./terminal');
 
 /**
+ * Interfaces
+ */
+
+interface VideoOptions {
+  file?: string;
+  start?: number;
+  [key: string]: any;
+}
+
+interface TerminalOptions {
+  parent: any;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  shell: string;
+  args: string[];
+}
+
+interface VideoTerminal {
+  pty: {
+    write(data: string): void;
+  };
+  destroy(): void;
+}
+
+interface VideoScreen {
+  render(): void;
+}
+
+interface VideoInterface extends Box {
+  type: string;
+  now: number;
+  start: number;
+  tty: VideoTerminal;
+  screen: VideoScreen;
+  width: number;
+  height: number;
+  iwidth: number;
+  iheight: number;
+  parseTags?: boolean;
+  
+  // Methods
+  exists(program: string): boolean;
+  setContent(content: string): void;
+  on(event: string, listener: Function): void;
+}
+
+/**
  * Video
  */
 
-function Video(options) {
+function Video(this: VideoInterface, options?: VideoOptions) {
   var self = this
-    , shell
-    , args;
+    , shell: string
+    , args: string[];
 
   if (!(this instanceof Node)) {
     return new Video(options);
@@ -45,7 +93,7 @@ function Video(options) {
     return this;
   }
 
-  var opts = {
+  var opts: TerminalOptions = {
     parent: this,
     left: 0,
     top: 0,
@@ -79,7 +127,7 @@ function Video(options) {
   this.on('resize', function() {
     self.tty.destroy();
 
-    var opts = {
+    var opts: TerminalOptions = {
       parent: self,
       left: 0,
       top: 0,
@@ -110,7 +158,7 @@ Video.prototype.__proto__ = Box.prototype;
 
 Video.prototype.type = 'video';
 
-Video.prototype.exists = function(program) {
+Video.prototype.exists = function(this: VideoInterface, program: string): boolean {
   try {
     return !!+cp.execSync('type '
       + program + ' > /dev/null 2> /dev/null'

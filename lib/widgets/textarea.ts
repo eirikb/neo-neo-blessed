@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * textarea.js - textarea element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -17,10 +16,141 @@ var Node = require('./node');
 var Input = require('./input');
 
 /**
+ * Interfaces
+ */
+
+interface TextareaOptions {
+  scrollable?: boolean;
+  value?: string;
+  inputOnFocus?: boolean;
+  keys?: boolean;
+  vi?: boolean;
+  mouse?: boolean;
+  [key: string]: any;
+}
+
+interface CursorPosition {
+  x: number;
+  y: number;
+}
+
+interface KeyData {
+  name: string;
+  ctrl?: boolean;
+  shift?: boolean;
+  meta?: boolean;
+}
+
+interface MouseData {
+  button?: string;
+  x: number;
+  y: number;
+}
+
+interface TextareaScreen {
+  focused: any;
+  program: {
+    x: number;
+    y: number;
+    showCursor(): void;
+    hideCursor(): void;
+    cuf(n: number): void;
+    cub(n: number): void;
+    cud(n: number): void;
+    cuu(n: number): void;
+    cup(y: number, x: number): void;
+  };
+  grabKeys: boolean;
+  fullUnicode: boolean;
+  saveFocus(): void;
+  restoreFocus(): void;
+  rewindFocus(): void;
+  render(): void;
+  readEditor(options: { value: string }, callback: Function): any;
+  _listenKeys(element: any): void;
+}
+
+interface TextareaCoords {
+  xi: number;
+  xl: number;
+  yi: number;
+  yl: number;
+}
+
+interface WrapResult {
+  real: string[];
+  fake: string[];
+  rtof: number[];
+  length: number;
+}
+
+interface TextareaCLines {
+  real: string[];
+  fake: string[];
+  rtof: number[];
+  length: number;
+}
+
+interface TextareaInterface extends Input {
+  type: string;
+  screen: TextareaScreen;
+  options: TextareaOptions;
+  offsetY: number;
+  offsetX: number;
+  value: string;
+  _value?: string;
+  _reading?: boolean;
+  _callback?: Function;
+  _done?: Function;
+  __listener?: Function;
+  __done?: Function;
+  __updateCursor: Function;
+  lpos?: TextareaCoords;
+  _clines: TextareaCLines;
+  childBase?: number;
+  iheight: number;
+  itop: number;
+  ileft: number;
+  iwidth: number;
+  width: number;
+  
+  // Methods
+  getCursor(): CursorPosition;
+  setCursor(x: number, y: number): void;
+  moveCursor(x: number, y: number): void;
+  _updateCursor(get?: boolean): void;
+  input(callback?: Function): any;
+  setInput(callback?: Function): any;
+  readInput(callback?: Function): any;
+  _listener(ch: string, key: KeyData): void;
+  _typeScroll(): void;
+  getValue(): string;
+  setValue(value?: string): void;
+  clearInput(): any;
+  clearValue(): any;
+  submit(): any;
+  cancel(): any;
+  render(): any;
+  editor(callback?: Function): any;
+  setEditor(callback?: Function): any;
+  readEditor(callback?: Function): any;
+  _render(): any;
+  _getCoords(): TextareaCoords | null;
+  strWidth(str: string): number;
+  setContent(content: string): void;
+  setScroll(offset: number): void;
+  _wrapContent(content: string, width: number): WrapResult;
+  emit(event: string, ...args: any[]): any;
+  on(event: string, listener: Function): void;
+  removeListener(event: string, listener: Function): void;
+  focus(): void;
+}
+
+/**
  * Textarea
  */
 
-function Textarea(options) {
+function Textarea(this: TextareaInterface, options?: TextareaOptions) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -49,7 +179,7 @@ function Textarea(options) {
   }
 
   if (!options.inputOnFocus && options.keys) {
-    this.on('keypress', function(ch, key) {
+    this.on('keypress', function(ch: string, key: KeyData) {
       if (self._reading) return;
       if (key.name === 'enter' || (options.vi && key.name === 'i')) {
         return self.readInput();
@@ -61,7 +191,7 @@ function Textarea(options) {
   }
 
   if (options.mouse) {
-    this.on('click', function(data) {
+    this.on('click', function(data: MouseData) {
       if (self._reading) return;
       if (data.button !== 'right') return;
       self.readEditor();
@@ -73,16 +203,16 @@ Textarea.prototype.__proto__ = Input.prototype;
 
 Textarea.prototype.type = 'textarea';
 
-Textarea.prototype.getCursor = function(){
+Textarea.prototype.getCursor = function(this: TextareaInterface): CursorPosition {
   return {x: this.offsetX, y: this.offsetY};
 }
 
-Textarea.prototype.setCursor = function(x, y){
+Textarea.prototype.setCursor = function(this: TextareaInterface, x: number, y: number): void {
   this.offsetX = x;
   this.offsetY = y;
 }
 
-Textarea.prototype.moveCursor = function(x, y){
+Textarea.prototype.moveCursor = function(this: TextareaInterface, x: number, y: number): void {
   var prevLine = (this._clines.length - 1) + this.offsetY;
   let sync = false;
   if (y <= 0 && y > (this._clines.length * -1)){
@@ -104,7 +234,7 @@ Textarea.prototype.moveCursor = function(x, y){
   this.screen.render();
 }
 
-Textarea.prototype._updateCursor = function(get) {
+Textarea.prototype._updateCursor = function(this: TextareaInterface, get?: boolean): void {
   if (this.screen.focused !== this) {
     return;
   }
@@ -165,7 +295,7 @@ Textarea.prototype._updateCursor = function(get) {
 
 Textarea.prototype.input =
 Textarea.prototype.setInput =
-Textarea.prototype.readInput = function(callback) {
+Textarea.prototype.readInput = function(this: TextareaInterface, callback?: Function) {
   var self = this
     , focused = this.screen.focused === this;
 
@@ -185,7 +315,7 @@ Textarea.prototype.readInput = function(callback) {
   this.screen.program.showCursor();
   //this.screen.program.sgr('normal');
 
-  this._done = function fn(err, value) {
+  this._done = function fn(err?: any, value?: string) {
     if (!self._reading) return;
 
     if (fn.done) return;
@@ -243,7 +373,7 @@ Textarea.prototype.readInput = function(callback) {
   this.on('blur', this.__done);
 };
 
-Textarea.prototype._listener = function(ch, key) {
+Textarea.prototype._listener = function(this: TextareaInterface, ch: string, key: KeyData): void {
   var done = this._done
     , value = this.value;
 
@@ -448,11 +578,11 @@ Textarea.prototype._typeScroll = function() {
   //}
 };
 
-Textarea.prototype.getValue = function() {
+Textarea.prototype.getValue = function(this: TextareaInterface): string {
   return this.value;
 };
 
-Textarea.prototype.setValue = function(value) {
+Textarea.prototype.setValue = function(this: TextareaInterface, value?: string): void {
   if (value == null) {
     value = this.value;
   }
@@ -466,28 +596,28 @@ Textarea.prototype.setValue = function(value) {
 };
 
 Textarea.prototype.clearInput =
-Textarea.prototype.clearValue = function() {
+Textarea.prototype.clearValue = function(this: TextareaInterface) {
   return this.setValue('');
 };
 
-Textarea.prototype.submit = function() {
+Textarea.prototype.submit = function(this: TextareaInterface) {
   if (!this.__listener) return;
   return this.__listener('\x1b', { name: 'escape' });
 };
 
-Textarea.prototype.cancel = function() {
+Textarea.prototype.cancel = function(this: TextareaInterface) {
   if (!this.__listener) return;
   return this.__listener('\x1b', { name: 'escape' });
 };
 
-Textarea.prototype.render = function() {
+Textarea.prototype.render = function(this: TextareaInterface) {
   this.setValue();
   return this._render();
 };
 
 Textarea.prototype.editor =
 Textarea.prototype.setEditor =
-Textarea.prototype.readEditor = function(callback) {
+Textarea.prototype.readEditor = function(this: TextareaInterface, callback?: Function) {
   var self = this;
 
   if (this._reading) {
@@ -496,7 +626,7 @@ Textarea.prototype.readEditor = function(callback) {
 
     this._done('stop');
 
-    callback = function(err, value) {
+    callback = function(err?: any, value?: string) {
       if (_cb) _cb(err, value);
       if (cb) cb(err, value);
     };
@@ -506,7 +636,7 @@ Textarea.prototype.readEditor = function(callback) {
     callback = function() {};
   }
 
-  return this.screen.readEditor({ value: this.value }, function(err, value) {
+  return this.screen.readEditor({ value: this.value }, function(err?: any, value?: string) {
     if (err) {
       if (err.message === 'Unsuccessful.') {
         self.screen.render();

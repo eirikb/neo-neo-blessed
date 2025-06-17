@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * image.js - image element for blessed
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -13,10 +12,24 @@ var Node = require('./node');
 var Box = require('./box');
 
 /**
+ * Interfaces
+ */
+
+interface ImageOptions {
+  type?: 'ansi' | 'overlay';
+  itype?: 'ansi' | 'overlay';
+  [key: string]: any;
+}
+
+interface ImageInterface extends Box {
+  type: string;
+}
+
+/**
  * Image
  */
 
-function Image(options) {
+function Image(this: ImageInterface, options?: ImageOptions) {
   if (!(this instanceof Node)) {
     return new Image(options);
   }
@@ -28,7 +41,7 @@ function Image(options) {
 
   if (options.type === 'ansi' && this.type !== 'ansiimage') {
     var ANSIImage = require('./ansiimage');
-    Object.getOwnPropertyNames(ANSIImage.prototype).forEach(function(key) {
+    Object.getOwnPropertyNames(ANSIImage.prototype).forEach(function(key: string) {
       if (key === 'type') return;
       Object.defineProperty(this, key,
         Object.getOwnPropertyDescriptor(ANSIImage.prototype, key));
@@ -39,7 +52,7 @@ function Image(options) {
 
   if (options.type === 'overlay' && this.type !== 'overlayimage') {
     var OverlayImage = require('./overlayimage');
-    Object.getOwnPropertyNames(OverlayImage.prototype).forEach(function(key) {
+    Object.getOwnPropertyNames(OverlayImage.prototype).forEach(function(key: string) {
       if (key === 'type') return;
       Object.defineProperty(this, key,
         Object.getOwnPropertyDescriptor(OverlayImage.prototype, key));

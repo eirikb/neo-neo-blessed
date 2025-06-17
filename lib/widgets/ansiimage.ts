@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ansiimage.js - render PNGS/GIFS as ANSI
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -19,10 +18,83 @@ var Box = require('./box');
 var tng = require('../../vendor/tng.js');
 
 /**
+ * Interfaces
+ */
+
+interface ANSIImageOptions {
+  scale?: number;
+  animate?: boolean;
+  file?: string;
+  ascii?: boolean;
+  speed?: number;
+  shrink?: boolean;
+  [key: string]: any;
+}
+
+interface CellMap {
+  [row: number]: any[];
+  length: number;
+}
+
+interface TngImage {
+  cellmap: CellMap;
+  frames?: any[];
+  play(callback: (bmp: any, cellmap: CellMap) => void): any;
+  pause(): any;
+  stop(): any;
+  renderElement(cellmap: CellMap, element: any): void;
+}
+
+interface ANSIImageScreen {
+  clearRegion(xi: number, xl: number, yi: number, yl: number): void;
+  render(): void;
+  on(event: string, listener: Function): void;
+}
+
+interface ANSIImagePosition {
+  width?: number;
+  height?: number;
+  [key: string]: any;
+}
+
+interface ANSIImageCoords {
+  xi: number;
+  xl: number;
+  yi: number;
+  yl: number;
+}
+
+interface ANSIImageInterface extends Box {
+  type: string;
+  scale: number;
+  options: ANSIImageOptions;
+  _noFill: boolean;
+  file?: string;
+  img?: TngImage;
+  cellmap?: CellMap;
+  screen: ANSIImageScreen;
+  position: ANSIImagePosition;
+  width: number;
+  height: number;
+  lpos?: ANSIImageCoords;
+  
+  // Methods
+  setImage(file: string | Buffer): void;
+  play(): any;
+  pause(): any;
+  stop(): any;
+  clearImage(): void;
+  render(): ANSIImageCoords | undefined;
+  _render(): ANSIImageCoords | undefined;
+  setContent(content: string): void;
+  on(event: string, listener: Function): void;
+}
+
+/**
  * ANSIImage
  */
 
-function ANSIImage(options) {
+function ANSIImage(this: ANSIImageInterface, options?: ANSIImageOptions) {
   var self = this;
 
   if (!(this instanceof Node)) {
@@ -58,7 +130,7 @@ ANSIImage.prototype.__proto__ = Box.prototype;
 
 ANSIImage.prototype.type = 'ansiimage';
 
-ANSIImage.curl = function(url) {
+ANSIImage.curl = function(url: string): Buffer {
   try {
     return cp.execFileSync('curl',
       ['-s', '-A', '', url],
@@ -76,7 +148,7 @@ ANSIImage.curl = function(url) {
   throw new Error('curl or wget failed.');
 };
 
-ANSIImage.prototype.setImage = function(file) {
+ANSIImage.prototype.setImage = function(this: ANSIImageInterface, file: string | Buffer): void {
   this.file = typeof file === 'string' ? file : null;
 
   if (/^https?:/.test(file)) {
@@ -105,7 +177,7 @@ ANSIImage.prototype.setImage = function(file) {
       ascii: this.options.ascii,
       speed: this.options.speed,
       filename: this.file
-    });
+    }) as TngImage;
 
     if (width == null || height == null) {
       this.width = this.img.cellmap[0].length;
@@ -124,33 +196,33 @@ ANSIImage.prototype.setImage = function(file) {
   }
 };
 
-ANSIImage.prototype.play = function() {
+ANSIImage.prototype.play = function(this: ANSIImageInterface) {
   var self = this;
   if (!this.img) return;
-  return this.img.play(function(bmp, cellmap) {
+  return this.img.play(function(bmp: any, cellmap: CellMap) {
     self.cellmap = cellmap;
     self.screen.render();
   });
 };
 
-ANSIImage.prototype.pause = function() {
+ANSIImage.prototype.pause = function(this: ANSIImageInterface) {
   if (!this.img) return;
   return this.img.pause();
 };
 
-ANSIImage.prototype.stop = function() {
+ANSIImage.prototype.stop = function(this: ANSIImageInterface) {
   if (!this.img) return;
   return this.img.stop();
 };
 
-ANSIImage.prototype.clearImage = function() {
+ANSIImage.prototype.clearImage = function(this: ANSIImageInterface): void {
   this.stop();
   this.setContent('');
-  this.img = null;
-  this.cellmap = null;
+  this.img = undefined;
+  this.cellmap = undefined;
 };
 
-ANSIImage.prototype.render = function() {
+ANSIImage.prototype.render = function(this: ANSIImageInterface) {
   var coords = this._render();
   if (!coords) return;
 
