@@ -15,7 +15,7 @@ var colors = require('../colors');
 var BlessedNode = require('./node');
 var BlessedBox = require('./box');
 
-var tng = require('../../vendor/tng.js');
+var processImage = require('../image-processor');
 
 /**
  * Interfaces
@@ -168,7 +168,7 @@ ANSIImage.prototype.setImage = function (
   try {
     this.setContent('');
 
-    this.img = tng(file, {
+    this.img = processImage(file, {
       colors: colors,
       width: width,
       height: height,

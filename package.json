@@ -73,8 +73,11 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "node-pty": "^0.9.0",
-    "term.js": "0.0.7"
+    "@xterm/xterm": "^5.5.0",
+    "crc-32": "^1.2.2",
+    "jimp": "^1.6.0",
+    "node-pty": "^1.0.0",
+    "pngjs": "^7.0.0"
   },
   "lint-staged": {
     "*.{js,ts,tsx,json,md}": [
