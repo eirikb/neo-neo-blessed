@@ -104,9 +104,9 @@ function BigText(this: BigTextInterface, options?: BigTextOptions) {
   }
   options = options || {};
   options.font = options.font
-    || __dirname + '/../../usr/fonts/ter-u14n.json';
+    || require.resolve('../../usr/fonts/ter-u14n.json');
   options.fontBold = options.fontBold
-    || __dirname + '/../../usr/fonts/ter-u14b.json';
+    || require.resolve('../../usr/fonts/ter-u14b.json');
   this.fch = options.fch;
   this.ratio = {} as BigTextRatio;
   this.font = this.loadFont(options.font);
