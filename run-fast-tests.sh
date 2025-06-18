@@ -12,7 +12,7 @@ mv index.js index.js.bak
 echo 'module.exports = require("./dist/blessed");' > index.js
 
 echo "Running fast tests..."
-node test-runner-fast.js
+npx tsx test-runner-fast.ts
 
 echo "Restoring original entry point..."
 mv index.js.bak index.js

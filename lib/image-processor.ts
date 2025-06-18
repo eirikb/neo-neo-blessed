@@ -164,7 +164,7 @@ class ModernImageProcessor {
     }
 
     // Use the colors module to find the best matching color
-    if (this.colors && this.colors.match) {
+    if (this.colors?.match) {
       const color = this.colors.match(r ?? 0, g ?? 0, b ?? 0);
       return {
         char: '█', // Full block character

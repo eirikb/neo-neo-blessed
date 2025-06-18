@@ -25,6 +25,12 @@
     "lib/types/**/*",
     // Include widget files that can use the new type definitions
     "lib/widgets/box.ts",
-    "lib/events.ts"
+    "lib/events.ts",
+    // Converted utility scripts
+    "bin/tput.ts",
+    "debug-tty.ts",
+    "test-runner-fast.ts",
+    // Converted configuration files
+    "index.ts"
   ]
 }

@@ -1,8 +1,8 @@
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
-import tsparser from '@typescript-eslint/parser';
+import * as tsparser from '@typescript-eslint/parser';
 
-export default [
+const config = [
   // Base config for all files
   {
     files: ['**/*.{js,mjs,cjs,ts,tsx}'],
@@ -160,9 +160,10 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-non-null-assertion': 'warn', // Changed to warn
-      '@typescript-eslint/prefer-optional-chain': 'warn', // Changed to warn
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn', // Changed to warn
-      '@typescript-eslint/no-unnecessary-type-assertion': 'warn', // Changed to warn
+      // Type-aware rules disabled for non-strict files
+      // '@typescript-eslint/prefer-optional-chain': 'warn',
+      // '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+      // '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
       '@typescript-eslint/no-inferrable-types': 'off',
 
       // Disable base ESLint rules that conflict with TypeScript
@@ -213,6 +214,10 @@ export default [
       'lib/image-processor.ts',
       'lib/widgets/box.ts',
       'lib/events.ts',
+      'bin/tput.ts',
+      'debug-tty.ts',
+      'test-runner-fast.ts',
+      'index.ts',
     ],
     languageOptions: {
       parser: tsparser,
@@ -262,3 +267,5 @@ export default [
     ],
   },
 ];
+
+export default config;
