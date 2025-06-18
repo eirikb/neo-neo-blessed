@@ -8,7 +8,7 @@
 
 process.title = 'time.js';
 
-var argv = process.argv;
+const argv = process.argv;
 
 if (~argv.indexOf('-h') || ~argv.indexOf('--help')) {
   console.log('Options:');
@@ -16,60 +16,60 @@ if (~argv.indexOf('-h') || ~argv.indexOf('--help')) {
   console.log('-n - No leading zero on hours.');
   console.log('-d - Show date box.');
   console.log('--skinny - Skinny text.');
-  return process.exit(0);
+  process.exit(0);
 }
 
-var blessed = require('blessed');
+import * as blessed from '../lib/blessed';
 
-var screen = blessed.screen({
-  autoPadding: true
+const screen = blessed.screen({
+  autoPadding: true,
 });
 
-var lastTime;
+let lastTime: string;
 
-var positions = {};
+interface SymbolMap {
+  [key: string]: blessed.Widgets.BoxElement;
+}
 
-var container = blessed.box({
+interface PositionMap {
+  [key: number]: SymbolMap;
+}
+
+const positions: PositionMap = {};
+
+const container = blessed.box({
   parent: screen,
   top: 'center',
   left: 'center',
   width: 'shrink',
   height: 9,
-  //padding: 2,
-  //border: {
-  //  type: 'line',
-  //  fg: 'black'
-  //}
 });
 
 // Workaround for centering shrunken box.
-container.on('prerender', function() {
-  var lpos = container._getCoords(true);
+container.on('prerender', function () {
+  const lpos = container._getCoords(true);
   if (lpos) {
-    container.rleft = (screen.width - (lpos.xl - lpos.xi)) / 2 | 0;
+    container.rleft = ((screen.width - (lpos.xl - lpos.xi)) / 2) | 0;
   }
 });
 
-var date = blessed.box({
+const date = blessed.box({
   parent: screen,
   top: 1,
   left: 1,
-  //top: '80%',
-  //left: 'center',
   width: 'shrink',
   height: 'shrink',
   border: {
     type: 'line',
-    fg: 'black'
-  }
+    fg: 'black',
+  },
 });
 
 date.hide();
 
-var wid = ~argv.indexOf('--skinny') ? 1 : 2;
-// var bch = ' ';
-var bch = '│';
-var inverse = true;
+const wid = ~argv.indexOf('--skinny') ? 1 : 2;
+const bch = '│';
+const inverse = true;
 
 // var bch = '*';
 // var bch = '·';
@@ -82,8 +82,8 @@ var inverse = true;
 // of 8 so we can vertically center horizontal lines
 // in 4, 8, etc.
 
-for (var i = 0; i < 10; i++) {
-  var symbols = positions[i] = {};
+for (let i = 0; i < 10; i++) {
+  const symbols: SymbolMap = (positions[i] = {});
 
   /**
    * Zero
@@ -94,7 +94,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -106,8 +106,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -119,8 +119,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -132,8 +132,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -145,8 +145,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[0].hide();
@@ -159,7 +159,7 @@ for (var i = 0; i < 10; i++) {
     parent: container,
     top: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -170,8 +170,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[1].hide();
@@ -185,7 +185,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -197,8 +197,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -210,8 +210,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -223,8 +223,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -236,8 +236,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -249,8 +249,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[2].hide();
@@ -264,7 +264,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -277,8 +277,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -290,8 +290,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -303,8 +303,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -316,8 +316,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[3].hide();
@@ -331,7 +331,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -344,8 +344,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -357,8 +357,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -370,8 +370,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[4].hide();
@@ -385,7 +385,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -397,8 +397,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -410,8 +410,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -423,8 +423,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -436,8 +436,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -449,8 +449,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[5].hide();
@@ -464,7 +464,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -476,8 +476,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -489,8 +489,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -502,8 +502,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -515,8 +515,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -528,8 +528,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[6].hide();
@@ -543,7 +543,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -556,8 +556,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -569,8 +569,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[7].hide();
@@ -584,7 +584,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -596,8 +596,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -609,8 +609,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -622,8 +622,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -635,8 +635,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -648,8 +648,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[8].hide();
@@ -663,7 +663,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 10,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -675,8 +675,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -688,8 +688,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -701,8 +701,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -714,8 +714,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -727,8 +727,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'default',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[9].hide();
@@ -742,7 +742,7 @@ for (var i = 0; i < 10; i++) {
     top: 0,
     left: 0,
     width: 5,
-    height: 9
+    height: 9,
   });
 
   blessed.box({
@@ -754,8 +754,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'black',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -767,8 +767,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'black',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols[':'].hide();
@@ -782,7 +782,7 @@ for (var i = 0; i < 10; i++) {
     top: 2,
     left: 0,
     width: 10,
-    height: 7
+    height: 7,
   });
 
   blessed.box({
@@ -794,8 +794,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'blue',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -807,8 +807,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'blue',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -820,8 +820,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'blue',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -833,8 +833,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'blue',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols['a'].hide();
@@ -848,7 +848,7 @@ for (var i = 0; i < 10; i++) {
     top: 2,
     left: 0,
     width: 10,
-    height: 7
+    height: 7,
   });
 
   blessed.box({
@@ -860,8 +860,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'blue',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -873,8 +873,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'blue',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -886,8 +886,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'blue',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -899,8 +899,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'blue',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols['p'].hide();
@@ -914,7 +914,7 @@ for (var i = 0; i < 10; i++) {
     top: 2,
     left: 0,
     width: 10,
-    height: 7
+    height: 7,
   });
 
   blessed.box({
@@ -926,8 +926,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'black',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -939,8 +939,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'black',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -952,8 +952,8 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'black',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   blessed.box({
@@ -965,21 +965,21 @@ for (var i = 0; i < 10; i++) {
     ch: bch,
     style: {
       fg: 'black',
-      inverse: inverse
-    }
+      inverse: inverse,
+    },
   });
 
   symbols['m'].hide();
 }
 
-function updateTime() {
-  var pos = 0
-    , d = new Date
-    , im = 'am'
-    , time
-    , h
-    , m
-    , s;
+function updateTime(): void {
+  let pos = 0;
+  const d = new Date();
+  let im = 'am';
+  let time: string;
+  let h: number | string;
+  let m: number | string;
+  let s: number | string;
 
   h = d.getHours();
   if (h >= 12) {
@@ -1003,29 +1003,27 @@ function updateTime() {
     s = '0' + s;
   }
 
-  time = ~argv.indexOf('-s')
-    ? h + ':' + m + ':' + s + im
-    : h + ':' + m + im;
+  time = ~argv.indexOf('-s') ? h + ':' + m + ':' + s + im : h + ':' + m + im;
 
   if (time === lastTime) return;
   lastTime = time;
 
-  time = time.split('');
+  const timeChars = time.split('');
 
   if (~argv.indexOf('-n')) {
-    if (time[0] === '0') time[0] = ' ';
+    if (timeChars[0] === '0') timeChars[0] = ' ';
   }
 
-  Object.keys(positions).forEach(function(key) {
-    var symbols = positions[key];
-    Object.keys(symbols).forEach(function(key) {
-      symbols[key].hide();
+  Object.keys(positions).forEach(function (key) {
+    const symbols = positions[parseInt(key)];
+    Object.keys(symbols).forEach(function (symbolKey) {
+      symbols[symbolKey].hide();
     });
   });
 
-  time.forEach(function(ch, i) {
-    var symbols = positions[i]
-      , symbol = symbols[ch];
+  timeChars.forEach(function (ch, i) {
+    const symbols = positions[i];
+    const symbol = symbols[ch];
 
     if (!symbol) return;
 
@@ -1047,6 +1045,6 @@ setInterval(updateTime, ~argv.indexOf('-s') ? 100 : 950);
 
 updateTime();
 
-screen.key('q', function() {
+screen.key('q', function () {
   process.exit(0);
 });
