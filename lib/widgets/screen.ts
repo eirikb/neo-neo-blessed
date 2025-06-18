@@ -468,7 +468,7 @@ Screen.prototype.enter = function (this: ScreenInterface): void {
 };
 
 Screen.prototype.leave = function (this: ScreenInterface): void {
-  if (!this.program.isAlt) return;
+  if (!this.program || !this.program.isAlt) return;
   this.program.put.keypad_local();
   if (
     this.program.scrollTop !== 0 ||

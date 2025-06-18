@@ -1,29 +1,29 @@
 #!/usr/bin/env node
 
-const { spawn } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+import { spawn } from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs';
 
-function runTest(testFile) {
-  return new Promise((resolve) => {
+function runTest(testFile: string): Promise<boolean> {
+  return new Promise(resolve => {
     console.log(`Testing ${testFile}...`);
-    
+
     const child = spawn('node', [testFile], {
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, FORCE_COLOR: '1' }
+      env: { ...process.env, FORCE_COLOR: '1' },
     });
 
     let hasOutput = false;
-    let initialTtyTimeout;
-    let cleanupTimeout;
+    let initialTtyTimeout: NodeJS.Timeout | undefined;
+    let cleanupTimeout: NodeJS.Timeout | undefined;
 
-    const cleanup = (result) => {
+    const cleanup = (result: boolean) => {
       if (initialTtyTimeout) clearTimeout(initialTtyTimeout);
       if (cleanupTimeout) clearTimeout(cleanupTimeout);
       resolve(result);
     };
 
-    child.stdout.on('data', (data) => {
+    child.stdout.on('data', data => {
       const str = data.toString();
       if (str.includes('\x1b[') || str.includes('\u001b[')) {
         hasOutput = true;
@@ -33,7 +33,7 @@ function runTest(testFile) {
       }
     });
 
-    child.on('exit', (code) => {
+    child.on('exit', _code => {
       if (!hasOutput) {
         console.log(`✗ ${testFile} - terminated cleanly (no TTY output)`);
         cleanup(false);
@@ -51,9 +51,10 @@ function runTest(testFile) {
   });
 }
 
-async function main() {
+async function main(): Promise<void> {
   const testDir = path.join(__dirname, 'test-dist');
-  const testFiles = fs.readdirSync(testDir)
+  const testFiles = fs
+    .readdirSync(testDir)
     .filter(file => file.endsWith('.js'))
     .map(file => path.join(testDir, file));
 

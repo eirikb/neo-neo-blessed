@@ -1,0 +1,36 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false
+  },
+  "include": [
+    // Start with the files we've already modernized
+    "lib/unicode.ts",
+    "lib/image-processor.ts",
+    "lib/types/**/*",
+    // Include widget files that can use the new type definitions
+    "lib/widgets/box.ts",
+    "lib/events.ts",
+    // Converted utility scripts
+    "bin/tput.ts",
+    "debug-tty.ts",
+    "test-runner-fast.ts",
+    // Converted configuration files
+    "index.ts"
+  ]
+}
