@@ -4,12 +4,13 @@
  * https://github.com/chjj/blessed
  */
 
-var blessed = require('../')
-  , program = blessed.program();
+import * as blessed from '../lib/blessed';
+
+const program = blessed.program();
 
 process.title = 'blessed';
 
-program.on('keypress', function(ch, key) {
+program.on('keypress', function (ch, key) {
   if (key.name === 'q') {
     program.clear();
     program.disableMouse();
@@ -19,7 +20,7 @@ program.on('keypress', function(ch, key) {
   }
 });
 
-program.on('mouse', function(data) {
+program.on('mouse', function (data) {
   if (data.action === 'mouseup') return;
   program.move(1, program.rows);
   program.eraseInLine('right');
@@ -40,12 +41,12 @@ program.on('mouse', function(data) {
   program.bg('!red');
 });
 
-program.on('focus', function() {
+program.on('focus', function () {
   program.move(1, program.rows);
   program.write('Gained focus.');
 });
 
-program.on('blur', function() {
+program.on('blur', function () {
   program.move(1, program.rows);
   program.write('Lost focus.');
 });
@@ -58,13 +59,13 @@ program.clear();
 program.move(1, 1);
 program.bg('black');
 program.write('Hello world', 'blue fg');
-program.setx((program.cols / 2 | 0) - 4);
+program.setx(((program.cols / 2) | 0) - 4);
 program.down(5);
 program.write('Hi again!');
 program.bg('!black');
 program.feed();
 
-program.getCursor(function(err, data) {
+program.getCursor(function (err, data) {
   if (!err) {
     program.write('Cursor is at: ' + data.x + ', ' + data.y + '.');
     program.feed();

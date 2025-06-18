@@ -1,7 +1,8 @@
-var blessed = require('blessed')
-  , screen = blessed.screen();
+import * as blessed from '../lib/blessed';
 
-var form = blessed.form({
+const screen = blessed.screen();
+
+const form = blessed.form({
   parent: screen,
   keys: true,
   left: 0,
@@ -9,17 +10,17 @@ var form = blessed.form({
   width: 30,
   height: 4,
   bg: 'green',
-  content: 'Submit or cancel?'
+  content: 'Submit or cancel?',
 });
 
-var submit = blessed.button({
+const submit = blessed.button({
   parent: form,
   mouse: true,
   keys: true,
   shrink: true,
   padding: {
     left: 1,
-    right: 1
+    right: 1,
   },
   left: 10,
   top: 2,
@@ -28,22 +29,22 @@ var submit = blessed.button({
   style: {
     bg: 'blue',
     focus: {
-      bg: 'red'
+      bg: 'red',
     },
     hover: {
-      bg: 'red'
-    }
-  }
+      bg: 'red',
+    },
+  },
 });
 
-var cancel = blessed.button({
+const cancel = blessed.button({
   parent: form,
   mouse: true,
   keys: true,
   shrink: true,
   padding: {
     left: 1,
-    right: 1
+    right: 1,
   },
   left: 20,
   top: 2,
@@ -52,33 +53,33 @@ var cancel = blessed.button({
   style: {
     bg: 'blue',
     focus: {
-      bg: 'red'
+      bg: 'red',
     },
     hover: {
-      bg: 'red'
-    }
-  }
+      bg: 'red',
+    },
+  },
 });
 
-submit.on('press', function() {
+submit.on('press', function () {
   form.submit();
 });
 
-cancel.on('press', function() {
+cancel.on('press', function () {
   form.reset();
 });
 
-form.on('submit', function(data) {
+form.on('submit', function (data) {
   form.setContent('Submitted.');
   screen.render();
 });
 
-form.on('reset', function(data) {
+form.on('reset', function (data) {
   form.setContent('Canceled.');
   screen.render();
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   process.exit(0);
 });
 
