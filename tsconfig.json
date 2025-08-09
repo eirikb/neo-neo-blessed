@@ -7,14 +7,14 @@
       "checkJs": false,
       "noImplicitAny": false,
       "strict": false,
-      "target": "ES2018",
+      "target": "ES2022",
       "module": "CommonJS"
     }
   },
   "compilerOptions": {
-    "target": "ES2018",
+    "target": "ES2022",
     "module": "CommonJS",
-    "lib": ["ES2018"],
+    "lib": ["ES2022"],
     "types": ["node"],
     "outDir": "./dist",
     "rootDir": "./",
