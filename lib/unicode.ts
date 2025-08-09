@@ -19,10 +19,8 @@ function charWidth(str: string | number, i?: number): number {
 
   // tab
   if (point === 0x09) {
-    if (!blessed) {
-      blessed = require('../');
-    }
-    return blessed.screen.global ? blessed.screen.global.tabc.length : 8;
+    // Default tab width is 8, can be overridden by environment variable
+    return +(process.env['BLESSED_TAB_WIDTH'] || 8);
   }
 
   // 8-bit control characters (2-width according to unicode??)
@@ -243,7 +241,6 @@ const charsWithAll = {
 };
 
 // Backward compatibility - these were exports in the original
-let blessed: any;
 
 // Legacy export compatibility
 const combining = {};
@@ -261,6 +258,7 @@ function initializeCombining() {
 
 // Lazy initialization
 let combiningInitialized = false;
+
 function ensureCombiningInitialized() {
   if (!combiningInitialized) {
     initializeCombining();
@@ -290,7 +288,6 @@ const combiningProxy = new Proxy(
   codePointAt,
   fromCodePoint,
   chars: charsWithAll,
-  blessed,
 };
 
 // For TypeScript/ES module users
