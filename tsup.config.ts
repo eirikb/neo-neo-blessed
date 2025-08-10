@@ -4,7 +4,7 @@ export default defineConfig(options => ({
   entry: {
     blessed: 'lib/blessed.ts',
   },
-  format: ['cjs'],
+  format: ['cjs', 'esm'],
   target: 'es2022',
   dts: {
     compilerOptions: {
@@ -26,6 +26,15 @@ export default defineConfig(options => ({
   skipNodeModulesBundle: true,
   platform: 'node',
   external: ['./dist/blessed.js', './dist/blessed'],
+  // ESM compatibility for legacy CommonJS codebase
+  esbuildOptions(options, context) {
+    if (context.format === 'esm') {
+      // Inject CommonJS globals for Node.js ESM compatibility
+      options.banner = {
+        js: 'import { createRequire } from "module"; const require = createRequire(import.meta.url); const module = { exports: {} };',
+      };
+    }
+  },
   onSuccess: async () => {
     console.log('Build completed successfully!');
   },

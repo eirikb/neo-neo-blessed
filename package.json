@@ -30,7 +30,15 @@
   "version": "0.0.0-development",
   "license": "MIT",
   "main": "./dist/blessed.js",
+  "module": "./dist/blessed.mjs",
   "types": "./dist/blessed.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/blessed.d.ts",
+      "import": "./dist/blessed.mjs",
+      "require": "./dist/blessed.js"
+    }
+  },
   "bin": "./bin/tput.ts",
   "preferGlobal": false,
   "repository": "git://github.com/eirikb/neo-neo-blessed.git",
