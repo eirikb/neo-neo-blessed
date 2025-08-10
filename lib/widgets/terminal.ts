@@ -53,6 +53,7 @@ interface MockElement {
   getAttribute(): void;
   focus(): void;
   blur(): void;
+  replaceChildren(): void;
 }
 
 interface TermObject {
@@ -250,6 +251,12 @@ Terminal.prototype.bootstrap = function (this: TerminalInterface): void {
     style: {},
     focus: function () {},
     blur: function () {},
+    replaceChildren: function () {
+      // Mock implementation of Element.replaceChildren()
+      // Accepts any number of Node objects or strings as arguments
+      // In real DOM, this would replace all children with provided nodes
+      // For mock, we can just do nothing (no-op)
+    },
     console: console,
     // Mock DOM APIs that xterm.js needs
     classList: {
