@@ -1,7 +1,7 @@
 var blessed = require('blessed');
 var screen = blessed.screen({
   autoPadding: true,
-  warnings: true
+  warnings: true,
 });
 
 var tab = blessed.box({
@@ -15,13 +15,13 @@ var tab = blessed.box({
   vi: true,
   alwaysScroll: true,
   scrollbar: {
-    ch: ' '
+    ch: ' ',
   },
   style: {
     scrollbar: {
-      inverse: true
-    }
-  }
+      inverse: true,
+    },
+  },
 });
 
 var form = blessed.box({
@@ -36,7 +36,7 @@ var form = blessed.box({
   height: 'shrink',
   label: ' {blue-fg}Form{/blue-fg} ',
   border: 'line',
-  tags: true
+  tags: true,
 });
 
 form._.ftext = blessed.text({
@@ -45,7 +45,7 @@ form._.ftext = blessed.text({
   left: 0,
   height: 1,
   content: 'Foo',
-  tags: true
+  tags: true,
 });
 
 form._.foo = blessed.textbox({
@@ -59,12 +59,12 @@ form._.foo = blessed.textbox({
   style: {
     bg: 'black',
     focus: {
-      bg: 'blue'
+      bg: 'blue',
     },
     hover: {
-      bg: 'blue'
-    }
-  }
+      bg: 'blue',
+    },
+  },
 });
 
 form._.btext = blessed.text({
@@ -73,7 +73,7 @@ form._.btext = blessed.text({
   left: 0,
   height: 1,
   content: 'Bar',
-  tags: true
+  tags: true,
 });
 
 form._.bar = blessed.textbox({
@@ -87,12 +87,12 @@ form._.bar = blessed.textbox({
   style: {
     bg: 'black',
     focus: {
-      bg: 'blue'
+      bg: 'blue',
     },
     hover: {
-      bg: 'blue'
-    }
-  }
+      bg: 'blue',
+    },
+  },
 });
 
 form._.ztext = blessed.text({
@@ -101,7 +101,7 @@ form._.ztext = blessed.text({
   left: 0,
   height: 1,
   content: 'Baz',
-  tags: true
+  tags: true,
 });
 
 form._.baz = blessed.textbox({
@@ -115,12 +115,12 @@ form._.baz = blessed.textbox({
   style: {
     bg: 'black',
     focus: {
-      bg: 'blue'
+      bg: 'blue',
     },
     hover: {
-      bg: 'blue'
-    }
-  }
+      bg: 'blue',
+    },
+  },
 });
 
 form._.submit = blessed.button({
@@ -136,25 +136,25 @@ form._.submit = blessed.button({
   style: {
     bg: 'black',
     focus: {
-      bg: 'blue'
+      bg: 'blue',
     },
     hover: {
-      bg: 'blue'
-    }
-  }
+      bg: 'blue',
+    },
+  },
 });
 
-form._.submit.on('press', function() {
+form._.submit.on('press', function () {
   tabs.send._.form.submit();
 });
 
-form.on('submit', function(data) {
+form.on('submit', function (data) {
   screen.leave();
   console.log(data);
   screen.destroy();
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   screen.destroy();
 });
 

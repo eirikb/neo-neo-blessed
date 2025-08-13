@@ -1,11 +1,11 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/dock.log',
   smartCSR: true,
   dockBorders: true,
-  warnings: true
+  warnings: true,
 });
 
 var topleft = blessed.box({
@@ -19,10 +19,10 @@ var topleft = blessed.box({
     left: false,
     top: false,
     right: true,
-    bottom: false
+    bottom: false,
   },
   // border: 'line',
-  content: 'Foo'
+  content: 'Foo',
 });
 
 var topright = blessed.box({
@@ -36,10 +36,10 @@ var topright = blessed.box({
     left: true,
     top: false,
     right: false,
-    bottom: false
+    bottom: false,
   },
   // border: 'line',
-  content: 'Bar'
+  content: 'Bar',
 });
 
 var bottomleft = blessed.box({
@@ -53,10 +53,10 @@ var bottomleft = blessed.box({
     left: false,
     top: true,
     right: false,
-    bottom: false
+    bottom: false,
   },
   border: 'line',
-  content: 'Foo'
+  content: 'Foo',
 });
 
 var bottomright = blessed.listtable({
@@ -70,7 +70,7 @@ var bottomright = blessed.listtable({
     left: true,
     top: true,
     right: false,
-    bottom: false
+    bottom: false,
   },
   // border: 'line',
   align: 'center',
@@ -81,22 +81,22 @@ var bottomright = blessed.listtable({
   style: {
     header: {
       fg: 'blue',
-      bold: true
+      bold: true,
     },
     cell: {
       fg: 'magenta',
       selected: {
-        bg: 'blue'
-      }
-    }
+        bg: 'blue',
+      },
+    },
   },
   data: [
-    [ 'Animals',  'Foods',  'Times',   'Numbers' ],
-    [ 'Elephant', 'Apple',  '1:00am',  'One'     ],
-    [ 'Bird',     'Orange', '2:15pm',  'Two'     ],
-    [ 'T-Rex',    'Taco',   '8:45am',  'Three'   ],
-    [ 'Mouse',    'Cheese', '9:05am',  'Four'    ]
-  ]
+    ['Animals', 'Foods', 'Times', 'Numbers'],
+    ['Elephant', 'Apple', '1:00am', 'One'],
+    ['Bird', 'Orange', '2:15pm', 'Two'],
+    ['T-Rex', 'Taco', '8:45am', 'Three'],
+    ['Mouse', 'Cheese', '9:05am', 'Four'],
+  ],
 });
 
 bottomright.focus();
@@ -113,12 +113,12 @@ var over = blessed.box({
     left: false,
     top: true,
     right: true,
-    bottom: true
+    bottom: true,
   },
-  content: 'Drag Me'
+  content: 'Drag Me',
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

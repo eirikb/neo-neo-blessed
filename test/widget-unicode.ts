@@ -1,6 +1,6 @@
-var fs = require('fs')
-  , blessed = require('../')
-  , unicode = blessed.unicode;
+var fs = require('fs'),
+  blessed = require('../'),
+  unicode = blessed.unicode;
 
 var screen = blessed.screen({
   dump: __dirname + '/logs/unicode.log',
@@ -8,7 +8,7 @@ var screen = blessed.screen({
   dockBorders: true,
   useBCE: true,
   fullUnicode: ~process.argv.indexOf('-') ? false : true,
-  warnings: true
+  warnings: true,
 });
 
 /**
@@ -16,10 +16,10 @@ var screen = blessed.screen({
  */
 
 // var DU = '杜';
-var DU = unicode.fromCodePoint(0x675C);
+var DU = unicode.fromCodePoint(0x675c);
 
 // var JUAN = '鹃';
-var JUAN = unicode.fromCodePoint(0x9E43);
+var JUAN = unicode.fromCodePoint(0x9e43);
 
 // one flew over the 杜鹃's nest.
 // var DOUBLE = '杜鹃';
@@ -39,14 +39,14 @@ var SURROGATE_DOUBLE = unicode.fromCodePoint(0x20000);
 
 // var SURROGATE_SINGLE = '𝌆';
 // var SURROGATE_SINGLE = String.fromCharCode(0xD834, 0xDF06);
-var SURROGATE_SINGLE = unicode.fromCodePoint(0x1D306);
+var SURROGATE_SINGLE = unicode.fromCodePoint(0x1d306);
 
 // var COMBINE_NONSURROGATE = 's̀'.substring(1); // s + combining
 var COMBINE_NONSURROGATE = unicode.fromCodePoint(0x0300);
 
 // var COMBINE = 's𐨁'.substring(1); // s + combining
 // var COMBINE = String.fromCharCode(0xD802, 0xDE01);
-var COMBINE = unicode.fromCodePoint(0x10A01);
+var COMBINE = unicode.fromCodePoint(0x10a01);
 
 /**
  * Content
@@ -87,7 +87,7 @@ var main = blessed.box({
   width: '50%',
   height: '50%',
   style: {
-    bg: 'grey'
+    bg: 'grey',
   },
   border: 'line',
   draggable: true,
@@ -99,12 +99,12 @@ var main = blessed.box({
   alwaysScroll: true,
   keys: true,
   vi: true,
-  mouse: true
+  mouse: true,
 });
 
 main.focus();
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

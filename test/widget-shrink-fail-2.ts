@@ -1,7 +1,7 @@
 var blessed = require('blessed');
 var screen = blessed.screen({
   autoPadding: true,
-  warnings: true
+  warnings: true,
 });
 
 var tab = blessed.box({
@@ -15,13 +15,13 @@ var tab = blessed.box({
   vi: true,
   alwaysScroll: true,
   scrollbar: {
-    ch: ' '
+    ch: ' ',
   },
   style: {
     scrollbar: {
-      inverse: true
-    }
-  }
+      inverse: true,
+    },
+  },
 });
 
 tab._.data = blessed.text({
@@ -31,12 +31,12 @@ tab._.data = blessed.text({
   height: 'shrink',
   width: 'shrink',
   content: '',
-  tags: true
+  tags: true,
 });
 
 tab._.data.setContent(require('util').inspect(process, null, 6));
 
-screen.key('q', function() {
+screen.key('q', function () {
   screen.destroy();
 });
 

@@ -62,14 +62,12 @@ function Log(this: LogInterface, options?: LogOptions) {
 
   ScrollableText.call(this, options);
 
-  this.scrollback = options.scrollback != null
-    ? options.scrollback
-    : Infinity;
+  this.scrollback = options.scrollback != null ? options.scrollback : Infinity;
   this.scrollOnInput = options.scrollOnInput;
 
-  this.on('set content', function() {
+  this.on('set content', function () {
     if (!self._userScrolled || self.scrollOnInput) {
-      nextTick(function() {
+      nextTick(function () {
         self.setScrollPerc(100);
         self._userScrolled = false;
         self.screen.render();
@@ -82,13 +80,23 @@ Log.prototype.__proto__ = ScrollableText.prototype;
 
 Log.prototype.type = 'log';
 
-Log.prototype.log =
-Log.prototype.add = function(this: LogInterface, ...args: any[]): any {
+Log.prototype.log = Log.prototype.add = function (
+  this: LogInterface,
+  ...args: any[]
+): any {
   const argsArray = Array.prototype.slice.call(arguments);
   if (typeof argsArray[0] === 'object') {
-    let output = util.inspect(argsArray[0], {depth: 1, colors: true, maxArrayLength: 50});
+    let output = util.inspect(argsArray[0], {
+      depth: 1,
+      colors: true,
+      maxArrayLength: 50,
+    });
     if (output.length < 1000) {
-      output = util.inspect(argsArray[0], {depth: 2, colors: true, maxArrayLength: 50});
+      output = util.inspect(argsArray[0], {
+        depth: 2,
+        colors: true,
+        maxArrayLength: 50,
+      });
     }
     argsArray[0] = output;
   }
@@ -102,7 +110,11 @@ Log.prototype.add = function(this: LogInterface, ...args: any[]): any {
 };
 
 Log.prototype._scroll = Log.prototype.scroll;
-Log.prototype.scroll = function(this: LogInterface, offset: number, always?: boolean): any {
+Log.prototype.scroll = function (
+  this: LogInterface,
+  offset: number,
+  always?: boolean
+): any {
   if (offset === 0) return this._scroll(offset, always);
   this._userScrolled = true;
   const ret = this._scroll(offset, always);

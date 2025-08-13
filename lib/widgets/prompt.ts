@@ -84,7 +84,7 @@ function Prompt(this: PromptInterface, options?: PromptOptions) {
     height: 1,
     left: 2,
     right: 2,
-    bg: 'black'
+    bg: 'black',
   });
 
   this._.okay = new Button({
@@ -98,7 +98,7 @@ function Prompt(this: PromptInterface, options?: PromptOptions) {
     bg: 'black',
     hoverBg: 'blue',
     autoFocus: false,
-    mouse: true
+    mouse: true,
   });
 
   this._.cancel = new Button({
@@ -113,7 +113,7 @@ function Prompt(this: PromptInterface, options?: PromptOptions) {
     bg: 'black',
     hoverBg: 'blue',
     autoFocus: false,
-    mouse: true
+    mouse: true,
   });
 }
 
@@ -122,46 +122,58 @@ Prompt.prototype.__proto__ = Box.prototype;
 Prompt.prototype.type = 'prompt';
 
 Prompt.prototype.input =
-Prompt.prototype.setInput =
-Prompt.prototype.readInput = function(this: PromptInterface, text: string, value?: string | PromptCallback, callback?: PromptCallback): void {
-  const self = this;
-  let okay: () => void, cancel: () => void;
+  Prompt.prototype.setInput =
+  Prompt.prototype.readInput =
+    function (
+      this: PromptInterface,
+      text: string,
+      value?: string | PromptCallback,
+      callback?: PromptCallback
+    ): void {
+      const self = this;
+      let okay: () => void, cancel: () => void;
 
-  if (!callback) {
-    callback = value as PromptCallback;
-    value = '';
-  }
+      if (!callback) {
+        callback = value as PromptCallback;
+        value = '';
+      }
 
-  // Keep above:
-  // var parent = this.parent;
-  // this.detach();
-  // parent.append(this);
+      // Keep above:
+      // var parent = this.parent;
+      // this.detach();
+      // parent.append(this);
 
-  this.show();
-  this.setContent(' ' + text);
+      this.show();
+      this.setContent(' ' + text);
 
-  this._.input.value = value as string;
+      this._.input.value = value as string;
 
-  this.screen.saveFocus();
+      this.screen.saveFocus();
 
-  this._.okay.on('press', okay = function() {
-    self._.input.submit();
-  });
+      this._.okay.on(
+        'press',
+        (okay = function () {
+          self._.input.submit();
+        })
+      );
 
-  this._.cancel.on('press', cancel = function() {
-    self._.input.cancel();
-  });
+      this._.cancel.on(
+        'press',
+        (cancel = function () {
+          self._.input.cancel();
+        })
+      );
 
-  this._.input.readInput(function(err: Error | null, data?: string) {
-    self.hide();
-    self.screen.restoreFocus();
-    self._.okay.removeListener('press', okay);
-    self._.cancel.removeListener('press', cancel);
-    return (callback as PromptCallback)(err, data);
-  });
+      this._.input.readInput(function (err: Error | null, data?: string) {
+        self.hide();
+        self.screen.restoreFocus();
+        self._.okay.removeListener('press', okay);
+        self._.cancel.removeListener('press', cancel);
+        return (callback as PromptCallback)(err, data);
+      });
 
-  this.screen.render();
-};
+      this.screen.render();
+    };
 
 /**
  * Expose

@@ -1,10 +1,10 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/scrollable-boxes.log',
   smartCSR: true,
-  warnings: true
+  warnings: true,
 });
 
 var box = blessed.box({
@@ -16,7 +16,7 @@ var box = blessed.box({
   width: '80%',
   height: '80%',
   style: {
-    bg: 'green'
+    bg: 'green',
   },
   border: 'line',
   content: 'foobar',
@@ -25,8 +25,8 @@ var box = blessed.box({
   alwaysScroll: true,
   scrollbar: {
     ch: ' ',
-    inverse: true
-  }
+    inverse: true,
+  },
 });
 
 var text = blessed.box({
@@ -34,12 +34,12 @@ var text = blessed.box({
   content: 'hello1\nhello2\nhello3\nhello4',
   padding: 2,
   style: {
-    bg: 'red'
+    bg: 'red',
   },
   left: 2,
   top: 30,
   width: '50%',
-  height: 6
+  height: 6,
 });
 
 var text2 = blessed.box({
@@ -47,12 +47,12 @@ var text2 = blessed.box({
   content: 'world',
   padding: 1,
   style: {
-    bg: 'red'
+    bg: 'red',
   },
   left: 2,
   top: 50,
   width: '50%',
-  height: 3
+  height: 3,
 });
 
 var box2 = blessed.box({
@@ -68,18 +68,18 @@ var box2 = blessed.box({
   style: {
     bg: 'magenta',
     focus: {
-      bg: 'blue'
+      bg: 'blue',
     },
     hover: {
-      bg: 'red'
-    }
+      bg: 'red',
+    },
     // scrollbar: {
     //   inverse: true
     // }
   },
   keys: true,
   vi: true,
-  alwaysScroll: true
+  alwaysScroll: true,
   // scrollbar: {
   //   ch: ' '
   // }
@@ -102,24 +102,24 @@ var box3 = blessed.box({
   style: {
     bg: 'yellow',
     focus: {
-      bg: 'blue'
+      bg: 'blue',
     },
     hover: {
-      bg: 'red'
-    }
+      bg: 'red',
+    },
     // scrollbar: {
     //   inverse: true
     // }
   },
   keys: true,
   vi: true,
-  alwaysScroll: true
+  alwaysScroll: true,
   // scrollbar: {
   //   ch: ' '
   // }
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

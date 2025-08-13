@@ -601,7 +601,9 @@ Screen.prototype.destroy = function (this: ScreenInterface): void {
     this._destroy();
   }
 
-  this.program.destroy();
+  if (this.program && this.program.destroy) {
+    this.program.destroy();
+  }
 };
 
 Screen.prototype.log = function (this: ScreenInterface, ...args: any[]): void {

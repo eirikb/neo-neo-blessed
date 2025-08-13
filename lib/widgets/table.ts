@@ -77,7 +77,7 @@ interface TableInterface extends Box {
   itop: number;
   ileft: number;
   iheight: number;
-  
+
   // Methods
   _calculateMaxes(): number[];
   setRows(rows: string[][]): void;
@@ -115,18 +115,16 @@ function Table(this: TableInterface, options?: TableOptions) {
 
   Box.call(this, options);
 
-  this.pad = options.pad != null
-    ? options.pad
-    : 2;
+  this.pad = options.pad != null ? options.pad : 2;
 
   this.setData(options.rows || options.data);
 
-  this.on('attach', function() {
+  this.on('attach', function () {
     self.setContent('');
     self.setData(self.rows);
   });
 
-  this.on('resize', function() {
+  this.on('resize', function () {
     self.setContent('');
     self.setData(self.rows);
     self.screen.render();
@@ -137,7 +135,7 @@ Table.prototype.__proto__ = Box.prototype;
 
 Table.prototype.type = 'table';
 
-Table.prototype._calculateMaxes = function(this: TableInterface) {
+Table.prototype._calculateMaxes = function (this: TableInterface) {
   var self = this;
   var maxes: number[] = [];
 
@@ -145,8 +143,8 @@ Table.prototype._calculateMaxes = function(this: TableInterface) {
 
   this.rows = this.rows || [];
 
-  this.rows.forEach(function(row: string[]) {
-    row.forEach(function(cell: string, i: number) {
+  this.rows.forEach(function (row: string[]) {
+    row.forEach(function (cell: string, i: number) {
       var clen = self.strWidth(cell);
       if (!maxes[i] || maxes[i] < clen) {
         maxes[i] = clen;
@@ -154,7 +152,7 @@ Table.prototype._calculateMaxes = function(this: TableInterface) {
     });
   });
 
-  var total = maxes.reduce(function(total: number, max: number) {
+  var total = maxes.reduce(function (total: number, max: number) {
     return total + max;
   }, 0);
   total += maxes.length + 1;
@@ -168,28 +166,30 @@ Table.prototype._calculateMaxes = function(this: TableInterface) {
 
   if (this.position.width != null) {
     var missing = this.width - total;
-    var w = missing / maxes.length | 0;
+    var w = (missing / maxes.length) | 0;
     var wr = missing % maxes.length;
-    maxes = maxes.map(function(max: number, i: number) {
+    maxes = maxes.map(function (max: number, i: number) {
       if (i === maxes.length - 1) {
         return max + w + wr;
       }
       return max + w;
     });
   } else {
-    maxes = maxes.map(function(max: number) {
+    maxes = maxes.map(function (max: number) {
       return max + self.pad;
     });
   }
 
-  return this._maxes = maxes;
+  return (this._maxes = maxes);
 };
 
-Table.prototype.setRows =
-Table.prototype.setData = function(this: TableInterface, rows?: string[][]) {
-  var self = this
-    , text = ''
-    , align = this.align;
+Table.prototype.setRows = Table.prototype.setData = function (
+  this: TableInterface,
+  rows?: string[][]
+) {
+  var self = this,
+    text = '',
+    align = this.align;
 
   this.rows = rows || [];
 
@@ -197,9 +197,9 @@ Table.prototype.setData = function(this: TableInterface, rows?: string[][]) {
 
   if (!this._maxes) return;
 
-  this.rows.forEach(function(row: string[], i: number) {
+  this.rows.forEach(function (row: string[], i: number) {
     var isFooter = i === self.rows.length - 1;
-    row.forEach(function(cell: string, i: number) {
+    row.forEach(function (cell: string, i: number) {
       var width = self._maxes[i];
       var clen = self.strWidth(cell);
 
@@ -245,7 +245,7 @@ Table.prototype.setData = function(this: TableInterface, rows?: string[][]) {
   this.align = align;
 };
 
-Table.prototype.render = function(this: TableInterface) {
+Table.prototype.render = function (this: TableInterface) {
   var self = this;
 
   var coords = this._render();
@@ -255,20 +255,20 @@ Table.prototype.render = function(this: TableInterface) {
 
   if (!this._maxes) return coords;
 
-  var lines = this.screen.lines
-    , xi = coords.xi
-    , yi = coords.yi
-    , rx
-    , ry
-    , i;
+  var lines = this.screen.lines,
+    xi = coords.xi,
+    yi = coords.yi,
+    rx,
+    ry,
+    i;
 
-  var dattr = this.sattr(this.style)
-    , hattr = this.sattr(this.style.header)
-    , cattr = this.sattr(this.style.cell)
-    , battr = this.sattr(this.style.border);
+  var dattr = this.sattr(this.style),
+    hattr = this.sattr(this.style.header),
+    cattr = this.sattr(this.style.cell),
+    battr = this.sattr(this.style.border);
 
-  var width = coords.xl - coords.xi - this.iright
-    , height = coords.yl - coords.yi - this.ibottom;
+  var width = coords.xl - coords.xi - this.iright,
+    height = coords.yl - coords.yi - this.ibottom;
 
   // Apply attributes to header cells and cells.
   for (var y = this.itop; y < height; y++) {
@@ -293,7 +293,7 @@ Table.prototype.render = function(this: TableInterface) {
   for (i = 0; i < self.rows.length + 1; i++) {
     if (!lines[yi + ry]) break;
     rx = 0;
-    self._maxes.forEach(function(max: number, i: number) {
+    self._maxes.forEach(function (max: number, i: number) {
       rx += max;
       if (i === 0) {
         if (!lines[yi + ry][xi + 0]) return;
@@ -384,7 +384,7 @@ Table.prototype.render = function(this: TableInterface) {
   for (ry = 1; ry < self.rows.length * 2; ry++) {
     if (!lines[yi + ry]) break;
     rx = 0;
-    self._maxes.slice(0, -1).forEach(function(max: number) {
+    self._maxes.slice(0, -1).forEach(function (max: number) {
       rx += max;
       if (!lines[yi + ry][xi + rx + 1]) return;
       if (ry % 2 !== 0) {
@@ -403,7 +403,7 @@ Table.prototype.render = function(this: TableInterface) {
       }
     });
     rx = 1;
-    self._maxes.forEach(function(max: number) {
+    self._maxes.forEach(function (max: number) {
       while (max--) {
         if (ry % 2 === 0) {
           if (!lines[yi + ry]) break;

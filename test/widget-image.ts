@@ -1,10 +1,10 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/image.log',
   smartCSR: true,
-  warnings: true
+  warnings: true,
 });
 
 // To ensure our w3mimgdisplay search works:
@@ -23,30 +23,30 @@ var image = blessed.image({
   width: 'shrink',
   height: 'shrink',
   style: {
-    bg: 'green'
+    bg: 'green',
   },
-  draggable: true
+  draggable: true,
 });
 
-setTimeout(function() {
-  image.setImage(file, function() {
+setTimeout(function () {
+  image.setImage(file, function () {
     // XXX For some reason the image sometimes envelopes
     // the entire screen at the end if this is uncommented:
     // NOTE: Might have to do with an uncached ratio and
     // a bad termSize being reported.
     screen.render();
-    setTimeout(function() {
+    setTimeout(function () {
       image.rtop = 4;
       image.rleft = 10;
       screen.render();
-      setTimeout(function() {
+      setTimeout(function () {
         image.rtop = 2;
         image.rleft = 7;
         screen.render();
-        setTimeout(function() {
+        setTimeout(function () {
           image.detach();
           screen.render();
-          setTimeout(function() {
+          setTimeout(function () {
             screen.append(image);
             image.enableMouse();
             screen.render();
@@ -59,11 +59,11 @@ setTimeout(function() {
 
 image.focus();
 
-screen.key('i', function() {
+screen.key('i', function () {
   screen.displayImage(file);
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

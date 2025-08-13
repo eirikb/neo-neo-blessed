@@ -47,7 +47,14 @@ interface ProgressBarPosition {
 
 interface ProgressBarScreen {
   render(): void;
-  fillRegion(attr: any, ch: string, x1: number, x2: number, y1: number, y2: number): void;
+  fillRegion(
+    attr: any,
+    ch: string,
+    x1: number,
+    x2: number,
+    y1: number,
+    y2: number
+  ): void;
   lines: Array<{ dirty?: boolean; [index: number]: [any, string] }>;
 }
 
@@ -117,7 +124,7 @@ function ProgressBar(this: ProgressBarInterface, options?: ProgressBarOptions) {
   this.orientation = options.orientation || 'horizontal';
 
   if (options.keys) {
-    this.on('keypress', function(ch: string, key: ProgressBarKey) {
+    this.on('keypress', function (ch: string, key: ProgressBarKey) {
       let back: string[], forward: string[];
       if (self.orientation === 'horizontal') {
         back = ['left', 'h'];
@@ -131,7 +138,10 @@ function ProgressBar(this: ProgressBarInterface, options?: ProgressBarOptions) {
         self.screen.render();
         return;
       }
-      if (key.name === forward![0] || (options.vi && key.name === forward![1])) {
+      if (
+        key.name === forward![0] ||
+        (options.vi && key.name === forward![1])
+      ) {
         self.progress(5);
         self.screen.render();
         return;
@@ -140,17 +150,17 @@ function ProgressBar(this: ProgressBarInterface, options?: ProgressBarOptions) {
   }
 
   if (options.mouse) {
-    this.on('click', function(data: ProgressBarMouseData) {
+    this.on('click', function (data: ProgressBarMouseData) {
       let x: number, y: number, m: number, p: number;
       if (!self.lpos) return;
       if (self.orientation === 'horizontal') {
         x = data.x - self.lpos.xi;
-        m = (self.lpos.xl - self.lpos.xi) - self.iwidth;
-        p = x / m * 100 | 0;
+        m = self.lpos.xl - self.lpos.xi - self.iwidth;
+        p = ((x / m) * 100) | 0;
       } else if (self.orientation === 'vertical') {
         y = data.y - self.lpos.yi;
-        m = (self.lpos.yl - self.lpos.yi) - self.iheight;
-        p = y / m * 100 | 0;
+        m = self.lpos.yl - self.lpos.yi - self.iheight;
+        p = ((y / m) * 100) | 0;
       }
       self.setProgress(p!);
     });
@@ -161,7 +171,9 @@ ProgressBar.prototype.__proto__ = Input.prototype;
 
 ProgressBar.prototype.type = 'progress-bar';
 
-ProgressBar.prototype.render = function(this: ProgressBarInterface): ProgressBarPosition | null {
+ProgressBar.prototype.render = function (
+  this: ProgressBarInterface
+): ProgressBarPosition | null {
   const ret = this._render();
   if (!ret) return null;
 
@@ -174,9 +186,9 @@ ProgressBar.prototype.render = function(this: ProgressBarInterface): ProgressBar
   if (this.border) xi++, yi++, xl--, yl--;
 
   if (this.orientation === 'horizontal') {
-    xl = xi + ((xl - xi) * (this.filled / 100)) | 0;
+    xl = (xi + (xl - xi) * (this.filled / 100)) | 0;
   } else if (this.orientation === 'vertical') {
-    yi = yi + ((yl - yi) - (((yl - yi) * (this.filled / 100)) | 0));
+    yi = yi + (yl - yi - (((yl - yi) * (this.filled / 100)) | 0));
   }
 
   dattr = this.sattr(this.style.bar);
@@ -194,7 +206,10 @@ ProgressBar.prototype.render = function(this: ProgressBarInterface): ProgressBar
   return ret;
 };
 
-ProgressBar.prototype.progress = function(this: ProgressBarInterface, filled: number): void {
+ProgressBar.prototype.progress = function (
+  this: ProgressBarInterface,
+  filled: number
+): void {
   this.filled += filled;
   if (this.filled < 0) this.filled = 0;
   else if (this.filled > 100) this.filled = 100;
@@ -204,12 +219,15 @@ ProgressBar.prototype.progress = function(this: ProgressBarInterface, filled: nu
   this.value = this.filled;
 };
 
-ProgressBar.prototype.setProgress = function(this: ProgressBarInterface, filled: number): void {
+ProgressBar.prototype.setProgress = function (
+  this: ProgressBarInterface,
+  filled: number
+): void {
   this.filled = 0;
   this.progress(filled);
 };
 
-ProgressBar.prototype.reset = function(this: ProgressBarInterface): void {
+ProgressBar.prototype.reset = function (this: ProgressBarInterface): void {
   this.emit('reset');
   this.filled = 0;
   this.value = this.filled;

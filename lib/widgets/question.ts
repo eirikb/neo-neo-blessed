@@ -77,7 +77,7 @@ function Question(this: QuestionInterface, options?: QuestionOptions) {
     bg: 'black',
     hoverBg: 'blue',
     autoFocus: false,
-    mouse: true
+    mouse: true,
   });
 
   this._.cancel = new Button({
@@ -93,7 +93,7 @@ function Question(this: QuestionInterface, options?: QuestionOptions) {
     bg: 'black',
     hoverBg: 'blue',
     autoFocus: false,
-    mouse: true
+    mouse: true,
   });
 }
 
@@ -101,7 +101,11 @@ Question.prototype.__proto__ = Box.prototype;
 
 Question.prototype.type = 'question';
 
-Question.prototype.ask = function(this: QuestionInterface, text: string, callback: (err: any, data: boolean) => void): void {
+Question.prototype.ask = function (
+  this: QuestionInterface,
+  text: string,
+  callback: (err: any, data: boolean) => void
+): void {
   const self = this;
   let press: (ch: string, key: QuestionKey) => void;
   let okay: () => void;
@@ -115,25 +119,36 @@ Question.prototype.ask = function(this: QuestionInterface, text: string, callbac
   this.show();
   this.setContent(' ' + text);
 
-  this.onScreenEvent('keypress', press = function(ch: string, key: QuestionKey) {
-    if (key.name === 'mouse') return;
-    if (key.name !== 'enter'
-        && key.name !== 'escape'
-        && key.name !== 'q'
-        && key.name !== 'y'
-        && key.name !== 'n') {
-      return;
-    }
-    done(null, key.name === 'enter' || key.name === 'y');
-  });
+  this.onScreenEvent(
+    'keypress',
+    (press = function (ch: string, key: QuestionKey) {
+      if (key.name === 'mouse') return;
+      if (
+        key.name !== 'enter' &&
+        key.name !== 'escape' &&
+        key.name !== 'q' &&
+        key.name !== 'y' &&
+        key.name !== 'n'
+      ) {
+        return;
+      }
+      done(null, key.name === 'enter' || key.name === 'y');
+    })
+  );
 
-  this._.okay.on('press', okay = function() {
-    done(null, true);
-  });
+  this._.okay.on(
+    'press',
+    (okay = function () {
+      done(null, true);
+    })
+  );
 
-  this._.cancel.on('press', cancel = function() {
-    done(null, false);
-  });
+  this._.cancel.on(
+    'press',
+    (cancel = function () {
+      done(null, false);
+    })
+  );
 
   this.screen.saveFocus();
   this.focus();

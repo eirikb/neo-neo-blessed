@@ -5,7 +5,7 @@ var screen = blessed.screen({
   tput: true,
   smartCSR: true,
   dump: __dirname + '/logs/video.log',
-  warnings: true
+  warnings: true,
 });
 
 var video = blessed.video({
@@ -15,13 +15,13 @@ var video = blessed.video({
   width: '90%',
   height: '90%',
   border: 'line',
-  file: process.argv[2]
+  file: process.argv[2],
 });
 
 video.focus();
 
 screen.render();
 
-screen.key(['q', 'C-q', 'C-c'], function() {
+screen.key(['q', 'C-q', 'C-c'], function () {
   screen.destroy();
 });

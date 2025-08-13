@@ -1,12 +1,12 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 var auto = true;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/listbar.log',
   autoPadding: auto,
-  warnings: true
+  warnings: true,
 });
 
 var box = blessed.box({
@@ -15,7 +15,7 @@ var box = blessed.box({
   right: 0,
   width: 'shrink',
   height: 'shrink',
-  content: '...'
+  content: '...',
 });
 
 var bar = blessed.listbar({
@@ -34,88 +34,88 @@ var bar = blessed.listbar({
     item: {
       bg: 'red',
       hover: {
-        bg: 'blue'
+        bg: 'blue',
       },
       //focus: {
       //  bg: 'blue'
       //}
     },
     selected: {
-      bg: 'blue'
-    }
+      bg: 'blue',
+    },
   },
   commands: {
-    'one': {
+    one: {
       keys: ['a'],
-      callback: function() {
+      callback: function () {
         box.setContent('Pressed one.');
         screen.render();
-      }
+      },
     },
-    'two': function() {
+    two: function () {
       box.setContent('Pressed two.');
       screen.render();
     },
-    'three': function() {
+    three: function () {
       box.setContent('Pressed three.');
       screen.render();
     },
-    'four': function() {
+    four: function () {
       box.setContent('Pressed four.');
       screen.render();
     },
-    'five': function() {
+    five: function () {
       box.setContent('Pressed five.');
       screen.render();
     },
-    'six': function() {
+    six: function () {
       box.setContent('Pressed six.');
       screen.render();
     },
-    'seven': function() {
+    seven: function () {
       box.setContent('Pressed seven.');
       screen.render();
     },
-    'eight': function() {
+    eight: function () {
       box.setContent('Pressed eight.');
       screen.render();
     },
-    'nine': function() {
+    nine: function () {
       box.setContent('Pressed nine.');
       screen.render();
     },
-    'ten': function() {
+    ten: function () {
       box.setContent('Pressed ten.');
       screen.render();
     },
-    'eleven': function() {
+    eleven: function () {
       box.setContent('Pressed eleven.');
       screen.render();
     },
-    'twelve': function() {
+    twelve: function () {
       box.setContent('Pressed twelve.');
       screen.render();
     },
-    'thirteen': function() {
+    thirteen: function () {
       box.setContent('Pressed thirteen.');
       screen.render();
     },
-    'fourteen': function() {
+    fourteen: function () {
       box.setContent('Pressed fourteen.');
       screen.render();
     },
-    'fifteen': function() {
+    fifteen: function () {
       box.setContent('Pressed fifteen.');
       screen.render();
-    }
-  }
+    },
+  },
 });
 
 screen.append(bar);
 
 bar.focus();
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

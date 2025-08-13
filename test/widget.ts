@@ -1,5 +1,5 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/widget.log',
@@ -10,19 +10,19 @@ screen = blessed.screen({
     artificial: true,
     shape: 'line',
     blink: true,
-    color: null
+    color: null,
   },
   debug: true,
-  warnings: true
+  warnings: true,
 });
 
 screen.debugLog.parseTags = true;
 var logs = '';
-require('./tail')(__dirname + '/logs/widget.log').on('line', function(line) {
+require('./tail')(__dirname + '/logs/widget.log').on('line', function (line) {
   // if (!screen.debugLog.hidden) return;
   logs += line + '\n';
 });
-screen.debugLog.on('show', function() {
+screen.debugLog.on('show', function () {
   if (logs) {
     screen.debug(logs);
     logs = '';
@@ -30,31 +30,36 @@ screen.debugLog.on('show', function() {
   screen.render();
 });
 
-screen.on('event', function(event, el) {
+screen.on('event', function (event, el) {
   var type = (el && el.type) || Object.prototype.toString.call(el).slice(8, -1);
   screen.program.log('emit("%s", {%s})', event, type);
 });
 
-screen.append(blessed.text({
-  top: 0,
-  left: 2,
-  width: '100%',
-  //bg: 'blue',
-  content: '{green-fg}Welcome{/green-fg} to my {red-fg,ul}program{/red-fg,ul}',
-  style: {
-    bg: '#0000ff'
-  },
-  // bg: blessed.colors.match('#0000ff'),
-  tags: true,
-  align: 'center'
-}));
+screen.append(
+  blessed.text({
+    top: 0,
+    left: 2,
+    width: '100%',
+    //bg: 'blue',
+    content:
+      '{green-fg}Welcome{/green-fg} to my {red-fg,ul}program{/red-fg,ul}',
+    style: {
+      bg: '#0000ff',
+    },
+    // bg: blessed.colors.match('#0000ff'),
+    tags: true,
+    align: 'center',
+  })
+);
 
-screen.append(blessed.line({
-  orientation: 'horizontal',
-  top: 1,
-  left: 0,
-  right: 0
-}));
+screen.append(
+  blessed.line({
+    orientation: 'horizontal',
+    top: 1,
+    left: 0,
+    right: 0,
+  })
+);
 
 var list = blessed.list({
   align: 'center',
@@ -66,11 +71,11 @@ var list = blessed.list({
     bg: 'default',
     border: {
       fg: 'default',
-      bg: 'default'
+      bg: 'default',
     },
     selected: {
-      bg: 'green'
-    }
+      bg: 'green',
+    },
   },
   width: '50%',
   height: '50%',
@@ -88,23 +93,23 @@ var list = blessed.list({
     'seven',
     'eight',
     'nine',
-    'ten'
+    'ten',
   ],
   scrollbar: {
     ch: ' ',
     track: {
-      bg: 'yellow'
+      bg: 'yellow',
     },
     style: {
-      inverse: true
-    }
-  }
+      inverse: true,
+    },
+  },
 });
 
 screen.append(list);
 list.select(0);
 
-list.items.forEach(function(item) {
+list.items.forEach(function (item) {
   item.setHover(item.getText().trim());
 });
 
@@ -112,7 +117,7 @@ var item = list.items[1];
 list.removeItem(list.items[1]);
 list.insertItem(1, item.getContent());
 
-list.on('keypress', function(ch, key) {
+list.on('keypress', function (ch, key) {
   if (key.name === 'up' || key.name === 'k') {
     list.up();
     screen.render();
@@ -124,7 +129,7 @@ list.on('keypress', function(ch, key) {
   }
 });
 
-list.on('select', function(item, select) {
+list.on('select', function (item, select) {
   list.setLabel(' ' + item.getText() + ' ');
   screen.render();
 });
@@ -136,12 +141,12 @@ var progress = blessed.progressbar({
     bg: 'default',
     bar: {
       bg: 'default',
-      fg: 'blue'
+      fg: 'blue',
     },
     border: {
       fg: 'default',
-      bg: 'default'
-    }
+      bg: 'default',
+    },
   },
   ch: ':',
   //orientation: 'vertical',
@@ -151,12 +156,13 @@ var progress = blessed.progressbar({
   height: 3,
   right: 0,
   bottom: 0,
-  filled: 50
+  filled: 50,
 });
 
 screen.append(progress);
 
-var lorem = 'Lorem ipsum \x1b[41mdolor sit amet, \nconsectetur adipisicing elit, \x1b[43msed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+var lorem =
+  'Lorem ipsum \x1b[41mdolor sit amet, \nconsectetur adipisicing elit, \x1b[43msed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 
 var lorem = require('fs').readFileSync(__dirname + '/git.diff', 'utf8');
 
@@ -172,8 +178,8 @@ var stext = blessed.scrollabletext({
     bg: 'black',
     border: {
       fg: 'default',
-      bg: 'default'
-    }
+      bg: 'default',
+    },
   },
   width: '50%',
   //height: 4,
@@ -181,27 +187,27 @@ var stext = blessed.scrollabletext({
   left: 0,
   bottom: 0,
   scrollbar: {
-    inverse: true
-  }
+    inverse: true,
+  },
 });
 
-setTimeout(function() {
+setTimeout(function () {
   stext.width = 0;
   screen.render();
-  setTimeout(function() {
+  setTimeout(function () {
     stext.width = '50%';
     screen.render();
-    setTimeout(function() {
+    setTimeout(function () {
       stext.height = 0;
       screen.render();
-      setTimeout(function() {
+      setTimeout(function () {
         stext.height = 6;
         screen.render();
-        setTimeout(function() {
+        setTimeout(function () {
           stext.width = 0;
           stext.height = 0;
           screen.render();
-          setTimeout(function() {
+          setTimeout(function () {
             stext.width = '50%';
             stext.height = 6;
             screen.render();
@@ -213,7 +219,7 @@ setTimeout(function() {
 }, 1000);
 
 screen.append(stext);
-stext.on('keypress', function(ch, key) {
+stext.on('keypress', function (ch, key) {
   if (key.name === 'up' || key.name === 'k') {
     stext.scroll(-1);
     screen.render();
@@ -225,7 +231,7 @@ stext.on('keypress', function(ch, key) {
   }
 });
 
-screen.on('element focus', function(cur, old) {
+screen.on('element focus', function (cur, old) {
   if (old.border) old.style.border.fg = 'default';
   if (cur.border) cur.style.border.fg = 'green';
   screen.render();
@@ -240,12 +246,12 @@ var input = blessed.textbox({
     bg: 'default',
     bar: {
       bg: 'default',
-      fg: 'blue'
+      fg: 'blue',
     },
     border: {
       fg: 'default',
-      bg: 'default'
-    }
+      bg: 'default',
+    },
   },
   width: '30%',
   height: 3,
@@ -253,11 +259,11 @@ var input = blessed.textbox({
   top: 2,
   keys: true,
   vi: true,
-  mouse: true
+  mouse: true,
   //inputOnFocus: true
 });
 
-input.on('submit', function(value) {
+input.on('submit', function (value) {
   if (value) screen.children[0].setContent(value);
   input.clearInput();
   screen.render();
@@ -273,24 +279,24 @@ var button = blessed.button({
   border: 'line',
   style: {
     fg: 'red',
-    bg: 'blue'
+    bg: 'blue',
   },
   //height: 3,
   right: 4,
   //bottom: 6,
   bottom: 2,
-  padding: 0
+  padding: 0,
 });
 
-button.on('press', function() {
+button.on('press', function () {
   button.setContent('Clicked!');
   screen.render();
 });
 
 screen.append(button);
 
-screen.key('S-s', function() {
-  var rand = function(min, max) {
+screen.key('S-s', function () {
+  var rand = function (min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
   };
   var xi = rand(0, screen.cols - (stext.width - stext.iwidth));
@@ -302,18 +308,16 @@ screen.key('S-s', function() {
   screen.render();
 });
 
-screen.on('keypress', function(ch, key) {
+screen.on('keypress', function (ch, key) {
   if (key.name === 'tab') {
-    return key.shift
-      ? screen.focusPrevious()
-      : screen.focusNext();
+    return key.shift ? screen.focusPrevious() : screen.focusNext();
   }
   if (key.name === 'escape' || key.name === 'q') {
     return process.exit(0);
   }
 });
 
-screen.key('C-z', function() {
+screen.key('C-z', function () {
   screen.sigtstp();
 });
 
@@ -321,7 +325,7 @@ list.focus();
 
 screen.render();
 
-setInterval(function() {
+setInterval(function () {
   progress.toggle();
   screen.render();
 }, 2000);

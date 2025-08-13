@@ -1,10 +1,10 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/bigtext.log',
   smartCSR: true,
-  warnings: true
+  warnings: true,
 });
 
 var box = blessed.bigtext({
@@ -21,13 +21,12 @@ var box = blessed.bigtext({
   style: {
     fg: 'red',
     bg: 'blue',
-    bold: false
-  }
+    bold: false,
+  },
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 
 screen.render();
-

@@ -47,15 +47,14 @@ function RadioButton(this: RadioButtonInterface, options?: RadioButtonOptions) {
 
   Checkbox.call(this, options);
 
-  this.on('check', function() {
+  this.on('check', function () {
     let el: RadioButtonInterface | undefined = self;
-    while (el = el.parent) {
-      if (el.type === 'radio-set'
-          || el.type === 'form') break;
+    while ((el = el.parent)) {
+      if (el.type === 'radio-set' || el.type === 'form') break;
     }
     el = el || self.parent;
     if (el) {
-      el.forDescendants(function(el: RadioButtonInterface) {
+      el.forDescendants(function (el: RadioButtonInterface) {
         if (el.type !== 'radio-button' || el === self) {
           return;
         }
@@ -69,7 +68,7 @@ RadioButton.prototype.__proto__ = Checkbox.prototype;
 
 RadioButton.prototype.type = 'radio-button';
 
-RadioButton.prototype.render = function(this: RadioButtonInterface) {
+RadioButton.prototype.render = function (this: RadioButtonInterface) {
   this.clearPos(true);
   this.setContent('(' + (this.checked ? '*' : ' ') + ') ' + this.text, true);
   return this._render();

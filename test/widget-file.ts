@@ -4,7 +4,7 @@ var screen = blessed.screen({
   tput: true,
   smartCSR: true,
   dump: __dirname + '/logs/file.log',
-  warnings: true
+  warnings: true,
 });
 
 var fm = blessed.filemanager({
@@ -12,8 +12,8 @@ var fm = blessed.filemanager({
   border: 'line',
   style: {
     selected: {
-      bg: 'blue'
-    }
+      bg: 'blue',
+    },
   },
   height: 'half',
   width: 'half',
@@ -25,42 +25,42 @@ var fm = blessed.filemanager({
   vi: true,
   scrollbar: {
     bg: 'white',
-    ch: ' '
-  }
+    ch: ' ',
+  },
 });
 
 var box = blessed.box({
   parent: screen,
   style: {
-    bg: 'green'
+    bg: 'green',
   },
   border: 'line',
   height: 'half',
   width: 'half',
   top: 'center',
   left: 'center',
-  hidden: true
+  hidden: true,
 });
 
 fm.refresh();
 
 screen.render();
 
-screen.key('q', function() {
+screen.key('q', function () {
   screen.destroy();
 });
 
-screen.key(['s', 'p'], function() {
+screen.key(['s', 'p'], function () {
   fm.hide();
   screen.render();
-  setTimeout(function() {
-    fm.pick(function(err, file) {
+  setTimeout(function () {
+    fm.pick(function (err, file) {
       box.show();
       box.setContent(err ? err + '' : file);
       screen.render();
-      setTimeout(function() {
+      setTimeout(function () {
         box.hide();
-        fm.reset(function() {
+        fm.reset(function () {
           fm.show();
           screen.render();
         });

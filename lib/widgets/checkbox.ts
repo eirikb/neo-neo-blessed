@@ -80,7 +80,7 @@ function Checkbox(this: CheckboxInterface, options?: CheckboxOptions) {
   this.text = options.content || options.text || '';
   this.checked = this.value = options.checked || false;
 
-  this.on('keypress', function(ch: string, key: CheckboxKey) {
+  this.on('keypress', function (ch: string, key: CheckboxKey) {
     if (key.name === 'enter' || key.name === 'space') {
       self.toggle();
       self.screen.render();
@@ -88,13 +88,13 @@ function Checkbox(this: CheckboxInterface, options?: CheckboxOptions) {
   });
 
   if (options.mouse) {
-    this.on('click', function() {
+    this.on('click', function () {
       self.toggle();
       self.screen.render();
     });
   }
 
-  this.on('focus', function() {
+  this.on('focus', function () {
     const lpos = self.lpos;
     if (!lpos) return;
     self.screen.program.lsaveCursor('checkbox');
@@ -102,7 +102,7 @@ function Checkbox(this: CheckboxInterface, options?: CheckboxOptions) {
     self.screen.program.showCursor();
   });
 
-  this.on('blur', function() {
+  this.on('blur', function () {
     self.screen.program.lrestoreCursor('checkbox', true);
   });
 }
@@ -111,28 +111,26 @@ Checkbox.prototype.__proto__ = Input.prototype;
 
 Checkbox.prototype.type = 'checkbox';
 
-Checkbox.prototype.render = function(this: CheckboxInterface): any {
+Checkbox.prototype.render = function (this: CheckboxInterface): any {
   this.clearPos(true);
   this.setContent('[' + (this.checked ? 'x' : ' ') + '] ' + this.text, true);
   return this._render();
 };
 
-Checkbox.prototype.check = function(this: CheckboxInterface): void {
+Checkbox.prototype.check = function (this: CheckboxInterface): void {
   if (this.checked) return;
   this.checked = this.value = true;
   this.emit('check');
 };
 
-Checkbox.prototype.uncheck = function(this: CheckboxInterface): void {
+Checkbox.prototype.uncheck = function (this: CheckboxInterface): void {
   if (!this.checked) return;
   this.checked = this.value = false;
   this.emit('uncheck');
 };
 
-Checkbox.prototype.toggle = function(this: CheckboxInterface): void {
-  return this.checked
-    ? this.uncheck()
-    : this.check();
+Checkbox.prototype.toggle = function (this: CheckboxInterface): void {
+  return this.checked ? this.uncheck() : this.check();
 };
 
 /**

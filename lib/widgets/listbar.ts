@@ -94,10 +94,15 @@ interface ListbarInterface extends Box {
   remove(element: any): void;
   _getCoords(): ListbarCoords | undefined;
   _render(): any;
-  setItems(commands: ListbarCommand[] | { [key: string]: ListbarCommand | Function }): void;
+  setItems(
+    commands: ListbarCommand[] | { [key: string]: ListbarCommand | Function }
+  ): void;
   add(item: string | Function | ListbarCommand, callback?: Function): void;
   addItem(item: string | Function | ListbarCommand, callback?: Function): void;
-  appendItem(item: string | Function | ListbarCommand, callback?: Function): void;
+  appendItem(
+    item: string | Function | ListbarCommand,
+    callback?: Function
+  ): void;
   render(): any;
   select(offset: number | ListbarElement): void;
   removeItem(child: number | ListbarElement): void;
@@ -144,27 +149,33 @@ function Listbar(this: ListbarInterface, options?: ListbarOptions) {
   }
 
   if (options.keys) {
-    this.on('keypress', function(ch: string, key: ListbarKey) {
-      if (key.name === 'left'
-          || (options!.vi && key.name === 'h')
-          || (key.shift && key.name === 'tab')) {
+    this.on('keypress', function (ch: string, key: ListbarKey) {
+      if (
+        key.name === 'left' ||
+        (options!.vi && key.name === 'h') ||
+        (key.shift && key.name === 'tab')
+      ) {
         self.moveLeft();
         self.screen.render();
         // Stop propagation if we're in a form.
         if (key.name === 'tab') return false;
         return;
       }
-      if (key.name === 'right'
-          || (options!.vi && key.name === 'l')
-          || key.name === 'tab') {
+      if (
+        key.name === 'right' ||
+        (options!.vi && key.name === 'l') ||
+        key.name === 'tab'
+      ) {
         self.moveRight();
         self.screen.render();
         // Stop propagation if we're in a form.
         if (key.name === 'tab') return false;
         return;
       }
-      if (key.name === 'enter'
-          || (options!.vi && key.name === 'k' && !key.shift)) {
+      if (
+        key.name === 'enter' ||
+        (options!.vi && key.name === 'k' && !key.shift)
+      ) {
         self.emit('action', self.items[self.selected], self.selected);
         self.emit('select', self.items[self.selected], self.selected);
         const item = self.items[self.selected];
@@ -183,7 +194,7 @@ function Listbar(this: ListbarInterface, options?: ListbarOptions) {
   }
 
   if (options.autoCommandKeys) {
-    this.onScreenEvent('keypress', function(ch: string) {
+    this.onScreenEvent('keypress', function (ch: string) {
       if (/^[0-9]$/.test(ch)) {
         let i = +ch - 1;
         if (!~i) i = 9;
@@ -192,7 +203,7 @@ function Listbar(this: ListbarInterface, options?: ListbarOptions) {
     });
   }
 
-  this.on('focus', function() {
+  this.on('focus', function () {
     self.select(self.selected);
   });
 }
@@ -201,16 +212,26 @@ Listbar.prototype.__proto__ = Box.prototype;
 
 Listbar.prototype.type = 'listbar';
 
-Listbar.prototype.__defineGetter__('selected', function(this: ListbarInterface): number {
-  return this.leftBase + this.leftOffset;
-});
+Listbar.prototype.__defineGetter__(
+  'selected',
+  function (this: ListbarInterface): number {
+    return this.leftBase + this.leftOffset;
+  }
+);
 
-Listbar.prototype.setItems = function(this: ListbarInterface, commands: ListbarCommand[] | { [key: string]: ListbarCommand | Function }): void {
+Listbar.prototype.setItems = function (
+  this: ListbarInterface,
+  commands: ListbarCommand[] | { [key: string]: ListbarCommand | Function }
+): void {
   const self = this;
 
   let commandsArray: ListbarCommand[];
   if (!Array.isArray(commands)) {
-    commandsArray = Object.keys(commands).reduce(function(obj: ListbarCommand[], key: string, i: number): ListbarCommand[] {
+    commandsArray = Object.keys(commands).reduce(function (
+      obj: ListbarCommand[],
+      key: string,
+      i: number
+    ): ListbarCommand[] {
       let cmd = commands[key];
       let cb: Function;
 
@@ -219,10 +240,15 @@ Listbar.prototype.setItems = function(this: ListbarInterface, commands: ListbarC
         cmd = { callback: cb };
       }
 
-      if ((cmd as ListbarCommand).text == null) (cmd as ListbarCommand).text = key;
-      if ((cmd as ListbarCommand).prefix == null) (cmd as ListbarCommand).prefix = ++i + '';
+      if ((cmd as ListbarCommand).text == null)
+        (cmd as ListbarCommand).text = key;
+      if ((cmd as ListbarCommand).prefix == null)
+        (cmd as ListbarCommand).prefix = ++i + '';
 
-      if ((cmd as ListbarCommand).text == null && (cmd as ListbarCommand).callback) {
+      if (
+        (cmd as ListbarCommand).text == null &&
+        (cmd as ListbarCommand).callback
+      ) {
         (cmd as ListbarCommand).text = (cmd as ListbarCommand).callback!.name;
       }
 
@@ -234,7 +260,7 @@ Listbar.prototype.setItems = function(this: ListbarInterface, commands: ListbarC
     commandsArray = commands;
   }
 
-  this.items.forEach(function(el: ListbarElement) {
+  this.items.forEach(function (el: ListbarElement) {
     el.detach();
   });
 
@@ -242,7 +268,7 @@ Listbar.prototype.setItems = function(this: ListbarInterface, commands: ListbarC
   this.ritems = [];
   this.commands = [];
 
-  commandsArray.forEach(function(cmd: ListbarCommand) {
+  commandsArray.forEach(function (cmd: ListbarCommand) {
     self.add(cmd);
   });
 
@@ -250,132 +276,143 @@ Listbar.prototype.setItems = function(this: ListbarInterface, commands: ListbarC
 };
 
 Listbar.prototype.add =
-Listbar.prototype.addItem =
-Listbar.prototype.appendItem = function(item, callback) {
-  var self = this
-    , prev = this.items[this.items.length - 1]
-    , drawn
-    , cmd
-    , title
-    , len;
+  Listbar.prototype.addItem =
+  Listbar.prototype.appendItem =
+    function (item, callback) {
+      var self = this,
+        prev = this.items[this.items.length - 1],
+        drawn,
+        cmd,
+        title,
+        len;
 
-  if (!this.parent) {
-    drawn = 0;
-  } else {
-    drawn = prev ? prev.aleft + prev.width : 0;
-    if (!this.screen.autoPadding) {
-      drawn += this.ileft;
-    }
-  }
-
-  if (typeof item === 'object') {
-    cmd = item;
-    if (cmd.prefix == null) cmd.prefix = (this.items.length + 1) + '';
-  }
-
-  if (typeof item === 'string') {
-    cmd = {
-      prefix: (this.items.length + 1) + '',
-      text: item,
-      callback: callback
-    };
-  }
-
-  if (typeof item === 'function') {
-    cmd = {
-      prefix: (this.items.length + 1) + '',
-      text: item.name,
-      callback: item
-    };
-  }
-
-  if (cmd.keys && cmd.keys[0]) {
-    cmd.prefix = cmd.keys[0];
-  }
-
-  var t = helpers.generateTags(this.style.prefix || { fg: 'lightblack' });
-
-  title = (cmd.prefix != null ? t.open + cmd.prefix + t.close + ':' : '') + cmd.text;
-
-  len = ((cmd.prefix != null ? cmd.prefix + ':' : '') + cmd.text).length;
-
-  var options = {
-    screen: this.screen,
-    top: 0,
-    left: drawn + 1,
-    height: 1,
-    content: title,
-    width: len + 2,
-    align: 'center',
-    autoFocus: false,
-    tags: true,
-    mouse: true,
-    style: helpers.merge({}, this.style.item),
-    noOverflow: true
-  };
-
-  if (!this.screen.autoPadding) {
-    options.top += this.itop;
-    options.left += this.ileft;
-  }
-
-  ['bg', 'fg', 'bold', 'underline',
-   'blink', 'inverse', 'invisible'].forEach(function(name) {
-    options.style[name] = function() {
-      var attr = self.items[self.selected] === el
-        ? self.style.selected[name]
-        : self.style.item[name];
-      if (typeof attr === 'function') attr = attr(el);
-      return attr;
-    };
-  });
-
-  var el = new Box(options);
-
-  this._[cmd.text] = el;
-  cmd.element = el;
-  el._.cmd = cmd;
-
-  this.ritems.push(cmd.text);
-  this.items.push(el);
-  this.commands.push(cmd);
-  this.append(el);
-
-  if (cmd.callback) {
-    if (cmd.keys) {
-      this.screen.key(cmd.keys, function() {
-        self.emit('action', el, self.selected);
-        self.emit('select', el, self.selected);
-        if (el._.cmd.callback) {
-          el._.cmd.callback();
+      if (!this.parent) {
+        drawn = 0;
+      } else {
+        drawn = prev ? prev.aleft + prev.width : 0;
+        if (!this.screen.autoPadding) {
+          drawn += this.ileft;
         }
-        self.select(el);
-        self.screen.render();
-      });
-    }
-  }
-
-  if (this.items.length === 1) {
-    this.select(0);
-  }
-
-  // XXX May be affected by new element.options.mouse option.
-  if (this.mouse) {
-    el.on('click', function() {
-      self.emit('action', el, self.selected);
-      self.emit('select', el, self.selected);
-      if (el._.cmd.callback) {
-        el._.cmd.callback();
       }
-      self.select(el);
-      self.screen.render();
-    });
-  }
 
-  this.emit('add item');
-};
+      if (typeof item === 'object') {
+        cmd = item;
+        if (cmd.prefix == null) cmd.prefix = this.items.length + 1 + '';
+      }
 
-Listbar.prototype.render = function(this: ListbarInterface): any {
+      if (typeof item === 'string') {
+        cmd = {
+          prefix: this.items.length + 1 + '',
+          text: item,
+          callback: callback,
+        };
+      }
+
+      if (typeof item === 'function') {
+        cmd = {
+          prefix: this.items.length + 1 + '',
+          text: item.name,
+          callback: item,
+        };
+      }
+
+      if (cmd.keys && cmd.keys[0]) {
+        cmd.prefix = cmd.keys[0];
+      }
+
+      var t = helpers.generateTags(this.style.prefix || { fg: 'lightblack' });
+
+      title =
+        (cmd.prefix != null ? t.open + cmd.prefix + t.close + ':' : '') +
+        cmd.text;
+
+      len = ((cmd.prefix != null ? cmd.prefix + ':' : '') + cmd.text).length;
+
+      var options = {
+        screen: this.screen,
+        top: 0,
+        left: drawn + 1,
+        height: 1,
+        content: title,
+        width: len + 2,
+        align: 'center',
+        autoFocus: false,
+        tags: true,
+        mouse: true,
+        style: helpers.merge({}, this.style.item),
+        noOverflow: true,
+      };
+
+      if (!this.screen.autoPadding) {
+        options.top += this.itop;
+        options.left += this.ileft;
+      }
+
+      [
+        'bg',
+        'fg',
+        'bold',
+        'underline',
+        'blink',
+        'inverse',
+        'invisible',
+      ].forEach(function (name) {
+        options.style[name] = function () {
+          var attr =
+            self.items[self.selected] === el
+              ? self.style.selected[name]
+              : self.style.item[name];
+          if (typeof attr === 'function') attr = attr(el);
+          return attr;
+        };
+      });
+
+      var el = new Box(options);
+
+      this._[cmd.text] = el;
+      cmd.element = el;
+      el._.cmd = cmd;
+
+      this.ritems.push(cmd.text);
+      this.items.push(el);
+      this.commands.push(cmd);
+      this.append(el);
+
+      if (cmd.callback) {
+        if (cmd.keys) {
+          this.screen.key(cmd.keys, function () {
+            self.emit('action', el, self.selected);
+            self.emit('select', el, self.selected);
+            if (el._.cmd.callback) {
+              el._.cmd.callback();
+            }
+            self.select(el);
+            self.screen.render();
+          });
+        }
+      }
+
+      if (this.items.length === 1) {
+        this.select(0);
+      }
+
+      // XXX May be affected by new element.options.mouse option.
+      if (this.mouse) {
+        el.on('click', function () {
+          self.emit('action', el, self.selected);
+          self.emit('select', el, self.selected);
+          if (el._.cmd.callback) {
+            el._.cmd.callback();
+          }
+          self.select(el);
+          self.screen.render();
+        });
+      }
+
+      this.emit('add item');
+    };
+
+Listbar.prototype.render = function (this: ListbarInterface): any {
   const self = this;
   let drawn = 0;
 
@@ -383,7 +420,7 @@ Listbar.prototype.render = function(this: ListbarInterface): any {
     drawn += this.ileft;
   }
 
-  this.items.forEach(function(el: ListbarElement, i: number) {
+  this.items.forEach(function (el: ListbarElement, i: number) {
     if (i < self.leftBase) {
       el.hide();
     } else {
@@ -396,7 +433,7 @@ Listbar.prototype.render = function(this: ListbarInterface): any {
   return this._render();
 };
 
-Listbar.prototype.select = function(offset) {
+Listbar.prototype.select = function (offset) {
   if (typeof offset !== 'number') {
     offset = this.items.indexOf(offset);
   }
@@ -415,16 +452,16 @@ Listbar.prototype.select = function(offset) {
   var lpos = this._getCoords();
   if (!lpos) return;
 
-  var self = this
-    , width = (lpos.xl - lpos.xi) - this.iwidth
-    , drawn = 0
-    , visible = 0
-    , el;
+  var self = this,
+    width = lpos.xl - lpos.xi - this.iwidth,
+    drawn = 0,
+    visible = 0,
+    el;
 
   el = this.items[offset];
   if (!el) return;
 
-  this.items.forEach(function(el, i) {
+  this.items.forEach(function (el, i) {
     if (i < self.leftBase) return;
 
     var lpos = el._getCoords();
@@ -432,7 +469,7 @@ Listbar.prototype.select = function(offset) {
 
     if (lpos.xl - lpos.xi <= 0) return;
 
-    drawn += (lpos.xl - lpos.xi) + 2;
+    drawn += lpos.xl - lpos.xi + 2;
 
     if (drawn <= width) visible++;
   });
@@ -459,10 +496,11 @@ Listbar.prototype.select = function(offset) {
   this.emit('select item', el, offset);
 };
 
-Listbar.prototype.removeItem = function(this: ListbarInterface, child: number | ListbarElement): void {
-  const i = typeof child !== 'number'
-    ? this.items.indexOf(child)
-    : child;
+Listbar.prototype.removeItem = function (
+  this: ListbarInterface,
+  child: number | ListbarElement
+): void {
+  const i = typeof child !== 'number' ? this.items.indexOf(child) : child;
 
   if (~i && this.items[i]) {
     child = this.items.splice(i, 1)[0];
@@ -477,19 +515,31 @@ Listbar.prototype.removeItem = function(this: ListbarInterface, child: number | 
   this.emit('remove item');
 };
 
-Listbar.prototype.move = function(this: ListbarInterface, offset: number): void {
+Listbar.prototype.move = function (
+  this: ListbarInterface,
+  offset: number
+): void {
   this.select(this.selected + offset);
 };
 
-Listbar.prototype.moveLeft = function(this: ListbarInterface, offset?: number): void {
+Listbar.prototype.moveLeft = function (
+  this: ListbarInterface,
+  offset?: number
+): void {
   this.move(-(offset || 1));
 };
 
-Listbar.prototype.moveRight = function(this: ListbarInterface, offset?: number): void {
+Listbar.prototype.moveRight = function (
+  this: ListbarInterface,
+  offset?: number
+): void {
   this.move(offset || 1);
 };
 
-Listbar.prototype.selectTab = function(this: ListbarInterface, index: number): void {
+Listbar.prototype.selectTab = function (
+  this: ListbarInterface,
+  index: number
+): void {
   const item = this.items[index];
   if (item) {
     if (item._!.cmd.callback) {

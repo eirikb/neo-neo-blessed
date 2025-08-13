@@ -5,7 +5,7 @@ var screen = blessed.screen({
   smartCSR: true,
   dump: __dirname + '/logs/obscure-sides.log',
   autoPadding: true,
-  warnings: true
+  warnings: true,
 });
 
 var box = blessed.box({
@@ -14,16 +14,16 @@ var box = blessed.box({
   alwaysScroll: true,
   border: {
     type: 'bg',
-    ch: ' '
+    ch: ' ',
   },
   style: {
     bg: 'blue',
     border: {
-      inverse: true
+      inverse: true,
     },
     scrollbar: {
-      bg: 'white'
-    }
+      bg: 'white',
+    },
   },
   height: 10,
   width: 30,
@@ -33,21 +33,21 @@ var box = blessed.box({
   keys: true,
   vi: true,
   scrollbar: {
-    ch: ' '
-  }
+    ch: ' ',
+  },
 });
 
 var child = blessed.box({
   parent: box,
   content: 'hello',
   style: {
-    bg: 'green'
+    bg: 'green',
   },
   // border: 'line',
   height: 5,
   width: 20,
   top: 2,
-  left: 15
+  left: 15,
 });
 
 var child2 = blessed.box({
@@ -60,13 +60,13 @@ var child2 = blessed.box({
   height: 5,
   width: 20,
   top: 25,
-  left: -5
+  left: -5,
 });
 
 box.focus();
 
 screen.render();
 
-screen.key('q', function() {
+screen.key('q', function () {
   screen.destroy();
 });
