@@ -28,7 +28,10 @@ interface ScrollableTextInterface extends ScrollableBox {
  * ScrollableText
  */
 
-function ScrollableText(this: ScrollableTextInterface, options?: ScrollableTextOptions) {
+function ScrollableText(
+  this: ScrollableTextInterface,
+  options?: ScrollableTextOptions
+) {
   if (!(this instanceof Node)) {
     return new (ScrollableText as any)(options);
   }

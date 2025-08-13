@@ -1,11 +1,11 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/noalt.log',
   title: 'widget-noalt test',
   noAlt: true,
-  warnings: true
+  warnings: true,
 });
 
 var list = blessed.list({
@@ -24,24 +24,20 @@ var list = blessed.list({
     fg: 'blue',
     bg: 'default',
     selected: {
-      bg: 'green'
-    }
+      bg: 'green',
+    },
   },
-  items: [
-    'one',
-    'two',
-    'three'
-  ]
+  items: ['one', 'two', 'three'],
 });
 
 list.select(0);
 
-list.on('select', function(item) {
+list.on('select', function (item) {
   console.log(item.getText());
   screen.destroy();
 });
 
-screen.key('C-c', function() {
+screen.key('C-c', function () {
   screen.destroy();
 });
 

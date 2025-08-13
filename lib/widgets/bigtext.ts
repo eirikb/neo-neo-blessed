@@ -103,10 +103,11 @@ function BigText(this: BigTextInterface, options?: BigTextOptions) {
     return new (BigText as any)(options);
   }
   options = options || {};
-  options.font = options.font
-    || require.resolve('../../usr/fonts/ter-u14n.json');
-  options.fontBold = options.fontBold
-    || require.resolve('../../usr/fonts/ter-u14b.json');
+  const path = require('path');
+  options.font =
+    options.font || path.join(__dirname, '../usr/fonts/ter-u14n.json');
+  options.fontBold =
+    options.fontBold || path.join(__dirname, '../usr/fonts/ter-u14b.json');
   this.fch = options.fch;
   this.ratio = {} as BigTextRatio;
   this.font = this.loadFont(options.font);
@@ -121,7 +122,10 @@ BigText.prototype.__proto__ = Box.prototype;
 
 BigText.prototype.type = 'bigtext';
 
-BigText.prototype.loadFont = function(this: BigTextInterface, filename: string): BigTextFont {
+BigText.prototype.loadFont = function (
+  this: BigTextInterface,
+  filename: string
+): BigTextFont {
   const self = this;
   let data: BigTextFontData;
   let font: BigTextFont;
@@ -139,9 +143,9 @@ BigText.prototype.loadFont = function(this: BigTextInterface, filename: string):
       lines.pop();
     }
 
-    lines = lines.map(function(line: string): number[] {
+    lines = lines.map(function (line: string): number[] {
       let chs = line.split('');
-      let chsNumbers = chs.map(function(ch: string): number {
+      let chsNumbers = chs.map(function (ch: string): number {
         return ch === ' ' ? 0 : 1;
       });
       while (chsNumbers.length < self.ratio.width) {
@@ -161,7 +165,10 @@ BigText.prototype.loadFont = function(this: BigTextInterface, filename: string):
     return lines as number[][];
   }
 
-  font = Object.keys(data.glyphs).reduce(function(out: BigTextFont, ch: string): BigTextFont {
+  font = Object.keys(data.glyphs).reduce(function (
+    out: BigTextFont,
+    ch: string
+  ): BigTextFont {
     const lines = data.glyphs[ch].map;
     out[ch] = convertLetter(ch, lines);
     return out;
@@ -172,22 +179,27 @@ BigText.prototype.loadFont = function(this: BigTextInterface, filename: string):
   return font;
 };
 
-BigText.prototype.setContent = function(this: BigTextInterface, content: string): void {
+BigText.prototype.setContent = function (
+  this: BigTextInterface,
+  content: string
+): void {
   this.content = '';
   this.text = content || '';
 };
 
-BigText.prototype.render = function(this: BigTextInterface): BigTextCoords | undefined {
+BigText.prototype.render = function (
+  this: BigTextInterface
+): BigTextCoords | undefined {
   if (this.position.width == null || this._shrinkWidth) {
     // if (this.width - this.iwidth < this.ratio.width * this.text.length + 1) {
-      this.position.width = this.ratio.width * this.text.length + 1;
-      this._shrinkWidth = true;
+    this.position.width = this.ratio.width * this.text.length + 1;
+    this._shrinkWidth = true;
     // }
   }
   if (this.position.height == null || this._shrinkHeight) {
     // if (this.height - this.iheight < this.ratio.height + 0) {
-      this.position.height = this.ratio.height + 0;
-      this._shrinkHeight = true;
+    this.position.height = this.ratio.height + 0;
+    this._shrinkHeight = true;
     // }
   }
 

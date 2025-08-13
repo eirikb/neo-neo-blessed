@@ -5,7 +5,7 @@ var screen = blessed.screen({
   smartCSR: true,
   autoPadding: true,
   warnings: true,
-  ignoreLocked: ['C-q']
+  ignoreLocked: ['C-q'],
 });
 
 var box = blessed.prompt({
@@ -14,12 +14,12 @@ var box = blessed.prompt({
   top: 'center',
   width: '70%',
   height: 'shrink',
-  border: 'line'
+  border: 'line',
 });
 
 screen.render();
 
-box.input('Input: ', '', function(err, data) {
+box.input('Input: ', '', function (err, data) {
   screen.destroy();
   if (process.argv[2] === 'resume') {
     process.stdin.resume();
@@ -31,6 +31,6 @@ box.input('Input: ', '', function(err, data) {
   console.log('Input: ' + data);
 });
 
-screen.key('C-q', function(ch, key) {
+screen.key('C-q', function (ch, key) {
   return screen.destroy();
 });

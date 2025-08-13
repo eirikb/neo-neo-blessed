@@ -1,10 +1,10 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/huge-content.log',
   smartCSR: true,
-  warnings: true
+  warnings: true,
 });
 
 var content = '';
@@ -32,11 +32,11 @@ var box = blessed.box({
   alwaysScroll: true,
   scrollbar: {
     ch: ' ',
-    inverse: true
-  }
+    inverse: true,
+  },
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

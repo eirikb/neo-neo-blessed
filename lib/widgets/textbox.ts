@@ -73,7 +73,11 @@ Textbox.prototype.__proto__ = Textarea.prototype;
 Textbox.prototype.type = 'textbox';
 
 Textbox.prototype.__olistener = Textbox.prototype._listener;
-Textbox.prototype._listener = function(this: TextboxInterface, ch: string, key: TextboxKey): any {
+Textbox.prototype._listener = function (
+  this: TextboxInterface,
+  ch: string,
+  key: TextboxKey
+): any {
   if (key.name === 'enter') {
     this._done(null, this.value);
     return;
@@ -81,7 +85,10 @@ Textbox.prototype._listener = function(this: TextboxInterface, ch: string, key: 
   return this.__olistener(ch, key);
 };
 
-Textbox.prototype.setValue = function(this: TextboxInterface, value?: string): void {
+Textbox.prototype.setValue = function (
+  this: TextboxInterface,
+  value?: string
+): void {
   let visible: number, val: string;
   if (value == null) {
     value = this.value;
@@ -103,7 +110,7 @@ Textbox.prototype.setValue = function(this: TextboxInterface, value?: string): v
   }
 };
 
-Textbox.prototype.submit = function(this: TextboxInterface): any {
+Textbox.prototype.submit = function (this: TextboxInterface): any {
   if (!this.__listener) return;
   return this.__listener('\r', { name: 'enter' });
 };

@@ -62,7 +62,7 @@ function Loading(this: LoadingInterface, options?: LoadingOptions) {
     left: 1,
     right: 1,
     height: 1,
-    content: '|'
+    content: '|',
   });
 }
 
@@ -70,7 +70,7 @@ Loading.prototype.__proto__ = Box.prototype;
 
 Loading.prototype.type = 'loading';
 
-Loading.prototype.load = function(this: LoadingInterface, text: string): void {
+Loading.prototype.load = function (this: LoadingInterface, text: string): void {
   const self = this;
 
   // XXX Keep above:
@@ -87,7 +87,7 @@ Loading.prototype.load = function(this: LoadingInterface, text: string): void {
 
   this.screen.lockKeys = true;
 
-  this._.timer = setInterval(function() {
+  this._.timer = setInterval(function () {
     if (self._.icon.content === '|') {
       self._.icon.setContent('/');
     } else if (self._.icon.content === '/') {
@@ -101,7 +101,7 @@ Loading.prototype.load = function(this: LoadingInterface, text: string): void {
   }, 200);
 };
 
-Loading.prototype.stop = function(this: LoadingInterface): void {
+Loading.prototype.stop = function (this: LoadingInterface): void {
   this.screen.lockKeys = false;
   this.hide();
   if (this._.timer) {

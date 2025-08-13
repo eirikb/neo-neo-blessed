@@ -1,22 +1,22 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/csr.log',
   smartCSR: true,
-  warnings: true
+  warnings: true,
 });
 
 var lorem = require('fs').readFileSync(__dirname + '/git.diff', 'utf8');
 
 var cleanSides = screen.cleanSides;
 function expectClean(value) {
-  screen.cleanSides = function(el) {
+  screen.cleanSides = function (el) {
     var ret = cleanSides.apply(this, arguments);
     if (ret !== value) {
-      throw new Error('Failed. Expected '
-        + value + ' from cleanSides. Got '
-        + ret + '.');
+      throw new Error(
+        'Failed. Expected ' + value + ' from cleanSides. Got ' + ret + '.'
+      );
     }
     return ret;
   };
@@ -44,13 +44,13 @@ var btext = blessed.box({
   width: '80%',
   height: '80%',
   style: {
-    bg: 'green'
+    bg: 'green',
   },
   border: 'line',
-  content: 'CSR should still work.'
+  content: 'CSR should still work.',
 });
 btext._oscroll = btext.scroll;
-btext.scroll = function(offset, always) {
+btext.scroll = function (offset, always) {
   expectClean(true);
   return btext._oscroll(offset, always);
 };
@@ -66,11 +66,11 @@ var text = blessed.scrollabletext({
   height: '50%',
   mouse: true,
   keys: true,
-  vi: true
+  vi: true,
 });
 
 text._oscroll = text.scroll;
-text.scroll = function(offset, always) {
+text.scroll = function (offset, always) {
   var el = this;
   var value = true;
   if (el.left < 0) value = true;
@@ -83,7 +83,7 @@ text.scroll = function(offset, always) {
 
 text.focus();
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

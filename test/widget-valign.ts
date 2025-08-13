@@ -1,11 +1,11 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/valign.log',
   smartCSR: true,
   autoPadding: false,
-  warnings: true
+  warnings: true,
 });
 
 var box = blessed.box({
@@ -18,10 +18,10 @@ var box = blessed.box({
   valign: 'middle',
   // valign: 'bottom',
   content: 'Foobar.',
-  border: 'line'
+  border: 'line',
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

@@ -97,39 +97,48 @@ function Form(this: FormInterface, options?: FormOptions) {
 
   if (options.keys) {
     this.screen._listenKeys(this);
-    this.on('element keypress', function(el: FormElement, ch: string, key: FormKey) {
-      if ((key.name === 'tab' && !key.shift)
-          || (el.type === 'textbox' && options!.autoNext && key.name === 'enter')
-          || key.name === 'down'
-          || (options!.vi && key.name === 'j')) {
-        if (el.type === 'textbox' || el.type === 'textarea') {
-          if (key.name === 'j') return;
-          if (key.name === 'tab') {
-            // Workaround, since we can't stop the tab from being added.
-            el.emit('keypress', null, { name: 'backspace' });
+    this.on(
+      'element keypress',
+      function (el: FormElement, ch: string, key: FormKey) {
+        if (
+          (key.name === 'tab' && !key.shift) ||
+          (el.type === 'textbox' &&
+            options!.autoNext &&
+            key.name === 'enter') ||
+          key.name === 'down' ||
+          (options!.vi && key.name === 'j')
+        ) {
+          if (el.type === 'textbox' || el.type === 'textarea') {
+            if (key.name === 'j') return;
+            if (key.name === 'tab') {
+              // Workaround, since we can't stop the tab from being added.
+              el.emit('keypress', null, { name: 'backspace' });
+            }
+            el.emit('keypress', '\x1b', { name: 'escape' });
           }
-          el.emit('keypress', '\x1b', { name: 'escape' });
+          self.focusNext();
+          return;
         }
-        self.focusNext();
-        return;
-      }
 
-      if ((key.name === 'tab' && key.shift)
-          || key.name === 'up'
-          || (options!.vi && key.name === 'k')) {
-        if (el.type === 'textbox' || el.type === 'textarea') {
-          if (key.name === 'k') return;
-          el.emit('keypress', '\x1b', { name: 'escape' });
+        if (
+          (key.name === 'tab' && key.shift) ||
+          key.name === 'up' ||
+          (options!.vi && key.name === 'k')
+        ) {
+          if (el.type === 'textbox' || el.type === 'textarea') {
+            if (key.name === 'k') return;
+            el.emit('keypress', '\x1b', { name: 'escape' });
+          }
+          self.focusPrevious();
+          return;
         }
-        self.focusPrevious();
-        return;
-      }
 
-      if (key.name === 'escape') {
-        self.focus();
-        return;
+        if (key.name === 'escape') {
+          self.focus();
+          return;
+        }
       }
-    });
+    );
   }
 }
 
@@ -137,7 +146,7 @@ Form.prototype.__proto__ = Box.prototype;
 
 Form.prototype.type = 'form';
 
-Form.prototype._refresh = function(this: FormInterface): void {
+Form.prototype._refresh = function (this: FormInterface): void {
   // XXX Possibly remove this if statement and refresh on every focus.
   // Also potentially only include *visible* focusable elements.
   // This would remove the need to check for _selected.visible in previous()
@@ -154,13 +163,13 @@ Form.prototype._refresh = function(this: FormInterface): void {
   }
 };
 
-Form.prototype._visible = function(this: FormInterface): boolean {
-  return !!this._children!.filter(function(el: FormElement) {
+Form.prototype._visible = function (this: FormInterface): boolean {
+  return !!this._children!.filter(function (el: FormElement) {
     return el.visible;
   }).length;
 };
 
-Form.prototype.next = function(this: FormInterface): FormElement | undefined {
+Form.prototype.next = function (this: FormInterface): FormElement | undefined {
   this._refresh();
 
   if (!this._visible()) return;
@@ -183,7 +192,9 @@ Form.prototype.next = function(this: FormInterface): FormElement | undefined {
   return this._selected;
 };
 
-Form.prototype.previous = function(this: FormInterface): FormElement | undefined {
+Form.prototype.previous = function (
+  this: FormInterface
+): FormElement | undefined {
   this._refresh();
 
   if (!this._visible()) return;
@@ -206,31 +217,31 @@ Form.prototype.previous = function(this: FormInterface): FormElement | undefined
   return this._selected;
 };
 
-Form.prototype.focusNext = function(this: FormInterface): void {
+Form.prototype.focusNext = function (this: FormInterface): void {
   const next = this.next();
   if (next) next.focus();
 };
 
-Form.prototype.focusPrevious = function(this: FormInterface): void {
+Form.prototype.focusPrevious = function (this: FormInterface): void {
   const previous = this.previous();
   if (previous) previous.focus();
 };
 
-Form.prototype.resetSelected = function(this: FormInterface): void {
+Form.prototype.resetSelected = function (this: FormInterface): void {
   this._selected = null;
 };
 
-Form.prototype.focusFirst = function(this: FormInterface): void {
+Form.prototype.focusFirst = function (this: FormInterface): void {
   this.resetSelected();
   this.focusNext();
 };
 
-Form.prototype.focusLast = function(this: FormInterface): void {
+Form.prototype.focusLast = function (this: FormInterface): void {
   this.resetSelected();
   this.focusPrevious();
 };
 
-Form.prototype.submit = function(this: FormInterface): FormSubmission {
+Form.prototype.submit = function (this: FormInterface): FormSubmission {
   const out: FormSubmission = {};
 
   this.children.forEach(function fn(el: FormElement) {
@@ -249,14 +260,14 @@ Form.prototype.submit = function(this: FormInterface): FormSubmission {
 
   this.emit('submit', out);
 
-  return this.submission = out;
+  return (this.submission = out);
 };
 
-Form.prototype.cancel = function(this: FormInterface): void {
+Form.prototype.cancel = function (this: FormInterface): void {
   this.emit('cancel');
 };
 
-Form.prototype.reset = function(this: FormInterface): void {
+Form.prototype.reset = function (this: FormInterface): void {
   this.children.forEach(function fn(el: FormElement) {
     switch (el.type) {
       case 'screen':

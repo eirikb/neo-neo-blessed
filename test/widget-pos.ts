@@ -1,9 +1,9 @@
-var blessed = require('../')
-  , assert = require('assert')
-  , screen;
+var blessed = require('../'),
+  assert = require('assert'),
+  screen;
 
 screen = blessed.screen({
-  dump: __dirname + '/logs/pos.log'
+  dump: __dirname + '/logs/pos.log',
 });
 
 // My terminal size at the time of writing these tests:
@@ -17,11 +17,11 @@ var main = blessed.box({
   width: 115,
   height: 14,
   style: {
-    bg: 'yellow'
+    bg: 'yellow',
   },
   top: 2,
   left: 2,
-  content: 'Welcome to my program'
+  content: 'Welcome to my program',
 });
 
 screen.append(main);
@@ -32,27 +32,31 @@ var inner = blessed.box({
   //width: 57,
   //height: 7,
   style: {
-    bg: 'blue'
+    bg: 'blue',
   },
   top: 2,
   left: 2,
-  content: 'Hello'
+  content: 'Hello',
 });
 
 main.append(inner);
 
-inner.setContent(inner.content + '\n' + JSON.stringify({
-  aleft: inner.aleft,
-  aright: inner.aright,
-  atop: inner.atop,
-  abottom: inner.abottom,
-  width: inner.width,
-  height: inner.height,
-  rleft: inner.rleft,
-  rright: inner.rright,
-  rtop: inner.rtop,
-  rbottom: inner.rbottom
-}));
+inner.setContent(
+  inner.content +
+    '\n' +
+    JSON.stringify({
+      aleft: inner.aleft,
+      aright: inner.aright,
+      atop: inner.atop,
+      abottom: inner.abottom,
+      width: inner.width,
+      height: inner.height,
+      rleft: inner.rleft,
+      rright: inner.rright,
+      rtop: inner.rtop,
+      rbottom: inner.rbottom,
+    })
+);
 
 assert.equal(inner.width, 57);
 assert.equal(inner.height, 7);
@@ -73,14 +77,14 @@ assert.equal(inner.aleft, 59);
 
 // Change left to half of the screen width.
 inner.aleft = '50%';
-assert.equal(inner.aleft, screen.width / 2 | 0);
+assert.equal(inner.aleft, (screen.width / 2) | 0);
 
 // Test implied height/width.
 reset(inner, {
   top: 5,
   bottom: 5,
   left: 5,
-  right: 5
+  right: 5,
 });
 
 assert.equal(inner.width, 105);
@@ -97,7 +101,7 @@ reset(inner, {
   width: '50%',
   height: '50%',
   left: 'center',
-  top: 'center'
+  top: 'center',
 });
 
 assert.equal(inner.rleft, 29);
@@ -105,7 +109,7 @@ assert.equal(inner.rtop, 4);
 
 // TODO: Start storing position.left, etc. as absolute?
 
-screen.on('keypress', function(ch, key) {
+screen.on('keypress', function (ch, key) {
   if (key.name === 'escape' || key.name === 'q') {
     return screen.destroy();
   }

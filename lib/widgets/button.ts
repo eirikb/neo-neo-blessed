@@ -54,14 +54,14 @@ function Button(this: ButtonInterface, options?: ButtonOptions) {
 
   Input.call(this, options);
 
-  this.on('keypress', function(ch: string, key: ButtonKey) {
+  this.on('keypress', function (ch: string, key: ButtonKey) {
     if (key.name === 'enter' || key.name === 'space') {
       return self.press();
     }
   });
 
   if (this.options.mouse) {
-    this.on('click', function() {
+    this.on('click', function () {
       return self.press();
     });
   }
@@ -71,7 +71,7 @@ Button.prototype.__proto__ = Input.prototype;
 
 Button.prototype.type = 'button';
 
-Button.prototype.press = function(this: ButtonInterface): boolean {
+Button.prototype.press = function (this: ButtonInterface): boolean {
   this.focus();
   this.value = true;
   const result = this.emit('press');

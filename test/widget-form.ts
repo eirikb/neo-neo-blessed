@@ -1,9 +1,9 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/form.log',
-  warnings: true
+  warnings: true,
 });
 
 var form = blessed.form({
@@ -21,8 +21,8 @@ var form = blessed.form({
     //   inverse: true
     // },
     scrollbar: {
-      inverse: true
-    }
+      inverse: true,
+    },
   },
   content: 'foobar',
   scrollable: true,
@@ -31,22 +31,22 @@ var form = blessed.form({
   //   ch: ' '
   // },
   scrollbar: {
-    ch: ' '
-  }
+    ch: ' ',
+  },
   //alwaysScroll: true
 });
 
-form.on('submit', function(data) {
+form.on('submit', function (data) {
   output.setContent(JSON.stringify(data, null, 2));
   screen.render();
 });
 
-form.key('d', function() {
+form.key('d', function () {
   form.scroll(1, true);
   screen.render();
 });
 
-form.key('u', function() {
+form.key('u', function () {
   form.scroll(-1, true);
   screen.render();
 });
@@ -59,8 +59,8 @@ var set = blessed.radioset({
   //padding: 1,
   //content: 'f',
   style: {
-    bg: 'magenta'
-  }
+    bg: 'magenta',
+  },
 });
 
 var radio1 = blessed.radiobutton({
@@ -69,13 +69,13 @@ var radio1 = blessed.radiobutton({
   keys: true,
   shrink: true,
   style: {
-    bg: 'magenta'
+    bg: 'magenta',
   },
   height: 1,
   left: 0,
   top: 0,
   name: 'radio1',
-  content: 'radio1'
+  content: 'radio1',
 });
 
 var radio2 = blessed.radiobutton({
@@ -84,13 +84,13 @@ var radio2 = blessed.radiobutton({
   keys: true,
   shrink: true,
   style: {
-    bg: 'magenta'
+    bg: 'magenta',
   },
   height: 1,
   left: 15,
   top: 0,
   name: 'radio2',
-  content: 'radio2'
+  content: 'radio2',
 });
 
 var text = blessed.textbox({
@@ -98,16 +98,16 @@ var text = blessed.textbox({
   mouse: true,
   keys: true,
   style: {
-    bg: 'blue'
+    bg: 'blue',
   },
   height: 1,
   width: 20,
   left: 1,
   top: 3,
-  name: 'text'
+  name: 'text',
 });
 
-text.on('focus', function() {
+text.on('focus', function () {
   text.readInput();
 });
 
@@ -117,13 +117,13 @@ var check = blessed.checkbox({
   keys: true,
   shrink: true,
   style: {
-    bg: 'magenta'
+    bg: 'magenta',
   },
   height: 1,
   left: 28,
   top: 1,
   name: 'check',
-  content: 'check'
+  content: 'check',
 });
 
 var check2 = blessed.checkbox({
@@ -132,13 +132,13 @@ var check2 = blessed.checkbox({
   keys: true,
   shrink: true,
   style: {
-    bg: 'magenta'
+    bg: 'magenta',
   },
   height: 1,
   left: 28,
   top: 14,
   name: 'foooooooo2',
-  content: 'foooooooo2'
+  content: 'foooooooo2',
 });
 
 var submit = blessed.button({
@@ -148,7 +148,7 @@ var submit = blessed.button({
   shrink: true,
   padding: {
     left: 1,
-    right: 1
+    right: 1,
   },
   left: 29,
   top: 3,
@@ -158,12 +158,12 @@ var submit = blessed.button({
   style: {
     bg: 'blue',
     focus: {
-      bg: 'red'
-    }
-  }
+      bg: 'red',
+    },
+  },
 });
 
-submit.on('press', function() {
+submit.on('press', function () {
   form.submit();
 });
 
@@ -175,8 +175,8 @@ var box1 = blessed.box({
   width: 10,
   content: 'one',
   style: {
-    bg: 'cyan'
-  }
+    bg: 'cyan',
+  },
 });
 
 var box2 = blessed.box({
@@ -187,8 +187,8 @@ var box2 = blessed.box({
   width: 9,
   content: 'two',
   style: {
-    bg: 'magenta'
-  }
+    bg: 'magenta',
+  },
 });
 
 var box3 = blessed.box({
@@ -199,8 +199,8 @@ var box3 = blessed.box({
   width: 8,
   content: 'three',
   style: {
-    bg: 'yellow'
-  }
+    bg: 'yellow',
+  },
 });
 
 var box4 = blessed.box({
@@ -211,8 +211,8 @@ var box4 = blessed.box({
   width: 7,
   content: 'four',
   style: {
-    bg: 'blue'
-  }
+    bg: 'blue',
+  },
 });
 
 var output = blessed.scrollabletext({
@@ -225,9 +225,9 @@ var output = blessed.scrollabletext({
   left: 0,
   right: 0,
   style: {
-    bg: 'red'
+    bg: 'red',
   },
-  content: 'foobar'
+  content: 'foobar',
 });
 
 var bottom = blessed.line({
@@ -238,11 +238,11 @@ var bottom = blessed.line({
   right: 0,
   top: 50,
   style: {
-    fg: 'blue'
-  }
+    fg: 'blue',
+  },
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

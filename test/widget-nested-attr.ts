@@ -1,9 +1,9 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/nested-attr.log',
-  warnings: true
+  warnings: true,
 });
 
 blessed.box({
@@ -14,15 +14,16 @@ blessed.box({
   height: '80%',
   style: {
     bg: 'black',
-    fg: 'yellow'
+    fg: 'yellow',
   },
   tags: true,
   border: 'line',
-  content: '{red-fg}hello {blue-fg}how{/blue-fg}'
-    + ' {yellow-bg}are{/yellow-bg} you?{/red-fg}'
+  content:
+    '{red-fg}hello {blue-fg}how{/blue-fg}' +
+    ' {yellow-bg}are{/yellow-bg} you?{/red-fg}',
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

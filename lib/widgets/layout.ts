@@ -94,10 +94,10 @@ function Layout(this: LayoutInterface, options?: LayoutOptions) {
 
   options = options || {};
 
-  if ((options.width == null
-      && (options.left == null && options.right == null))
-      || (options.height == null
-      && (options.top == null && options.bottom == null))) {
+  if (
+    (options.width == null && options.left == null && options.right == null) ||
+    (options.height == null && options.top == null && options.bottom == null)
+  ) {
     throw new Error('`Layout` must have a width and height!');
   }
 
@@ -114,25 +114,35 @@ Layout.prototype.__proto__ = Element.prototype;
 
 Layout.prototype.type = 'layout';
 
-Layout.prototype.isRendered = function(this: LayoutInterface, el: LayoutChild): boolean {
+Layout.prototype.isRendered = function (
+  this: LayoutInterface,
+  el: LayoutChild
+): boolean {
   if (!el.lpos) return false;
-  return (el.lpos.xl - el.lpos.xi) > 0
-      && (el.lpos.yl - el.lpos.yi) > 0;
+  return el.lpos.xl - el.lpos.xi > 0 && el.lpos.yl - el.lpos.yi > 0;
 };
 
-Layout.prototype.getLast = function(this: LayoutInterface, i: number): LayoutChild | undefined {
+Layout.prototype.getLast = function (
+  this: LayoutInterface,
+  i: number
+): LayoutChild | undefined {
   while (this.children[--i]) {
     const el = this.children[i];
     if (this.isRendered(el)) return el;
   }
 };
 
-Layout.prototype.getLastCoords = function(this: LayoutInterface, i: number): LayoutCoords | undefined {
+Layout.prototype.getLastCoords = function (
+  this: LayoutInterface,
+  i: number
+): LayoutCoords | undefined {
   const last = this.getLast(i);
   if (last) return last.lpos;
 };
 
-Layout.prototype._renderCoords = function(this: LayoutInterface): LayoutCoords | undefined {
+Layout.prototype._renderCoords = function (
+  this: LayoutInterface
+): LayoutCoords | undefined {
   const coords = this._getCoords(true);
   const children = this.children;
   this.children = [];
@@ -141,7 +151,10 @@ Layout.prototype._renderCoords = function(this: LayoutInterface): LayoutCoords |
   return coords;
 };
 
-Layout.prototype.renderer = function(this: LayoutInterface, coords: LayoutCoords): LayoutIterator {
+Layout.prototype.renderer = function (
+  this: LayoutInterface,
+  coords: LayoutCoords
+): LayoutIterator {
   const self = this;
 
   // The coordinates of the layout element
@@ -160,7 +173,10 @@ Layout.prototype.renderer = function(this: LayoutInterface, coords: LayoutCoords
   // Figure out the highest width child
   let highWidth = 0;
   if (this.options.layout === 'grid') {
-    highWidth = this.children.reduce(function(out: number, el: LayoutChild): number {
+    highWidth = this.children.reduce(function (
+      out: number,
+      el: LayoutChild
+    ): number {
       out = Math.max(out, el.width);
       return out;
     }, 0);
@@ -201,7 +217,10 @@ Layout.prototype.renderer = function(this: LayoutInterface, coords: LayoutCoords
         // Otherwise we need to start a new row and calculate a new
         // `rowOffset` and `rowIndex` (the index of the child on the current
         // row).
-        rowOffset += self.children.slice(rowIndex, i).reduce(function(out: number, el: LayoutChild): number {
+        rowOffset += self.children.slice(rowIndex, i).reduce(function (
+          out: number,
+          el: LayoutChild
+        ): number {
           if (!self.isRendered(el)) return out;
           out = Math.max(out, el.lpos!.yl - el.lpos!.yi);
           return out;
@@ -241,7 +260,9 @@ Layout.prototype.renderer = function(this: LayoutInterface, coords: LayoutCoords
   };
 };
 
-Layout.prototype.render = function(this: LayoutInterface): LayoutCoords | undefined {
+Layout.prototype.render = function (
+  this: LayoutInterface
+): LayoutCoords | undefined {
   this._emit('prerender');
 
   const coords = this._renderCoords();
@@ -264,19 +285,19 @@ Layout.prototype.render = function(this: LayoutInterface): LayoutCoords | undefi
 
   if (this.border) coords.xi++, coords.xl--, coords.yi++, coords.yl--;
   if (this.tpadding) {
-    coords.xi += this.padding!.left, coords.xl -= this.padding!.right;
-    coords.yi += this.padding!.top, coords.yl -= this.padding!.bottom;
+    (coords.xi += this.padding!.left), (coords.xl -= this.padding!.right);
+    (coords.yi += this.padding!.top), (coords.yl -= this.padding!.bottom);
   }
 
   const iterator = this.renderer(coords);
 
   if (this.border) coords.xi--, coords.xl++, coords.yi--, coords.yl++;
   if (this.tpadding) {
-    coords.xi -= this.padding!.left, coords.xl += this.padding!.right;
-    coords.yi -= this.padding!.top, coords.yl += this.padding!.bottom;
+    (coords.xi -= this.padding!.left), (coords.xl += this.padding!.right);
+    (coords.yi -= this.padding!.top), (coords.yl += this.padding!.bottom);
   }
 
-  this.children.forEach(function(el: LayoutChild, i: number) {
+  this.children.forEach(function (el: LayoutChild, i: number) {
     if (el.screen._ci !== -1) {
       el.index = el.screen._ci++;
     }

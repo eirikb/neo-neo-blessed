@@ -300,9 +300,11 @@ Program.prototype.setupDump = function (this: ProgramInterface): void {
     });
   }
 
-  this.input.on('data', function (data) {
-    self._log('IN', stringify(decoder.write(data)));
-  });
+  if (this.input && typeof this.input.on === 'function') {
+    this.input.on('data', function (data) {
+      self._log('IN', stringify(decoder.write(data)));
+    });
+  }
 
   this.output.write = function (data) {
     self._log('OUT', stringify(data));
@@ -447,59 +449,61 @@ Program.prototype._listenInput = function (this: ProgramInterface): void {
     self = this;
 
   // Input
-  this.input.on(
-    'keypress',
-    (this.input._keypressHandler = function (ch, key) {
-      key = key || { ch: ch };
+  if (this.input && typeof this.input.on === 'function') {
+    this.input.on(
+      'keypress',
+      (this.input._keypressHandler = function (ch, key) {
+        key = key || { ch: ch };
 
-      if (
-        key.name === 'undefined' &&
-        (key.code === '[M' || key.code === '[I' || key.code === '[O')
-      ) {
-        // A mouse sequence. The `keys` module doesn't understand these.
-        return;
-      }
+        if (
+          key.name === 'undefined' &&
+          (key.code === '[M' || key.code === '[I' || key.code === '[O')
+        ) {
+          // A mouse sequence. The `keys` module doesn't understand these.
+          return;
+        }
 
-      if (key.name === 'undefined') {
-        // Not sure what this is, but we should probably ignore it.
-        return;
-      }
+        if (key.name === 'undefined') {
+          // Not sure what this is, but we should probably ignore it.
+          return;
+        }
 
-      if (key.name === 'enter' && key.sequence === '\n') {
-        key.name = 'linefeed';
-      }
+        if (key.name === 'enter' && key.sequence === '\n') {
+          key.name = 'linefeed';
+        }
 
-      if (key.name === 'return' && key.sequence === '\r') {
-        self.input.emit('keypress', ch, merge({}, key, { name: 'enter' }));
-      }
+        if (key.name === 'return' && key.sequence === '\r') {
+          self.input.emit('keypress', ch, merge({}, key, { name: 'enter' }));
+        }
 
-      var name =
-        (key.ctrl ? 'C-' : '') +
-        (key.meta ? 'M-' : '') +
-        (key.shift && key.name ? 'S-' : '') +
-        (key.name || ch);
+        var name =
+          (key.ctrl ? 'C-' : '') +
+          (key.meta ? 'M-' : '') +
+          (key.shift && key.name ? 'S-' : '') +
+          (key.name || ch);
 
-      key.full = name;
+        key.full = name;
 
-      Program.instances.forEach(function (program) {
-        if (program.input !== self.input) return;
-        program.emit('keypress', ch, key);
-        program.emit('key ' + name, ch, key);
-      });
-    })
-  );
+        Program.instances.forEach(function (program) {
+          if (program.input !== self.input) return;
+          program.emit('keypress', ch, key);
+          program.emit('key ' + name, ch, key);
+        });
+      })
+    );
 
-  this.input.on(
-    'data',
-    (this.input._dataHandler = function (data) {
-      Program.instances.forEach(function (program) {
-        if (program.input !== self.input) return;
-        program.emit('data', data);
-      });
-    })
-  );
+    this.input.on(
+      'data',
+      (this.input._dataHandler = function (data) {
+        Program.instances.forEach(function (program) {
+          if (program.input !== self.input) return;
+          program.emit('data', data);
+        });
+      })
+    );
 
-  keys.emitKeypressEvents(this.input);
+    keys.emitKeypressEvents(this.input);
+  }
 };
 
 Program.prototype._listenOutput = function (this: ProgramInterface): void {
@@ -521,26 +525,28 @@ Program.prototype._listenOutput = function (this: ProgramInterface): void {
     });
   }
 
-  this.output.on(
-    'resize',
-    (this.output._resizeHandler = function () {
-      Program.instances.forEach(function (program) {
-        if (program.output !== self.output) return;
-        if (!program.options.resizeTimeout) {
-          return resize();
-        }
-        if (program._resizeTimer) {
-          clearTimeout(program._resizeTimer);
-          delete program._resizeTimer;
-        }
-        var time =
-          typeof program.options.resizeTimeout === 'number'
-            ? program.options.resizeTimeout
-            : 300;
-        program._resizeTimer = setTimeout(resize, time);
-      });
-    })
-  );
+  if (this.output && typeof this.output.on === 'function') {
+    this.output.on(
+      'resize',
+      (this.output._resizeHandler = function () {
+        Program.instances.forEach(function (program) {
+          if (program.output !== self.output) return;
+          if (!program.options.resizeTimeout) {
+            return resize();
+          }
+          if (program._resizeTimer) {
+            clearTimeout(program._resizeTimer);
+            delete program._resizeTimer;
+          }
+          var time =
+            typeof program.options.resizeTimeout === 'number'
+              ? program.options.resizeTimeout
+              : 300;
+          program._resizeTimer = setTimeout(resize, time);
+        });
+      })
+    );
+  }
 };
 
 Program.prototype.destroy = function () {

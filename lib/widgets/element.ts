@@ -10,8 +10,8 @@
 
 var assert = require('assert');
 
-var colors = require('../colors')
-  , unicode = require('../unicode');
+var colors = require('../colors'),
+  unicode = require('../unicode');
 
 var nextTick = global.setImmediate || process.nextTick.bind(process);
 
@@ -69,7 +69,7 @@ interface ElementInterface extends Node {
   hidden: boolean;
   visible: boolean;
   detached: boolean;
-  
+
   // Positioning and sizing
   aleft: number;
   aright: number;
@@ -83,7 +83,7 @@ interface ElementInterface extends Node {
   iright: number;
   itop: number;
   ibottom: number;
-  
+
   // Various element properties
   parseTags?: boolean;
   label?: any;
@@ -92,7 +92,7 @@ interface ElementInterface extends Node {
   padding?: any;
   margin?: any;
   lpos?: any;
-  
+
   // Methods (key ones for now)
   hide(): void;
   show(): void;
@@ -139,10 +139,15 @@ function Element(this: ElementInterface, options?: ElementOptions) {
   // Workaround to get a `scrollable` option.
   if (options.scrollable && !this._ignore && this.type !== 'scrollable-box') {
     var ScrollableBox = require('./scrollablebox');
-    Object.getOwnPropertyNames(ScrollableBox.prototype).forEach(function(key: string) {
+    Object.getOwnPropertyNames(ScrollableBox.prototype).forEach(function (
+      key: string
+    ) {
       if (key === 'type') return;
-      Object.defineProperty(this, key,
-        Object.getOwnPropertyDescriptor(ScrollableBox.prototype, key));
+      Object.defineProperty(
+        this,
+        key,
+        Object.getOwnPropertyDescriptor(ScrollableBox.prototype, key)
+      );
     }, this);
     this._ignore = true;
     ScrollableBox.call(this, options);
@@ -160,11 +165,13 @@ function Element(this: ElementInterface, options?: ElementOptions) {
     top: options.top,
     bottom: options.bottom,
     width: options.width,
-    height: options.height
+    height: options.height,
   };
 
-  if (options.position.width === 'shrink'
-      || options.position.height === 'shrink') {
+  if (
+    options.position.width === 'shrink' ||
+    options.position.height === 'shrink'
+  ) {
     if (options.position.width === 'shrink') {
       delete options.position.width;
     }
@@ -208,7 +215,7 @@ function Element(this: ElementInterface, options?: ElementOptions) {
       left: options.padding,
       top: options.padding,
       right: options.padding,
-      bottom: options.padding
+      bottom: options.padding,
     };
   }
 
@@ -216,7 +223,7 @@ function Element(this: ElementInterface, options?: ElementOptions) {
     left: options.padding.left || 0,
     top: options.padding.top || 0,
     right: options.padding.right || 0,
-    bottom: options.padding.bottom || 0
+    bottom: options.padding.bottom || 0,
   };
 
   this.border = options.border;
@@ -264,31 +271,33 @@ function Element(this: ElementInterface, options?: ElementOptions) {
   // TODO: Possibly move this to Node for onScreenEvent('mouse', ...).
   this.on('newListener', function fn(type) {
     // type = type.split(' ').slice(1).join(' ');
-    if (type === 'mouse'
-      || type === 'click'
-      || type === 'mouseover'
-      || type === 'mouseout'
-      || type === 'mousedown'
-      || type === 'mouseup'
-      || type === 'mousewheel'
-      || type === 'wheeldown'
-      || type === 'wheelup'
-      || type === 'mousemove') {
+    if (
+      type === 'mouse' ||
+      type === 'click' ||
+      type === 'mouseover' ||
+      type === 'mouseout' ||
+      type === 'mousedown' ||
+      type === 'mouseup' ||
+      type === 'mousewheel' ||
+      type === 'wheeldown' ||
+      type === 'wheelup' ||
+      type === 'mousemove'
+    ) {
       self.screen._listenMouse(self);
     } else if (type === 'keypress' || type.indexOf('key ') === 0) {
       self.screen._listenKeys(self);
     }
   });
 
-  this.on('resize', function() {
+  this.on('resize', function () {
     self.parseContent();
   });
 
-  this.on('attach', function() {
+  this.on('attach', function () {
     self.parseContent();
   });
 
-  this.on('detach', function() {
+  this.on('detach', function () {
     delete self.lpos;
   });
 
@@ -310,9 +319,14 @@ function Element(this: ElementInterface, options?: ElementOptions) {
     if (options.effects.focus) options.focusEffects = options.effects.focus;
   }
 
-  [['hoverEffects', 'mouseover', 'mouseout', '_htemp'],
-   ['focusEffects', 'focus', 'blur', '_ftemp']].forEach(function(props) {
-    var pname = props[0], over = props[1], out = props[2], temp = props[3];
+  [
+    ['hoverEffects', 'mouseover', 'mouseout', '_htemp'],
+    ['focusEffects', 'focus', 'blur', '_ftemp'],
+  ].forEach(function (props) {
+    var pname = props[0],
+      over = props[1],
+      out = props[2],
+      temp = props[3];
     self.screen.setEffects(self, self, over, out, self.options[pname], temp);
   });
 
@@ -329,16 +343,21 @@ Element.prototype.__proto__ = Node.prototype;
 
 Element.prototype.type = 'element';
 
-Element.prototype.__defineGetter__('focused', function() {
+Element.prototype.__defineGetter__('focused', function () {
   return this.screen.focused === this;
 });
 
-Element.prototype.sattr = function(this: ElementInterface, style?: any, fg?: any, bg?: any): number {
-  var bold = style.bold
-    , underline = style.underline
-    , blink = style.blink
-    , inverse = style.inverse
-    , invisible = style.invisible;
+Element.prototype.sattr = function (
+  this: ElementInterface,
+  style?: any,
+  fg?: any,
+  bg?: any
+): number {
+  var bold = style.bold,
+    underline = style.underline,
+    blink = style.blink,
+    inverse = style.inverse,
+    invisible = style.invisible;
 
   // if (arguments.length === 1) {
   if (fg == null && bg == null) {
@@ -359,34 +378,48 @@ Element.prototype.sattr = function(this: ElementInterface, style?: any, fg?: any
 
   // return (this.uid << 24)
   //   | ((this.dockBorders ? 32 : 0) << 18)
-  return ((invisible ? 16 : 0) << 18)
-    | ((inverse ? 8 : 0) << 18)
-    | ((blink ? 4 : 0) << 18)
-    | ((underline ? 2 : 0) << 18)
-    | ((bold ? 1 : 0) << 18)
-    | (colors.convert(fg) << 9)
-    | colors.convert(bg);
+  return (
+    ((invisible ? 16 : 0) << 18) |
+    ((inverse ? 8 : 0) << 18) |
+    ((blink ? 4 : 0) << 18) |
+    ((underline ? 2 : 0) << 18) |
+    ((bold ? 1 : 0) << 18) |
+    (colors.convert(fg) << 9) |
+    colors.convert(bg)
+  );
 };
 
-Element.prototype.onScreenEvent = function(this: ElementInterface, type: string, handler: Function): void {
-  var listeners = this._slisteners = this._slisteners || [];
+Element.prototype.onScreenEvent = function (
+  this: ElementInterface,
+  type: string,
+  handler: Function
+): void {
+  var listeners = (this._slisteners = this._slisteners || []);
   listeners.push({ type: type, handler: handler });
   this.screen.on(type, handler);
 };
 
-Element.prototype.onceScreenEvent = function(this: ElementInterface, type: string, handler: Function): void {
-  var listeners = this._slisteners = this._slisteners || [];
+Element.prototype.onceScreenEvent = function (
+  this: ElementInterface,
+  type: string,
+  handler: Function
+): void {
+  var listeners = (this._slisteners = this._slisteners || []);
   var entry = { type: type, handler: handler };
   listeners.push(entry);
-  this.screen.once(type, function() {
+  this.screen.once(type, function () {
     var i = listeners.indexOf(entry);
     if (~i) listeners.splice(i, 1);
     return handler.apply(this, arguments);
   });
 };
 
-Element.prototype.removeScreenEvent = function(this: ElementInterface, type: string, handler: Function): void {
-  var listeners = this._slisteners = this._slisteners || [];
+Element.prototype.removeScreenEvent = function (
+  this: ElementInterface,
+  type: string,
+  handler: Function
+): void {
+  var listeners = (this._slisteners = this._slisteners || []);
   for (var i = 0; i < listeners.length; i++) {
     var listener = listeners[i];
     if (listener.type === type && listener.handler === handler) {
@@ -400,8 +433,8 @@ Element.prototype.removeScreenEvent = function(this: ElementInterface, type: str
   this.screen.removeListener(type, handler);
 };
 
-Element.prototype.free = function(this: ElementInterface): void {
-  var listeners = this._slisteners = this._slisteners || [];
+Element.prototype.free = function (this: ElementInterface): void {
+  var listeners = (this._slisteners = this._slisteners || []);
   for (var i = 0; i < listeners.length; i++) {
     var listener = listeners[i];
     this.screen.removeListener(listener.type, listener.handler);
@@ -409,7 +442,7 @@ Element.prototype.free = function(this: ElementInterface): void {
   delete this._slisteners;
 };
 
-Element.prototype.hide = function(this: ElementInterface): void {
+Element.prototype.hide = function (this: ElementInterface): void {
   if (this.hidden) return;
   this.clearPos();
   this.hidden = true;
@@ -419,49 +452,63 @@ Element.prototype.hide = function(this: ElementInterface): void {
   }
 };
 
-Element.prototype.show = function(this: ElementInterface): void {
+Element.prototype.show = function (this: ElementInterface): void {
   if (!this.hidden) return;
   this.hidden = false;
   this.emit('show');
 };
 
-Element.prototype.toggle = function(this: ElementInterface): void {
+Element.prototype.toggle = function (this: ElementInterface): void {
   return this.hidden ? this.show() : this.hide();
 };
 
-Element.prototype.focus = function(this: ElementInterface): void {
-  return this.screen.focused = this;
+Element.prototype.focus = function (this: ElementInterface): void {
+  return (this.screen.focused = this);
 };
 
-Element.prototype.setContent = function(this: ElementInterface, content: string, noClear?: boolean, noTags?: boolean): void {
+Element.prototype.setContent = function (
+  this: ElementInterface,
+  content: string,
+  noClear?: boolean,
+  noTags?: boolean
+): void {
   if (!noClear) this.clearPos();
   this.content = content || '';
   this.parseContent(noTags);
   this.emit('set content');
 };
 
-Element.prototype.getContent = function(this: ElementInterface): string {
+Element.prototype.getContent = function (this: ElementInterface): string {
   if (!this._clines) return '';
   return this._clines.fake.join('\n');
 };
 
-Element.prototype.setText = function(this: ElementInterface, content: string, noClear?: boolean): void {
+Element.prototype.setText = function (
+  this: ElementInterface,
+  content: string,
+  noClear?: boolean
+): void {
   content = content || '';
   content = content.replace(/\x1b\[[\d;]*m/g, '');
   return this.setContent(content, noClear, true);
 };
 
-Element.prototype.getText = function(this: ElementInterface): string {
+Element.prototype.getText = function (this: ElementInterface): string {
   return this.getContent().replace(/\x1b\[[\d;]*m/g, '');
 };
 
-Element.prototype.parseContent = function(this: ElementInterface, noTags?: boolean): any {
+Element.prototype.parseContent = function (
+  this: ElementInterface,
+  noTags?: boolean
+): any {
   if (this.detached) return false;
 
   var width = this.width - this.iwidth;
-  if (this._clines == null
-      || this._clines.width !== width
-      || this._clines.content !== this.content) {
+  if (
+    this._clines == null ||
+    this._clines.width !== width ||
+    this._clines.content !== this.content
+  ) {
     var content = this.content;
 
     content = content
@@ -502,10 +549,13 @@ Element.prototype.parseContent = function(this: ElementInterface, noTags?: boole
     this._clines.content = this.content;
     this._clines.attr = this._parseAttr(this._clines);
     this._clines.ci = [];
-    this._clines.reduce(function(total, line) {
-      this._clines.ci.push(total);
-      return total + line.length + 1;
-    }.bind(this), 0);
+    this._clines.reduce(
+      function (total, line) {
+        this._clines.ci.push(total);
+        return total + line.length + 1;
+      }.bind(this),
+      0
+    );
 
     this._pcontent = this._clines.join('\n');
     this.emit('parsed content');
@@ -520,21 +570,21 @@ Element.prototype.parseContent = function(this: ElementInterface, noTags?: boole
 };
 
 // Convert `{red-fg}foo{/red-fg}` to `\x1b[31mfoo\x1b[39m`.
-Element.prototype._parseTags = function(text) {
+Element.prototype._parseTags = function (text) {
   if (!this.parseTags) return text;
   if (!/{\/?[\w\-,;!#]*}/.test(text)) return text;
 
-  var program = this.screen.program
-    , out = ''
-    , state
-    , bg = []
-    , fg = []
-    , flag = []
-    , cap
-    , slash
-    , param
-    , attr
-    , esc;
+  var program = this.screen.program,
+    out = '',
+    state,
+    bg = [],
+    fg = [],
+    flag = [],
+    cap,
+    slash,
+    param,
+    attr,
+    esc;
 
   for (;;) {
     if (!esc && (cap = /^{escape}/.exec(text))) {
@@ -556,7 +606,7 @@ Element.prototype._parseTags = function(text) {
       break;
     }
 
-    if (cap = /^{(\/?)([\w\-,;!#]*)}/.exec(text)) {
+    if ((cap = /^{(\/?)([\w\-,;!#]*)}/.exec(text))) {
       text = text.substring(cap[0].length);
       slash = cap[1] === '/';
       param = cap[2].replace(/-/g, ' ');
@@ -612,7 +662,7 @@ Element.prototype._parseTags = function(text) {
       continue;
     }
 
-    if (cap = /^[\s\S]+?(?={\/?[\w\-,;!#]*})/.exec(text)) {
+    if ((cap = /^[\s\S]+?(?={\/?[\w\-,;!#]*})/.exec(text))) {
       text = text.substring(cap[0].length);
       out += cap[0];
       continue;
@@ -625,17 +675,20 @@ Element.prototype._parseTags = function(text) {
   return out;
 };
 
-Element.prototype._parseAttr = function(lines) {
-  var dattr = this.sattr(this.style)
-    , attr = dattr
-    , attrs = []
-    , line
-    , i
-    , j
-    , c;
+Element.prototype._parseAttr = function (lines) {
+  var dattr = this.sattr(this.style),
+    attr = dattr,
+    attrs = [],
+    line,
+    i,
+    j,
+    c;
 
-  if (Array.isArray(lines.attr) && lines.attr.length > 0
-      && lines.attr[0] === attr) {
+  if (
+    Array.isArray(lines.attr) &&
+    lines.attr.length > 0 &&
+    lines.attr[0] === attr
+  ) {
     return;
   }
 
@@ -644,7 +697,7 @@ Element.prototype._parseAttr = function(lines) {
     attrs[j] = attr;
     for (i = 0; i < line.length; i++) {
       if (line[i] === '\x1b') {
-        if (c = /^\x1b\[[\d;]*m/.exec(line.substring(i))) {
+        if ((c = /^\x1b\[[\d;]*m/.exec(line.substring(i)))) {
           attr = this.screen.attrCode(c[0], attr, dattr);
           i += c[0].length - 1;
         }
@@ -655,13 +708,13 @@ Element.prototype._parseAttr = function(lines) {
   return attrs;
 };
 
-Element.prototype._align = function(line, width, align) {
+Element.prototype._align = function (line, width, align) {
   if (!align) return line;
   //if (!align && !~line.indexOf('{|}')) return line;
 
-  var cline = line.replace(/\x1b\[[\d;]*m/g, '')
-    , len = cline.length
-    , s = width - len;
+  var cline = line.replace(/\x1b\[[\d;]*m/g, ''),
+    len = cline.length,
+    s = width - len;
 
   if (this.shrink) {
     s = 0;
@@ -687,24 +740,24 @@ Element.prototype._align = function(line, width, align) {
   return line;
 };
 
-Element.prototype._wrapContent = function(content, width) {
-  var tags = this.parseTags
-    , state = this.align
-    , wrap = this.wrap
-    , margin = 0
-    , rtof = []
-    , ftor = []
-    , out = []
-    , no = 0
-    , line
-    , align
-    , cap
-    , total
-    , i
-    , part
-    , j
-    , lines
-    , rest;
+Element.prototype._wrapContent = function (content, width) {
+  var tags = this.parseTags,
+    state = this.align,
+    wrap = this.wrap,
+    margin = 0,
+    rtof = [],
+    ftor = [],
+    out = [],
+    no = 0,
+    line,
+    align,
+    cap,
+    total,
+    i,
+    part,
+    j,
+    lines,
+    rest;
 
   lines = content.split('\n');
 
@@ -722,8 +775,7 @@ Element.prototype._wrapContent = function(content, width) {
   if (this.type === 'textarea') margin++;
   if (width > margin) width -= margin;
 
-main:
-  for (; no < lines.length; no++) {
+  main: for (; no < lines.length; no++) {
     line = lines[no];
     align = state;
 
@@ -731,13 +783,11 @@ main:
 
     // Handle alignment tags.
     if (tags) {
-      if (cap = /^{(left|center|right)}/.exec(line)) {
+      if ((cap = /^{(left|center|right)}/.exec(line))) {
         line = line.substring(cap[0].length);
-        align = state = cap[1] !== 'left'
-          ? cap[1]
-          : null;
+        align = state = cap[1] !== 'left' ? cap[1] : null;
       }
-      if (cap = /{\/(left|center|right)}$/.exec(line)) {
+      if ((cap = /{\/(left|center|right)}$/.exec(line))) {
         line = line.slice(0, -cap[0].length);
         //state = null;
         state = this.align;
@@ -792,17 +842,22 @@ main:
               // Break _past_ combining chars.
               while (j > i - 10 && j > 0) {
                 j--;
-                if (line[j] === ' '
-                    || line[j] === '\x03'
-                    || (unicode.isSurrogate(line, j - 1) && line[j + 1] !== '\x03')
-                    || unicode.isCombining(line, j)) {
+                if (
+                  line[j] === ' ' ||
+                  line[j] === '\x03' ||
+                  (unicode.isSurrogate(line, j - 1) &&
+                    line[j + 1] !== '\x03') ||
+                  unicode.isCombining(line, j)
+                ) {
                   break;
                 }
               }
-              if (line[j] === ' '
-                  || line[j] === '\x03'
-                  || (unicode.isSurrogate(line, j - 1) && line[j + 1] !== '\x03')
-                  || unicode.isCombining(line, j)) {
+              if (
+                line[j] === ' ' ||
+                line[j] === '\x03' ||
+                (unicode.isSurrogate(line, j - 1) && line[j + 1] !== '\x03') ||
+                unicode.isCombining(line, j)
+              ) {
                 i = j + 1;
               }
             }
@@ -839,145 +894,150 @@ main:
   out.fake = lines;
   out.real = out;
 
-  out.mwidth = out.reduce(function(current, line) {
+  out.mwidth = out.reduce(function (current, line) {
     line = line.replace(/\x1b\[[\d;]*m/g, '');
-    return line.length > current
-      ? line.length
-      : current;
+    return line.length > current ? line.length : current;
   }, 0);
 
   return out;
 };
 
-Element.prototype.__defineGetter__('visible', function() {
+Element.prototype.__defineGetter__('visible', function () {
   var el = this;
   do {
     if (el.detached) return false;
     if (el.hidden) return false;
     // if (!el.lpos) return false;
     // if (el.position.width === 0 || el.position.height === 0) return false;
-  } while (el = el.parent);
+  } while ((el = el.parent));
   return true;
 });
 
-Element.prototype.__defineGetter__('_detached', function() {
+Element.prototype.__defineGetter__('_detached', function () {
   var el = this;
   do {
     if (el.type === 'screen') return false;
     if (!el.parent) return true;
-  } while (el = el.parent);
+  } while ((el = el.parent));
   return false;
 });
 
-Element.prototype.enableMouse = function() {
+Element.prototype.enableMouse = function () {
   this.screen._listenMouse(this);
 };
 
-Element.prototype.enableKeys = function() {
+Element.prototype.enableKeys = function () {
   this.screen._listenKeys(this);
 };
 
-Element.prototype.enableInput = function() {
+Element.prototype.enableInput = function () {
   this.screen._listenMouse(this);
   this.screen._listenKeys(this);
 };
 
-Element.prototype.__defineGetter__('draggable', function() {
+Element.prototype.__defineGetter__('draggable', function () {
   return this._draggable === true;
 });
 
-Element.prototype.__defineSetter__('draggable', function(draggable) {
+Element.prototype.__defineSetter__('draggable', function (draggable) {
   return draggable ? this.enableDrag(draggable) : this.disableDrag();
 });
 
-Element.prototype.enableDrag = function(verify) {
+Element.prototype.enableDrag = function (verify) {
   var self = this;
 
   if (this._draggable) return true;
 
   if (typeof verify !== 'function') {
-    verify = function() { return true; };
+    verify = function () {
+      return true;
+    };
   }
 
   this.enableMouse();
 
-  this.on('mousedown', this._dragMD = function(data) {
-    if (self.screen._dragging) return;
-    if (!verify(data)) return;
-    self.screen._dragging = self;
-    self._drag = {
-      x: data.x - self.aleft,
-      y: data.y - self.atop
-    };
-    self.setFront();
-  });
+  this.on(
+    'mousedown',
+    (this._dragMD = function (data) {
+      if (self.screen._dragging) return;
+      if (!verify(data)) return;
+      self.screen._dragging = self;
+      self._drag = {
+        x: data.x - self.aleft,
+        y: data.y - self.atop,
+      };
+      self.setFront();
+    })
+  );
 
-  this.onScreenEvent('mouse', this._dragM = function(data) {
-    if (self.screen._dragging !== self) return;
+  this.onScreenEvent(
+    'mouse',
+    (this._dragM = function (data) {
+      if (self.screen._dragging !== self) return;
 
-    if (data.action !== 'mousedown' && data.action !== 'mousemove') {
-      delete self.screen._dragging;
-      delete self._drag;
-      return;
-    }
-
-    // This can happen in edge cases where the user is
-    // already dragging and element when it is detached.
-    if (!self.parent) return;
-
-    var ox = self._drag.x
-      , oy = self._drag.y
-      , px = self.parent.aleft
-      , py = self.parent.atop
-      , x = data.x - px - ox
-      , y = data.y - py - oy;
-
-    if (self.position.right != null) {
-      if (self.position.left != null) {
-        self.width = '100%-' + (self.parent.width - self.width);
+      if (data.action !== 'mousedown' && data.action !== 'mousemove') {
+        delete self.screen._dragging;
+        delete self._drag;
+        return;
       }
-      self.position.right = null;
-    }
 
-    if (self.position.bottom != null) {
-      if (self.position.top != null) {
-        self.height = '100%-' + (self.parent.height - self.height);
+      // This can happen in edge cases where the user is
+      // already dragging and element when it is detached.
+      if (!self.parent) return;
+
+      var ox = self._drag.x,
+        oy = self._drag.y,
+        px = self.parent.aleft,
+        py = self.parent.atop,
+        x = data.x - px - ox,
+        y = data.y - py - oy;
+
+      if (self.position.right != null) {
+        if (self.position.left != null) {
+          self.width = '100%-' + (self.parent.width - self.width);
+        }
+        self.position.right = null;
       }
-      self.position.bottom = null;
-    }
 
-    self.rleft = x;
-    self.rtop = y;
+      if (self.position.bottom != null) {
+        if (self.position.top != null) {
+          self.height = '100%-' + (self.parent.height - self.height);
+        }
+        self.position.bottom = null;
+      }
 
-    self.screen.render();
-  });
+      self.rleft = x;
+      self.rtop = y;
 
-  return this._draggable = true;
+      self.screen.render();
+    })
+  );
+
+  return (this._draggable = true);
 };
 
-Element.prototype.disableDrag = function() {
+Element.prototype.disableDrag = function () {
   if (!this._draggable) return false;
   delete this.screen._dragging;
   delete this._drag;
   this.removeListener('mousedown', this._dragMD);
   this.removeScreenEvent('mouse', this._dragM);
-  return this._draggable = false;
+  return (this._draggable = false);
 };
 
-Element.prototype.key = function() {
+Element.prototype.key = function () {
   return this.screen.program.key.apply(this, arguments);
 };
 
-Element.prototype.onceKey = function() {
+Element.prototype.onceKey = function () {
   return this.screen.program.onceKey.apply(this, arguments);
 };
 
-Element.prototype.unkey =
-Element.prototype.removeKey = function() {
+Element.prototype.unkey = Element.prototype.removeKey = function () {
   return this.screen.program.unkey.apply(this, arguments);
 };
 
-Element.prototype.setIndex = function(index) {
+Element.prototype.setIndex = function (index) {
   if (!this.parent) return;
 
   if (index < 0) {
@@ -994,25 +1054,22 @@ Element.prototype.setIndex = function(index) {
   this.parent.children.splice(index, 0, item);
 };
 
-Element.prototype.setFront = function() {
+Element.prototype.setFront = function () {
   return this.setIndex(-1);
 };
 
-Element.prototype.setBack = function() {
+Element.prototype.setBack = function () {
   return this.setIndex(0);
 };
 
-Element.prototype.clearPos = function(get, override) {
+Element.prototype.clearPos = function (get, override) {
   if (this.detached) return;
   var lpos = this._getCoords(get);
   if (!lpos) return;
-  this.screen.clearRegion(
-    lpos.xi, lpos.xl,
-    lpos.yi, lpos.yl,
-    override);
+  this.screen.clearRegion(lpos.xi, lpos.xl, lpos.yi, lpos.yl, override);
 };
 
-Element.prototype.setLabel = function(options) {
+Element.prototype.setLabel = function (options) {
   var self = this;
   var Box = require('./box');
 
@@ -1045,7 +1102,7 @@ Element.prototype.setLabel = function(options) {
     top: -this.itop,
     tags: this.parseTags,
     shrink: true,
-    style: this.style.label
+    style: this.style.label,
   });
 
   if (options.side !== 'right') {
@@ -1065,26 +1122,32 @@ Element.prototype.setLabel = function(options) {
     this._label.rtop = 0;
   }
 
-  var reposition = function() {
+  var reposition = function () {
     self._label.rtop = (self.childBase || 0) - self.itop;
     if (!self.screen.autoPadding) {
-      self._label.rtop = (self.childBase || 0);
+      self._label.rtop = self.childBase || 0;
     }
     self.screen.render();
   };
 
-  this.on('scroll', this._labelScroll = function() {
-    reposition();
-  });
-
-  this.on('resize', this._labelResize = function() {
-    nextTick(function() {
+  this.on(
+    'scroll',
+    (this._labelScroll = function () {
       reposition();
-    });
-  });
+    })
+  );
+
+  this.on(
+    'resize',
+    (this._labelResize = function () {
+      nextTick(function () {
+        reposition();
+      });
+    })
+  );
 };
 
-Element.prototype.removeLabel = function() {
+Element.prototype.removeLabel = function () {
   if (!this._label) return;
   this.removeListener('scroll', this._labelScroll);
   this.removeListener('resize', this._labelResize);
@@ -1094,7 +1157,7 @@ Element.prototype.removeLabel = function() {
   delete this._label;
 };
 
-Element.prototype.setHover = function(options) {
+Element.prototype.setHover = function (options) {
   if (typeof options === 'string') {
     options = { text: options };
   }
@@ -1104,7 +1167,7 @@ Element.prototype.setHover = function(options) {
   this.screen._initHover();
 };
 
-Element.prototype.removeHover = function() {
+Element.prototype.removeHover = function () {
   delete this._hoverOptions;
   if (!this.screen._hoverText || this.screen._hoverText.detached) return;
   this.screen._hoverText.detach();
@@ -1130,7 +1193,7 @@ Element.prototype.removeHover = function() {
 // position (since that might be wrong because
 // it doesn't handle content shrinkage).
 
-Element.prototype._getPos = function() {
+Element.prototype._getPos = function () {
   var pos = this.lpos;
 
   assert.ok(pos);
@@ -1151,18 +1214,18 @@ Element.prototype._getPos = function() {
  * Position Getters
  */
 
-Element.prototype._getWidth = function(get) {
-  var parent = get ? this.parent._getPos() : this.parent
-    , width = this.position.width
-    , left
-    , expr;
+Element.prototype._getWidth = function (get) {
+  var parent = get ? this.parent._getPos() : this.parent,
+    width = this.position.width,
+    left,
+    expr;
 
   if (typeof width === 'string') {
     if (width === 'half') width = '50%';
     expr = width.split(/(?=\+|-)/);
     width = expr[0];
     width = +width.slice(0, -1) / 100;
-    width = parent.width * width | 0;
+    width = (parent.width * width) | 0;
     width += +(expr[1] || 0);
     return width;
   }
@@ -1180,13 +1243,15 @@ Element.prototype._getWidth = function(get) {
       expr = left.split(/(?=\+|-)/);
       left = expr[0];
       left = +left.slice(0, -1) / 100;
-      left = parent.width * left | 0;
+      left = (parent.width * left) | 0;
       left += +(expr[1] || 0);
     }
     width = parent.width - (this.position.right || 0) - left;
     if (this.screen.autoPadding) {
-      if ((this.position.left != null || this.position.right == null)
-          && this.position.left !== 'center') {
+      if (
+        (this.position.left != null || this.position.right == null) &&
+        this.position.left !== 'center'
+      ) {
         width -= this.parent.ileft;
       }
       width -= this.parent.iright;
@@ -1196,22 +1261,22 @@ Element.prototype._getWidth = function(get) {
   return width;
 };
 
-Element.prototype.__defineGetter__('width', function() {
+Element.prototype.__defineGetter__('width', function () {
   return this._getWidth(false);
 });
 
-Element.prototype._getHeight = function(get) {
-  var parent = get ? this.parent._getPos() : this.parent
-    , height = this.position.height
-    , top
-    , expr;
+Element.prototype._getHeight = function (get) {
+  var parent = get ? this.parent._getPos() : this.parent,
+    height = this.position.height,
+    top,
+    expr;
 
   if (typeof height === 'string') {
     if (height === 'half') height = '50%';
     expr = height.split(/(?=\+|-)/);
     height = expr[0];
     height = +height.slice(0, -1) / 100;
-    height = parent.height * height | 0;
+    height = (parent.height * height) | 0;
     height += +(expr[1] || 0);
     return height;
   }
@@ -1229,14 +1294,15 @@ Element.prototype._getHeight = function(get) {
       expr = top.split(/(?=\+|-)/);
       top = expr[0];
       top = +top.slice(0, -1) / 100;
-      top = parent.height * top | 0;
+      top = (parent.height * top) | 0;
       top += +(expr[1] || 0);
     }
     height = parent.height - (this.position.bottom || 0) - top;
     if (this.screen.autoPadding) {
-      if ((this.position.top != null
-          || this.position.bottom == null)
-          && this.position.top !== 'center') {
+      if (
+        (this.position.top != null || this.position.bottom == null) &&
+        this.position.top !== 'center'
+      ) {
         height -= this.parent.itop;
       }
       height -= this.parent.ibottom;
@@ -1246,24 +1312,24 @@ Element.prototype._getHeight = function(get) {
   return height;
 };
 
-Element.prototype.__defineGetter__('height', function() {
+Element.prototype.__defineGetter__('height', function () {
   return this._getHeight(false);
 });
 
-Element.prototype._getLeft = function(get) {
-  var parent = get ? this.parent._getPos() : this.parent
-    , left = this.position.left || 0
-    , expr;
+Element.prototype._getLeft = function (get) {
+  var parent = get ? this.parent._getPos() : this.parent,
+    left = this.position.left || 0,
+    expr;
 
   if (typeof left === 'string') {
     if (left === 'center') left = '50%';
     expr = left.split(/(?=\+|-)/);
     left = expr[0];
     left = +left.slice(0, -1) / 100;
-    left = parent.width * left | 0;
+    left = (parent.width * left) | 0;
     left += +(expr[1] || 0);
     if (this.position.left === 'center') {
-      left -= this._getWidth(get) / 2 | 0;
+      left -= (this._getWidth(get) / 2) | 0;
     }
   }
 
@@ -1272,9 +1338,10 @@ Element.prototype._getLeft = function(get) {
   }
 
   if (this.screen.autoPadding) {
-    if ((this.position.left != null
-        || this.position.right == null)
-        && this.position.left !== 'center') {
+    if (
+      (this.position.left != null || this.position.right == null) &&
+      this.position.left !== 'center'
+    ) {
       left += this.parent.ileft;
     }
   }
@@ -1282,13 +1349,13 @@ Element.prototype._getLeft = function(get) {
   return (parent.aleft || 0) + left;
 };
 
-Element.prototype.__defineGetter__('aleft', function() {
+Element.prototype.__defineGetter__('aleft', function () {
   return this._getLeft(false);
 });
 
-Element.prototype._getRight = function(get) {
-  var parent = get ? this.parent._getPos() : this.parent
-    , right;
+Element.prototype._getRight = function (get) {
+  var parent = get ? this.parent._getPos() : this.parent,
+    right;
 
   if (this.position.right == null && this.position.left != null) {
     right = this.screen.cols - (this._getLeft(get) + this._getWidth(get));
@@ -1307,24 +1374,24 @@ Element.prototype._getRight = function(get) {
   return right;
 };
 
-Element.prototype.__defineGetter__('aright', function() {
+Element.prototype.__defineGetter__('aright', function () {
   return this._getRight(false);
 });
 
-Element.prototype._getTop = function(get) {
-  var parent = get ? this.parent._getPos() : this.parent
-    , top = this.position.top || 0
-    , expr;
+Element.prototype._getTop = function (get) {
+  var parent = get ? this.parent._getPos() : this.parent,
+    top = this.position.top || 0,
+    expr;
 
   if (typeof top === 'string') {
     if (top === 'center') top = '50%';
     expr = top.split(/(?=\+|-)/);
     top = expr[0];
     top = +top.slice(0, -1) / 100;
-    top = parent.height * top | 0;
+    top = (parent.height * top) | 0;
     top += +(expr[1] || 0);
     if (this.position.top === 'center') {
-      top -= this._getHeight(get) / 2 | 0;
+      top -= (this._getHeight(get) / 2) | 0;
     }
   }
 
@@ -1333,9 +1400,10 @@ Element.prototype._getTop = function(get) {
   }
 
   if (this.screen.autoPadding) {
-    if ((this.position.top != null
-        || this.position.bottom == null)
-        && this.position.top !== 'center') {
+    if (
+      (this.position.top != null || this.position.bottom == null) &&
+      this.position.top !== 'center'
+    ) {
       top += this.parent.itop;
     }
   }
@@ -1343,13 +1411,13 @@ Element.prototype._getTop = function(get) {
   return (parent.atop || 0) + top;
 };
 
-Element.prototype.__defineGetter__('atop', function() {
+Element.prototype.__defineGetter__('atop', function () {
   return this._getTop(false);
 });
 
-Element.prototype._getBottom = function(get) {
-  var parent = get ? this.parent._getPos() : this.parent
-    , bottom;
+Element.prototype._getBottom = function (get) {
+  var parent = get ? this.parent._getPos() : this.parent,
+    bottom;
 
   if (this.position.bottom == null && this.position.top != null) {
     bottom = this.screen.rows - (this._getTop(get) + this._getHeight(get));
@@ -1368,23 +1436,23 @@ Element.prototype._getBottom = function(get) {
   return bottom;
 };
 
-Element.prototype.__defineGetter__('abottom', function() {
+Element.prototype.__defineGetter__('abottom', function () {
   return this._getBottom(false);
 });
 
-Element.prototype.__defineGetter__('rleft', function() {
+Element.prototype.__defineGetter__('rleft', function () {
   return this.aleft - this.parent.aleft;
 });
 
-Element.prototype.__defineGetter__('rright', function() {
+Element.prototype.__defineGetter__('rright', function () {
   return this.aright - this.parent.aright;
 });
 
-Element.prototype.__defineGetter__('rtop', function() {
+Element.prototype.__defineGetter__('rtop', function () {
   return this.atop - this.parent.atop;
 });
 
-Element.prototype.__defineGetter__('rbottom', function() {
+Element.prototype.__defineGetter__('rbottom', function () {
   return this.abottom - this.parent.abottom;
 });
 
@@ -1397,33 +1465,33 @@ Element.prototype.__defineGetter__('rbottom', function() {
 // If position.bottom is null, we could simply set top instead.
 // But it wouldn't replicate bottom behavior appropriately if
 // the parent was resized, etc.
-Element.prototype.__defineSetter__('width', function(val) {
+Element.prototype.__defineSetter__('width', function (val) {
   if (this.position.width === val) return;
   if (/^\d+$/.test(val)) val = +val;
   this.emit('resize');
   this.clearPos();
-  return this.position.width = val;
+  return (this.position.width = val);
 });
 
-Element.prototype.__defineSetter__('height', function(val) {
+Element.prototype.__defineSetter__('height', function (val) {
   if (this.position.height === val) return;
   if (/^\d+$/.test(val)) val = +val;
   this.emit('resize');
   this.clearPos();
-  return this.position.height = val;
+  return (this.position.height = val);
 });
 
-Element.prototype.__defineSetter__('aleft', function(val) {
+Element.prototype.__defineSetter__('aleft', function (val) {
   var expr;
   if (typeof val === 'string') {
     if (val === 'center') {
-      val = this.screen.width / 2 | 0;
-      val -= this.width / 2 | 0;
+      val = (this.screen.width / 2) | 0;
+      val -= (this.width / 2) | 0;
     } else {
       expr = val.split(/(?=\+|-)/);
       val = expr[0];
       val = +val.slice(0, -1) / 100;
-      val = this.screen.width * val | 0;
+      val = (this.screen.width * val) | 0;
       val += +(expr[1] || 0);
     }
   }
@@ -1431,28 +1499,28 @@ Element.prototype.__defineSetter__('aleft', function(val) {
   if (this.position.left === val) return;
   this.emit('move');
   this.clearPos();
-  return this.position.left = val;
+  return (this.position.left = val);
 });
 
-Element.prototype.__defineSetter__('aright', function(val) {
+Element.prototype.__defineSetter__('aright', function (val) {
   val -= this.parent.aright;
   if (this.position.right === val) return;
   this.emit('move');
   this.clearPos();
-  return this.position.right = val;
+  return (this.position.right = val);
 });
 
-Element.prototype.__defineSetter__('atop', function(val) {
+Element.prototype.__defineSetter__('atop', function (val) {
   var expr;
   if (typeof val === 'string') {
     if (val === 'center') {
-      val = this.screen.height / 2 | 0;
-      val -= this.height / 2 | 0;
+      val = (this.screen.height / 2) | 0;
+      val -= (this.height / 2) | 0;
     } else {
       expr = val.split(/(?=\+|-)/);
       val = expr[0];
       val = +val.slice(0, -1) / 100;
-      val = this.screen.height * val | 0;
+      val = (this.screen.height * val) | 0;
       val += +(expr[1] || 0);
     }
   }
@@ -1460,132 +1528,142 @@ Element.prototype.__defineSetter__('atop', function(val) {
   if (this.position.top === val) return;
   this.emit('move');
   this.clearPos();
-  return this.position.top = val;
+  return (this.position.top = val);
 });
 
-Element.prototype.__defineSetter__('abottom', function(val) {
+Element.prototype.__defineSetter__('abottom', function (val) {
   val -= this.parent.abottom;
   if (this.position.bottom === val) return;
   this.emit('move');
   this.clearPos();
-  return this.position.bottom = val;
+  return (this.position.bottom = val);
 });
 
-Element.prototype.__defineSetter__('rleft', function(val) {
+Element.prototype.__defineSetter__('rleft', function (val) {
   if (this.position.left === val) return;
   if (/^\d+$/.test(val)) val = +val;
   this.emit('move');
   this.clearPos();
-  return this.position.left = val;
+  return (this.position.left = val);
 });
 
-Element.prototype.__defineSetter__('rright', function(val) {
+Element.prototype.__defineSetter__('rright', function (val) {
   if (this.position.right === val) return;
   this.emit('move');
   this.clearPos();
-  return this.position.right = val;
+  return (this.position.right = val);
 });
 
-Element.prototype.__defineSetter__('rtop', function(val) {
+Element.prototype.__defineSetter__('rtop', function (val) {
   if (this.position.top === val) return;
   if (/^\d+$/.test(val)) val = +val;
   this.emit('move');
   this.clearPos();
-  return this.position.top = val;
+  return (this.position.top = val);
 });
 
-Element.prototype.__defineSetter__('rbottom', function(val) {
+Element.prototype.__defineSetter__('rbottom', function (val) {
   if (this.position.bottom === val) return;
   this.emit('move');
   this.clearPos();
-  return this.position.bottom = val;
+  return (this.position.bottom = val);
 });
 
-Element.prototype.__defineGetter__('ileft', function() {
+Element.prototype.__defineGetter__('ileft', function () {
   return (this.border ? 1 : 0) + this.padding.left;
   // return (this.border && this.border.left ? 1 : 0) + this.padding.left;
 });
 
-Element.prototype.__defineGetter__('itop', function() {
+Element.prototype.__defineGetter__('itop', function () {
   return (this.border ? 1 : 0) + this.padding.top;
   // return (this.border && this.border.top ? 1 : 0) + this.padding.top;
 });
 
-Element.prototype.__defineGetter__('iright', function() {
+Element.prototype.__defineGetter__('iright', function () {
   return (this.border ? 1 : 0) + this.padding.right;
   // return (this.border && this.border.right ? 1 : 0) + this.padding.right;
 });
 
-Element.prototype.__defineGetter__('ibottom', function() {
+Element.prototype.__defineGetter__('ibottom', function () {
   return (this.border ? 1 : 0) + this.padding.bottom;
   // return (this.border && this.border.bottom ? 1 : 0) + this.padding.bottom;
 });
 
-Element.prototype.__defineGetter__('iwidth', function() {
+Element.prototype.__defineGetter__('iwidth', function () {
   // return (this.border
   //   ? ((this.border.left ? 1 : 0) + (this.border.right ? 1 : 0)) : 0)
   //   + this.padding.left + this.padding.right;
   return (this.border ? 2 : 0) + this.padding.left + this.padding.right;
 });
 
-Element.prototype.__defineGetter__('iheight', function() {
+Element.prototype.__defineGetter__('iheight', function () {
   // return (this.border
   //   ? ((this.border.top ? 1 : 0) + (this.border.bottom ? 1 : 0)) : 0)
   //   + this.padding.top + this.padding.bottom;
   return (this.border ? 2 : 0) + this.padding.top + this.padding.bottom;
 });
 
-Element.prototype.__defineGetter__('tpadding', function() {
-  return this.padding.left + this.padding.top
-    + this.padding.right + this.padding.bottom;
+Element.prototype.__defineGetter__('tpadding', function () {
+  return (
+    this.padding.left +
+    this.padding.top +
+    this.padding.right +
+    this.padding.bottom
+  );
 });
 
 /**
  * Relative coordinates as default properties
  */
 
-Element.prototype.__defineGetter__('left', function() {
+Element.prototype.__defineGetter__('left', function () {
   return this.rleft;
 });
 
-Element.prototype.__defineGetter__('right', function() {
+Element.prototype.__defineGetter__('right', function () {
   return this.rright;
 });
 
-Element.prototype.__defineGetter__('top', function() {
+Element.prototype.__defineGetter__('top', function () {
   return this.rtop;
 });
 
-Element.prototype.__defineGetter__('bottom', function() {
+Element.prototype.__defineGetter__('bottom', function () {
   return this.rbottom;
 });
 
-Element.prototype.__defineSetter__('left', function(val) {
-  return this.rleft = val;
+Element.prototype.__defineSetter__('left', function (val) {
+  return (this.rleft = val);
 });
 
-Element.prototype.__defineSetter__('right', function(val) {
-  return this.rright = val;
+Element.prototype.__defineSetter__('right', function (val) {
+  return (this.rright = val);
 });
 
-Element.prototype.__defineSetter__('top', function(val) {
-  return this.rtop = val;
+Element.prototype.__defineSetter__('top', function (val) {
+  return (this.rtop = val);
 });
 
-Element.prototype.__defineSetter__('bottom', function(val) {
-  return this.rbottom = val;
+Element.prototype.__defineSetter__('bottom', function (val) {
+  return (this.rbottom = val);
 });
 
 /**
  * Rendering - here be dragons
  */
 
-Element.prototype._getShrinkBox = function(xi, xl, yi, yl, get) {
+Element.prototype._getShrinkBox = function (xi, xl, yi, yl, get) {
   if (!this.children.length) {
     return { xi: xi, xl: xi + 1, yi: yi, yl: yi + 1 };
   }
 
-  var i, el, ret, mxi = xi, mxl = xi + 1, myi = yi, myl = yi + 1;
+  var i,
+    el,
+    ret,
+    mxi = xi,
+    mxl = xi + 1,
+    myi = yi,
+    myl = yi + 1;
 
   // This is a chicken and egg problem. We need to determine how the children
   // will render in order to determine how this element renders, but it in
@@ -1645,9 +1723,10 @@ Element.prototype._getShrinkBox = function(xi, xl, yi, yl, get) {
     //this.shrink = true;
   }
 
-  if (this.position.width == null
-      && (this.position.left == null
-      || this.position.right == null)) {
+  if (
+    this.position.width == null &&
+    (this.position.left == null || this.position.right == null)
+  ) {
     if (this.position.left == null && this.position.right != null) {
       xi = xl - (mxl - mxi);
       if (!this.screen.autoPadding) {
@@ -1675,10 +1754,11 @@ Element.prototype._getShrinkBox = function(xi, xl, yi, yl, get) {
     }
   }
 
-  if (this.position.height == null
-      && (this.position.top == null
-      || this.position.bottom == null)
-      && (!this.scrollable || this._isList)) {
+  if (
+    this.position.height == null &&
+    (this.position.top == null || this.position.bottom == null) &&
+    (!this.scrollable || this._isList)
+  ) {
     // NOTE: Lists get special treatment if they are shrunken - assume they
     // want all list items showing. This is one case we can calculate the
     // height based on items/boxes.
@@ -1706,13 +1786,14 @@ Element.prototype._getShrinkBox = function(xi, xl, yi, yl, get) {
   return { xi: xi, xl: xl, yi: yi, yl: yl };
 };
 
-Element.prototype._getShrinkContent = function(xi, xl, yi, yl) {
-  var h = this._clines.length
-    , w = this._clines.mwidth || 1;
+Element.prototype._getShrinkContent = function (xi, xl, yi, yl) {
+  var h = this._clines.length,
+    w = this._clines.mwidth || 1;
 
-  if (this.position.width == null
-      && (this.position.left == null
-      || this.position.right == null)) {
+  if (
+    this.position.width == null &&
+    (this.position.left == null || this.position.right == null)
+  ) {
     if (this.position.left == null && this.position.right != null) {
       xi = xl - w - this.iwidth;
     } else {
@@ -1720,10 +1801,11 @@ Element.prototype._getShrinkContent = function(xi, xl, yi, yl) {
     }
   }
 
-  if (this.position.height == null
-      && (this.position.top == null
-      || this.position.bottom == null)
-      && (!this.scrollable || this._isList)) {
+  if (
+    this.position.height == null &&
+    (this.position.top == null || this.position.bottom == null) &&
+    (!this.scrollable || this._isList)
+  ) {
     if (this.position.top == null && this.position.bottom != null) {
       yi = yl - h - this.iheight;
     } else {
@@ -1734,11 +1816,11 @@ Element.prototype._getShrinkContent = function(xi, xl, yi, yl) {
   return { xi: xi, xl: xl, yi: yi, yl: yl };
 };
 
-Element.prototype._getShrink = function(xi, xl, yi, yl, get) {
-  var shrinkBox = this._getShrinkBox(xi, xl, yi, yl, get)
-    , shrinkContent = this._getShrinkContent(xi, xl, yi, yl, get)
-    , xll = xl
-    , yll = yl;
+Element.prototype._getShrink = function (xi, xl, yi, yl, get) {
+  var shrinkBox = this._getShrinkBox(xi, xl, yi, yl, get),
+    shrinkContent = this._getShrinkContent(xi, xl, yi, yl, get),
+    xll = xl,
+    yll = yl;
 
   // Figure out which one is bigger and use it.
   if (shrinkBox.xl - shrinkBox.xi > shrinkContent.xl - shrinkContent.xi) {
@@ -1759,13 +1841,13 @@ Element.prototype._getShrink = function(xi, xl, yi, yl, get) {
 
   // Recenter shrunken elements.
   if (xl < xll && this.position.left === 'center') {
-    xll = (xll - xl) / 2 | 0;
+    xll = ((xll - xl) / 2) | 0;
     xi += xll;
     xl += xll;
   }
 
   if (yl < yll && this.position.top === 'center') {
-    yll = (yll - yl) / 2 | 0;
+    yll = ((yll - yl) / 2) | 0;
     yi += yll;
     yl += yll;
   }
@@ -1773,39 +1855,39 @@ Element.prototype._getShrink = function(xi, xl, yi, yl, get) {
   return { xi: xi, xl: xl, yi: yi, yl: yl };
 };
 
-Element.prototype._getCoords = function(get, noscroll) {
+Element.prototype._getCoords = function (get, noscroll) {
   if (this.hidden) return;
 
   // if (this.parent._rendering) {
   //   get = true;
   // }
 
-  var xi = this._getLeft(get)
-    , xl = xi + this._getWidth(get)
-    , yi = this._getTop(get)
-    , yl = yi + this._getHeight(get)
-    , base = this.childBase || 0
-    , el = this
-    , fixed = this.fixed
-    , coords
-    , v
-    , noleft
-    , noright
-    , notop
-    , nobot
-    , ppos
-    , b;
+  var xi = this._getLeft(get),
+    xl = xi + this._getWidth(get),
+    yi = this._getTop(get),
+    yl = yi + this._getHeight(get),
+    base = this.childBase || 0,
+    el = this,
+    fixed = this.fixed,
+    coords,
+    v,
+    noleft,
+    noright,
+    notop,
+    nobot,
+    ppos,
+    b;
 
   // Attempt to shrink the element base on the
   // size of the content and child elements.
   if (this.shrink) {
     coords = this._getShrink(xi, xl, yi, yl, get);
-    xi = coords.xi, xl = coords.xl;
-    yi = coords.yi, yl = coords.yl;
+    (xi = coords.xi), (xl = coords.xl);
+    (yi = coords.yi), (yl = coords.yl);
   }
 
   // Find a scrollable ancestor if we have one.
-  while (el = el.parent) {
+  while ((el = el.parent)) {
     if (el.scrollable) {
       if (fixed) {
         fixed = false;
@@ -1934,11 +2016,11 @@ Element.prototype._getCoords = function(get, noscroll) {
     noright: noright,
     notop: notop,
     nobot: nobot,
-    renders: this.screen.renders
+    renders: this.screen.renders,
   };
 };
 
-Element.prototype.render = function() {
+Element.prototype.render = function () {
   this._emit('prerender');
 
   this.parseContent();
@@ -1959,24 +2041,24 @@ Element.prototype.render = function() {
     return;
   }
 
-  var lines = this.screen.lines
-    , xi = coords.xi
-    , xl = coords.xl
-    , yi = coords.yi
-    , yl = coords.yl
-    , x
-    , y
-    , cell
-    , attr
-    , ch
-    , content = this._pcontent
-    , ci = this._clines.ci[coords.base]
-    , battr
-    , dattr
-    , c
-    , visible
-    , i
-    , bch = this.ch;
+  var lines = this.screen.lines,
+    xi = coords.xi,
+    xl = coords.xl,
+    yi = coords.yi,
+    yl = coords.yl,
+    x,
+    y,
+    cell,
+    attr,
+    ch,
+    content = this._pcontent,
+    ci = this._clines.ci[coords.base],
+    battr,
+    dattr,
+    c,
+    visible,
+    i,
+    bch = this.ch;
 
   // Clip content if it's off the edge of the screen
   // if (xi + this.ileft < 0 || yi + this.itop < 0) {
@@ -2057,8 +2139,8 @@ Element.prototype.render = function() {
   }
 
   if (this.tpadding) {
-    xi += this.padding.left, xl -= this.padding.right;
-    yi += this.padding.top, yl -= this.padding.bottom;
+    (xi += this.padding.left), (xl -= this.padding.right);
+    (yi += this.padding.top), (yl -= this.padding.bottom);
   }
 
   // Determine where to place the text if it's vertically aligned.
@@ -2066,8 +2148,8 @@ Element.prototype.render = function() {
     visible = yl - yi;
     if (this._clines.length < visible) {
       if (this.valign === 'middle') {
-        visible = visible / 2 | 0;
-        visible -= this._clines.length / 2 | 0;
+        visible = (visible / 2) | 0;
+        visible -= (this._clines.length / 2) | 0;
       } else if (this.valign === 'bottom') {
         visible -= this._clines.length;
       }
@@ -2102,13 +2184,16 @@ Element.prototype.render = function() {
 
       // Handle escape codes.
       while (ch === '\x1b') {
-        if (c = /^\x1b\[[\d;]*m/.exec(content.substring(ci - 1))) {
+        if ((c = /^\x1b\[[\d;]*m/.exec(content.substring(ci - 1)))) {
           ci += c[0].length - 1;
           attr = this.screen.attrCode(c[0], attr, dattr);
           // Ignore foreground changes for selected items.
-          if (this.parent._isList && this.parent.interactive
-              && this.parent.items[this.parent.selected] === this
-              && this.parent.options.invertSelected !== false) {
+          if (
+            this.parent._isList &&
+            this.parent.interactive &&
+            this.parent.items[this.parent.selected] === this &&
+            this.parent.options.invertSelected !== false
+          ) {
             attr = (attr & ~(0x1ff << 9)) | (dattr & (0x1ff << 9));
           }
           ch = content[ci] || bch;
@@ -2198,7 +2283,7 @@ Element.prototype.render = function() {
     i = Math.max(this._clines.length, this._scrollBottom());
   }
   if (coords.notop || coords.nobot) i = -Infinity;
-  if (this.scrollbar && (yl - yi) < i) {
+  if (this.scrollbar && yl - yi < i) {
     x = xl - 1;
     if (this.scrollbar.ignoreBorder && this.border) x++;
     if (this.alwaysScroll) {
@@ -2206,21 +2291,25 @@ Element.prototype.render = function() {
     } else {
       y = (this.childBase + this.childOffset) / (i - 1);
     }
-    y = yi + ((yl - yi) * y | 0);
+    y = yi + (((yl - yi) * y) | 0);
     if (y >= yl) y = yl - 1;
     cell = lines[y] && lines[y][x];
     if (cell) {
       if (this.track) {
         ch = this.track.ch || ' ';
-        attr = this.sattr(this.style.track,
+        attr = this.sattr(
+          this.style.track,
           this.style.track.fg || this.style.fg,
-          this.style.track.bg || this.style.bg);
+          this.style.track.bg || this.style.bg
+        );
         this.screen.fillRegion(attr, ch, x, x + 1, yi, yl);
       }
       ch = this.scrollbar.ch || ' ';
-      attr = this.sattr(this.style.scrollbar,
+      attr = this.sattr(
+        this.style.scrollbar,
         this.style.scrollbar.fg || this.style.fg,
-        this.style.scrollbar.bg || this.style.bg);
+        this.style.scrollbar.bg || this.style.bg
+      );
       if (attr !== cell[0] || ch !== cell[1]) {
         lines[y][x][0] = attr;
         lines[y][x][1] = ch;
@@ -2232,8 +2321,8 @@ Element.prototype.render = function() {
   if (this.border) xi--, xl++, yi--, yl++;
 
   if (this.tpadding) {
-    xi -= this.padding.left, xl += this.padding.right;
-    yi -= this.padding.top, yl += this.padding.bottom;
+    (xi -= this.padding.left), (xl += this.padding.right);
+    (yi -= this.padding.top), (yl += this.padding.bottom);
   }
 
   // Draw the border.
@@ -2307,11 +2396,11 @@ Element.prototype.render = function() {
             ch = this.border.ch;
           }
           if (!coords.noleft)
-          if (battr !== cell[0] || ch !== cell[1]) {
-            lines[y][xi][0] = battr;
-            lines[y][xi][1] = ch;
-            lines[y].dirty = true;
-          }
+            if (battr !== cell[0] || ch !== cell[1]) {
+              lines[y][xi][0] = battr;
+              lines[y][xi][1] = ch;
+              lines[y].dirty = true;
+            }
         } else {
           ch = ' ';
           if (dattr !== cell[0] || ch !== cell[1]) {
@@ -2330,11 +2419,11 @@ Element.prototype.render = function() {
             ch = this.border.ch;
           }
           if (!coords.noright)
-          if (battr !== cell[0] || ch !== cell[1]) {
-            lines[y][xl - 1][0] = battr;
-            lines[y][xl - 1][1] = ch;
-            lines[y].dirty = true;
-          }
+            if (battr !== cell[0] || ch !== cell[1]) {
+              lines[y][xl - 1][0] = battr;
+              lines[y][xl - 1][1] = ch;
+              lines[y].dirty = true;
+            }
         } else {
           ch = ' ';
           if (dattr !== cell[0] || ch !== cell[1]) {
@@ -2429,7 +2518,7 @@ Element.prototype.render = function() {
     }
   }
 
-  this.children.forEach(function(el) {
+  this.children.forEach(function (el) {
     if (el.screen._ci !== -1) {
       el.index = el.screen._ci++;
     }
@@ -2453,7 +2542,7 @@ Element.prototype._render = Element.prototype.render;
  * Content Methods
  */
 
-Element.prototype.insertLine = function(i, line) {
+Element.prototype.insertLine = function (i, line) {
   if (typeof line === 'string') line = line.split('\n');
 
   if (i !== i || i == null) {
@@ -2470,9 +2559,9 @@ Element.prototype.insertLine = function(i, line) {
 
   // NOTE: Could possibly compare the first and last ftor line numbers to see
   // if they're the same, or if they fit in the visible region entirely.
-  var start = this._clines.length
-    , diff
-    , real;
+  var start = this._clines.length,
+    diff,
+    real;
 
   if (i >= this._clines.ftor.length) {
     real = this._clines.ftor[this._clines.ftor.length - 1];
@@ -2493,20 +2582,22 @@ Element.prototype.insertLine = function(i, line) {
     var pos = this._getCoords();
     if (!pos) return;
 
-    var height = pos.yl - pos.yi - this.iheight
-      , base = this.childBase || 0
-      , visible = real >= base && real - base < height;
+    var height = pos.yl - pos.yi - this.iheight,
+      base = this.childBase || 0,
+      visible = real >= base && real - base < height;
 
     if (pos && visible && this.screen.cleanSides(this)) {
-      this.screen.insertLine(diff,
+      this.screen.insertLine(
+        diff,
         pos.yi + this.itop + real - base,
         pos.yi,
-        pos.yl - this.ibottom - 1);
+        pos.yl - this.ibottom - 1
+      );
     }
   }
 };
 
-Element.prototype.deleteLine = function(i, n) {
+Element.prototype.deleteLine = function (i, n) {
   n = n || 1;
 
   if (i !== i || i == null) {
@@ -2518,9 +2609,9 @@ Element.prototype.deleteLine = function(i, n) {
 
   // NOTE: Could possibly compare the first and last ftor line numbers to see
   // if they're the same, or if they fit in the visible region entirely.
-  var start = this._clines.length
-    , diff
-    , real = this._clines.ftor[i][0];
+  var start = this._clines.length,
+    diff,
+    real = this._clines.ftor[i][0];
 
   while (n--) {
     this._clines.fake.splice(i, 1);
@@ -2539,14 +2630,16 @@ Element.prototype.deleteLine = function(i, n) {
 
     height = pos.yl - pos.yi - this.iheight;
 
-    var base = this.childBase || 0
-      , visible = real >= base && real - base < height;
+    var base = this.childBase || 0,
+      visible = real >= base && real - base < height;
 
     if (pos && visible && this.screen.cleanSides(this)) {
-      this.screen.deleteLine(diff,
+      this.screen.deleteLine(
+        diff,
         pos.yi + this.itop + real - base,
         pos.yi,
-        pos.yl - this.ibottom - 1);
+        pos.yl - this.ibottom - 1
+      );
     }
   }
 
@@ -2555,35 +2648,35 @@ Element.prototype.deleteLine = function(i, n) {
   }
 };
 
-Element.prototype.insertTop = function(line) {
+Element.prototype.insertTop = function (line) {
   var fake = this._clines.rtof[this.childBase || 0];
   return this.insertLine(fake, line);
 };
 
-Element.prototype.insertBottom = function(line) {
-  var h = (this.childBase || 0) + this.height - this.iheight
-    , i = Math.min(h, this._clines.length)
-    , fake = this._clines.rtof[i - 1] + 1;
+Element.prototype.insertBottom = function (line) {
+  var h = (this.childBase || 0) + this.height - this.iheight,
+    i = Math.min(h, this._clines.length),
+    fake = this._clines.rtof[i - 1] + 1;
 
   return this.insertLine(fake, line);
 };
 
-Element.prototype.deleteTop = function(n) {
+Element.prototype.deleteTop = function (n) {
   var fake = this._clines.rtof[this.childBase || 0];
   return this.deleteLine(fake, n);
 };
 
-Element.prototype.deleteBottom = function(n) {
-  var h = (this.childBase || 0) + this.height - 1 - this.iheight
-    , i = Math.min(h, this._clines.length - 1)
-    , fake = this._clines.rtof[i];
+Element.prototype.deleteBottom = function (n) {
+  var h = (this.childBase || 0) + this.height - 1 - this.iheight,
+    i = Math.min(h, this._clines.length - 1),
+    fake = this._clines.rtof[i];
 
   n = n || 1;
 
   return this.deleteLine(fake - (n - 1), n);
 };
 
-Element.prototype.setLine = function(i, line) {
+Element.prototype.setLine = function (i, line) {
   i = Math.max(i, 0);
   while (this._clines.fake.length < i) {
     this._clines.fake.push('');
@@ -2592,67 +2685,65 @@ Element.prototype.setLine = function(i, line) {
   return this.setContent(this._clines.fake.join('\n'), true);
 };
 
-Element.prototype.setBaseLine = function(i, line) {
+Element.prototype.setBaseLine = function (i, line) {
   var fake = this._clines.rtof[this.childBase || 0];
   return this.setLine(fake + i, line);
 };
 
-Element.prototype.getLine = function(i) {
+Element.prototype.getLine = function (i) {
   i = Math.max(i, 0);
   i = Math.min(i, this._clines.fake.length - 1);
   return this._clines.fake[i];
 };
 
-Element.prototype.getBaseLine = function(i) {
+Element.prototype.getBaseLine = function (i) {
   var fake = this._clines.rtof[this.childBase || 0];
   return this.getLine(fake + i);
 };
 
-Element.prototype.clearLine = function(i) {
+Element.prototype.clearLine = function (i) {
   i = Math.min(i, this._clines.fake.length - 1);
   return this.setLine(i, '');
 };
 
-Element.prototype.clearBaseLine = function(i) {
+Element.prototype.clearBaseLine = function (i) {
   var fake = this._clines.rtof[this.childBase || 0];
   return this.clearLine(fake + i);
 };
 
-Element.prototype.unshiftLine = function(line) {
+Element.prototype.unshiftLine = function (line) {
   return this.insertLine(0, line);
 };
 
-Element.prototype.shiftLine = function(n) {
+Element.prototype.shiftLine = function (n) {
   return this.deleteLine(0, n);
 };
 
-Element.prototype.pushLine = function(line) {
+Element.prototype.pushLine = function (line) {
   if (!this.content) return this.setLine(0, line);
   return this.insertLine(this._clines.fake.length, line);
 };
 
-Element.prototype.popLine = function(n) {
+Element.prototype.popLine = function (n) {
   return this.deleteLine(this._clines.fake.length - 1, n);
 };
 
-Element.prototype.getLines = function() {
+Element.prototype.getLines = function () {
   return this._clines.fake.slice();
 };
 
-Element.prototype.getScreenLines = function() {
+Element.prototype.getScreenLines = function () {
   return this._clines.slice();
 };
 
-Element.prototype.strWidth = function(text) {
-  text = this.parseTags
-    ? helpers.stripTags(text)
-    : text;
+Element.prototype.strWidth = function (text) {
+  text = this.parseTags ? helpers.stripTags(text) : text;
   return this.screen.fullUnicode
     ? unicode.strWidth(text)
     : helpers.dropUnicode(text).length;
 };
 
-Element.prototype.screenshot = function(xi, xl, yi, yl) {
+Element.prototype.screenshot = function (xi, xl, yi, yl) {
   xi = this.lpos.xi + this.ileft + (xi || 0);
   if (xl != null) {
     xl = this.lpos.xi + this.ileft + (xl || 0);

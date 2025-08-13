@@ -5,7 +5,7 @@ var screen = blessed.screen({
   smartCSR: true,
   dump: __dirname + '/logs/prompt.log',
   autoPadding: true,
-  warnings: true
+  warnings: true,
 });
 
 var prompt = blessed.prompt({
@@ -18,7 +18,7 @@ var prompt = blessed.prompt({
   label: ' {blue-fg}Prompt{/blue-fg} ',
   tags: true,
   keys: true,
-  vi: true
+  vi: true,
 });
 
 var question = blessed.question({
@@ -31,7 +31,7 @@ var question = blessed.question({
   label: ' {blue-fg}Question{/blue-fg} ',
   tags: true,
   keys: true,
-  vi: true
+  vi: true,
 });
 
 var msg = blessed.message({
@@ -45,7 +45,7 @@ var msg = blessed.message({
   tags: true,
   keys: true,
   hidden: true,
-  vi: true
+  vi: true,
 });
 
 var loader = blessed.loading({
@@ -59,15 +59,15 @@ var loader = blessed.loading({
   tags: true,
   keys: true,
   hidden: true,
-  vi: true
+  vi: true,
 });
 
-prompt.input('Question?', '', function(err, value) {
-  question.ask('Question?', function(err, value) {
-    msg.display('Hello world!', 3, function(err) {
-      msg.display('Hello world again!', -1, function(err) {
+prompt.input('Question?', '', function (err, value) {
+  question.ask('Question?', function (err, value) {
+    msg.display('Hello world!', 3, function (err) {
+      msg.display('Hello world again!', -1, function (err) {
         loader.load('Loading...');
-        setTimeout(function() {
+        setTimeout(function () {
           loader.stop();
           screen.destroy();
         }, 3000);
@@ -76,7 +76,7 @@ prompt.input('Question?', '', function(err, value) {
   });
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   screen.destroy();
 });
 

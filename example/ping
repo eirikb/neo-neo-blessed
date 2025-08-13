@@ -23,17 +23,14 @@ if (/^(-h|--help|-\?)$/.test(process.argv[2])) {
   return process.exit(0);
 }
 
-var blessed = require('blessed')
-  , nssocket;
+var blessed = require('blessed'),
+  nssocket;
 
 try {
   nssocket = require('nssocket');
-} catch (e) {
-  ;
-}
+} catch (e) {}
 
-var server
-  , socket;
+var server, socket;
 
 /**
  * Screen Layout
@@ -45,7 +42,7 @@ var table = blessed.box({
   left: 0,
   top: 0,
   width: screen.width,
-  height: screen.height
+  height: screen.height,
 });
 
 var ball = blessed.box({
@@ -53,7 +50,7 @@ var ball = blessed.box({
   height: 1,
   bg: 'white',
   top: 0,
-  left: 0
+  left: 0,
 });
 
 var lpaddle = blessed.box({
@@ -61,7 +58,7 @@ var lpaddle = blessed.box({
   height: 3,
   bg: 'yellow',
   top: 0,
-  left: 0
+  left: 0,
 });
 
 var rpaddle = blessed.box({
@@ -69,7 +66,7 @@ var rpaddle = blessed.box({
   height: 3,
   bg: 'yellow',
   top: 0,
-  right: 0
+  right: 0,
 });
 
 var score = blessed.box({
@@ -78,13 +75,13 @@ var score = blessed.box({
   height: 3,
   width: 'shrink',
   border: {
-    type: 'line'
+    type: 'line',
   },
   //align: 'center',
   style: {
-    bold: true
+    bold: true,
   },
-  tags: true
+  tags: true,
 });
 
 score.lwins = 0;
@@ -95,17 +92,17 @@ var net = blessed.box({
   height: '100%',
   bg: 'yellow',
   top: 0,
-  left: 'center'
+  left: 'center',
 });
 
 var message = blessed.box({
   width: '50%',
   height: 3,
   border: {
-    type: 'line'
+    type: 'line',
   },
   top: 'center',
-  left: 'center'
+  left: 'center',
 });
 
 var text = blessed.box({
@@ -114,7 +111,7 @@ var text = blessed.box({
   right: 1,
   height: 1,
   align: 'center',
-  content: 'Waiting for players to connect...'
+  content: 'Waiting for players to connect...',
 });
 
 message.append(text);
@@ -128,10 +125,10 @@ table.append(net);
 table.append(ball);
 table.append(message);
 
-screen.on('resize', function() {
+screen.on('resize', function () {
   table.width = screen.width;
   table.height = screen.height;
-  [ball, lpaddle, rpaddle].forEach(function(el) {
+  [ball, lpaddle, rpaddle].forEach(function (el) {
     if (el.rbottom < 0) el.rtop = table.height - 1 - el.height;
     if (el.rright < 0) el.rleft = table.width - 1;
   });
@@ -158,7 +155,7 @@ function sync() {
     table: { width: table.width, height: table.height },
     lpaddle: { rleft: lpaddle.rleft, rtop: lpaddle.rtop, speed: lpaddle.speed },
     rpaddle: { rleft: rpaddle.rleft, rtop: rpaddle.rtop, speed: rpaddle.speed },
-    score: { lwins: score.lwins, rwins: score.rwins }
+    score: { lwins: score.lwins, rwins: score.rwins },
   });
 }
 
@@ -197,7 +194,7 @@ function startGame() {
   if (startGame._bound) return;
   startGame._bound = true;
 
-  screen.on('keypress', function(ch, key) {
+  screen.on('keypress', function (ch, key) {
     if (!ball.moving) return;
     if (key.name === 'up' || key.name === 'k') {
       if (socket) socket.send(['up']);
@@ -216,13 +213,16 @@ function startGame() {
     }
   });
 
-  setInterval(function() {
+  setInterval(function () {
     if (!ball.moving) return;
     if (ball.direction === 'right') {
       if (ball.rright > 1) {
         ball.rleft += ball.speed;
       } else {
-        if (ball.rtop >= rpaddle.rtop && ball.rtop <= rpaddle.rtop + rpaddle.height) {
+        if (
+          ball.rtop >= rpaddle.rtop &&
+          ball.rtop <= rpaddle.rtop + rpaddle.height
+        ) {
           ball.direction = 'left';
           ball.rleft -= ball.speed;
 
@@ -247,7 +247,10 @@ function startGame() {
       if (ball.rleft > 1) {
         ball.rleft -= ball.speed;
       } else {
-        if (ball.rtop >= lpaddle.rtop && ball.rtop <= lpaddle.rtop + lpaddle.height) {
+        if (
+          ball.rtop >= lpaddle.rtop &&
+          ball.rtop <= lpaddle.rtop + lpaddle.height
+        ) {
           ball.direction = 'right';
           ball.rleft += ball.speed;
 
@@ -294,24 +297,24 @@ function startGame() {
 }
 
 function startServer() {
-  server = nssocket.createServer({}, function(socket_) {
+  server = nssocket.createServer({}, function (socket_) {
     socket = socket_;
 
     sync();
 
-    socket.data(['up'], function() {
+    socket.data(['up'], function () {
       if (!ball.moving) return;
       if (rpaddle.rtop > 0) rpaddle.rtop -= rpaddle.speed;
       screen.render();
     });
 
-    socket.data(['down'], function() {
+    socket.data(['down'], function () {
       if (!ball.moving) return;
       if (rpaddle.rtop < table.height - 1) rpaddle.rtop += rpaddle.speed;
       screen.render();
     });
 
-    socket.on('error', function() {
+    socket.on('error', function () {
       socket = null;
       reset();
       ball.moving = false;
@@ -329,12 +332,12 @@ function startClient() {
   var socket = new nssocket.NsSocket({
     reconnect: true,
     maxRetries: Infinity,
-    retryInterval: 5000
+    retryInterval: 5000,
   });
 
   socket.connect(+process.argv[3], process.argv[2]);
 
-  screen.on('keypress', function(ch, key) {
+  screen.on('keypress', function (ch, key) {
     if (!rpaddle.movable) return;
     if (key.name === 'up' || key.name === 'k') {
       socket.send(['up']);
@@ -349,23 +352,23 @@ function startClient() {
     }
   });
 
-  socket.data(['up'], function() {
+  socket.data(['up'], function () {
     if (lpaddle.rtop > 0) lpaddle.rtop -= lpaddle.speed;
     screen.render();
   });
 
-  socket.data(['down'], function() {
+  socket.data(['down'], function () {
     if (lpaddle.rtop < table.height - 1) lpaddle.rtop += lpaddle.speed;
     screen.render();
   });
 
-  socket.data(['ball'], function(data) {
+  socket.data(['ball'], function (data) {
     ball.rleft = data.rleft;
     ball.rtop = data.rtop;
     screen.render();
   });
 
-  socket.data(['update'], function(data) {
+  socket.data(['update'], function (data) {
     if (data.lpaddle) {
       lpaddle.rleft = data.lpaddle.rleft;
       lpaddle.rtop = data.lpaddle.rtop;
@@ -397,7 +400,7 @@ function startClient() {
     screen.render();
   });
 
-  socket.data(['win'], function() {
+  socket.data(['win'], function () {
     rpaddle.movable = false;
     score.rwins++;
     text.setContent('Left player loses!');
@@ -405,7 +408,7 @@ function startClient() {
     screen.render();
   });
 
-  socket.data(['lose'], function() {
+  socket.data(['lose'], function () {
     rpaddle.movable = false;
     score.lwins++;
     text.setContent('Right player loses!');
@@ -423,7 +426,7 @@ function startClient() {
  */
 
 function main() {
-  screen.on('keypress', function(ch, key) {
+  screen.on('keypress', function (ch, key) {
     if (key.name === 'q' || key.name === 'escape') {
       return process.exit(0);
     }

@@ -4,3 +4,4 @@ dist/
 *.tsbuildinfo
 
 spinfox.png
+/test-package/

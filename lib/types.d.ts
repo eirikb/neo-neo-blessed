@@ -2,7 +2,7 @@
  * Type definitions for neo-neo-blessed
  */
 
-declare module "neo-neo-blessed" {
+declare module 'neo-neo-blessed' {
   export interface BlessedOptions {
     parent?: any;
     top?: number | string;

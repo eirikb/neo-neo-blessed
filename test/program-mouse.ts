@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-var blessed = require('../')
-  , util = require('util')
-  , program;
+var blessed = require('../'),
+  util = require('util'),
+  program;
 
 program = blessed.program({
-  dump: __dirname + '/logs/mouse.log'
+  dump: __dirname + '/logs/mouse.log',
 });
 
 // program.setMouse({
@@ -23,48 +23,50 @@ program.setMouse({ sendFocus: true }, true);
 //program.enableMouse(program._currentMouse);
 //program.write('\x1b[?1004h');
 
-program.on('mouse', function(data) {
+program.on('mouse', function (data) {
   program.cup(data.y, data.x);
   program.write(' ', 'blue bg');
   program.cup(0, 0);
   program.write(util.inspect(data));
 });
 
-program.on('resize', function(data) {
-  setTimeout(function() {
+program.on('resize', function (data) {
+  setTimeout(function () {
     program.clear();
     program.cup(0, 0);
     program.write(util.inspect({ cols: program.cols, rows: program.rows }));
   }, 200);
 });
 
-process.on('SIGWINCH', function(data) {
-  setTimeout(function() {
+process.on('SIGWINCH', function (data) {
+  setTimeout(function () {
     program.cup(1, 0);
-    program.write(util.inspect({ winch: true, cols: program.cols, rows: program.rows }));
+    program.write(
+      util.inspect({ winch: true, cols: program.cols, rows: program.rows })
+    );
   }, 200);
 });
 
-program.on('focus', function(data) {
+program.on('focus', function (data) {
   program.clear();
   program.cup(0, 0);
   program.write('FOCUSIN');
 });
 
-program.on('blur', function(data) {
+program.on('blur', function (data) {
   program.clear();
   program.cup(0, 0);
   program.write('FOCUSOUT');
 });
 
-program.key(['q', 'escape', 'C-c'], function() {
+program.key(['q', 'escape', 'C-c'], function () {
   program.showCursor();
   program.disableMouse();
   program.normalBuffer();
   process.exit(0);
 });
 
-program.on('keypress', function(ch, data) {
+program.on('keypress', function (ch, data) {
   if (data.name === 'mouse') return;
   program.clear();
   program.cup(0, 0);

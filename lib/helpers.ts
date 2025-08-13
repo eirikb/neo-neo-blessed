@@ -49,15 +49,15 @@ interface Element {
 
 const helpers = {} as any;
 
-helpers.merge = function(a: any, b: any): any {
-  Object.keys(b).forEach(function(key: string) {
+helpers.merge = function (a: any, b: any): any {
+  Object.keys(b).forEach(function (key: string) {
     a[key] = b[key];
   });
   return a;
 };
 
-helpers.asort = function(obj: SortableItem[]): SortableItem[] {
-  return obj.sort(function(a: SortableItem, b: SortableItem) {
+helpers.asort = function (obj: SortableItem[]): SortableItem[] {
+  return obj.sort(function (a: SortableItem, b: SortableItem) {
     let aName = a.name.toLowerCase();
     let bName = b.name.toLowerCase();
 
@@ -69,22 +69,21 @@ helpers.asort = function(obj: SortableItem[]): SortableItem[] {
       bName = bName[0];
     }
 
-    return aName > bName ? 1 : (aName < bName ? -1 : 0);
+    return aName > bName ? 1 : aName < bName ? -1 : 0;
   });
 };
 
-helpers.hsort = function(obj: IndexedItem[]): IndexedItem[] {
-  return obj.sort(function(a: IndexedItem, b: IndexedItem) {
+helpers.hsort = function (obj: IndexedItem[]): IndexedItem[] {
+  return obj.sort(function (a: IndexedItem, b: IndexedItem) {
     return b.index - a.index;
   });
 };
 
-helpers.findFile = function(start: string, target: string): string | null {
+helpers.findFile = function (start: string, target: string): string | null {
   return (function read(dir: string): string | null {
     let files: string[], file: string, stat: any, out: string | null;
 
-    if (dir === '/dev' || dir === '/sys'
-        || dir === '/proc' || dir === '/net') {
+    if (dir === '/dev' || dir === '/sys' || dir === '/proc' || dir === '/net') {
       return null;
     }
 
@@ -118,22 +117,27 @@ helpers.findFile = function(start: string, target: string): string | null {
 };
 
 // Escape text for tag-enabled elements.
-helpers.escape = function(text: string): string {
-  return text.replace(/[{}]/g, function(ch: string) {
+helpers.escape = function (text: string): string {
+  return text.replace(/[{}]/g, function (ch: string) {
     return ch === '{' ? '{open}' : '{close}';
   });
 };
 
-helpers.parseTags = function(text: string, screen?: Screen): string {
+helpers.parseTags = function (text: string, screen?: Screen): string {
   return helpers.Element.prototype._parseTags.call(
-    { parseTags: true, screen: screen || helpers.Screen.global }, text);
+    { parseTags: true, screen: screen || helpers.Screen.global },
+    text
+  );
 };
 
-helpers.generateTags = function(style: Style | null, text?: string | null): string | TagResult {
+helpers.generateTags = function (
+  style: Style | null,
+  text?: string | null
+): string | TagResult {
   let open = '';
   let close = '';
 
-  Object.keys(style || {}).forEach(function(key: string) {
+  Object.keys(style || {}).forEach(function (key: string) {
     let val = (style as Style)[key];
     if (typeof val === 'string') {
       val = val.replace(/^light(?!-)/, 'light-');
@@ -154,26 +158,26 @@ helpers.generateTags = function(style: Style | null, text?: string | null): stri
 
   return {
     open: open,
-    close: close
+    close: close,
   };
 };
 
-helpers.attrToBinary = function(style: any, element?: Element): any {
+helpers.attrToBinary = function (style: any, element?: Element): any {
   return helpers.Element.prototype.sattr.call(element || {}, style);
 };
 
-helpers.stripTags = function(text: string): string {
+helpers.stripTags = function (text: string): string {
   if (!text) return '';
   return text
     .replace(/{(\/?)([\w\-,;!#]*)}/g, '')
     .replace(/\x1b\[[\d;]*m/g, '');
 };
 
-helpers.cleanTags = function(text: string): string {
+helpers.cleanTags = function (text: string): string {
   return helpers.stripTags(text).trim();
 };
 
-helpers.dropUnicode = function(text: string): string {
+helpers.dropUnicode = function (text: string): string {
   if (!text) return '';
   return text
     .replace(unicode.chars.all, '??')
@@ -181,14 +185,14 @@ helpers.dropUnicode = function(text: string): string {
     .replace(unicode.chars.surrogate, '?');
 };
 
-helpers.__defineGetter__('Screen', function() {
+helpers.__defineGetter__('Screen', function () {
   if (!helpers._screen) {
     helpers._screen = require('./widgets/screen');
   }
   return helpers._screen;
 });
 
-helpers.__defineGetter__('Element', function() {
+helpers.__defineGetter__('Element', function () {
   if (!helpers._element) {
     helpers._element = require('./widgets/element');
   }

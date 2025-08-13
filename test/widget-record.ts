@@ -1,10 +1,10 @@
-var blessed = require('../')
-  , fs = require('fs');
+var blessed = require('../'),
+  fs = require('fs');
 
 var screen = blessed.screen({
   dump: __dirname + '/logs/record.log',
   smartCSR: true,
-  warnings: true
+  warnings: true,
 });
 
 var btext = blessed.box({
@@ -14,10 +14,10 @@ var btext = blessed.box({
   width: '80%',
   height: '80%',
   style: {
-    bg: 'green'
+    bg: 'green',
   },
   border: 'line',
-  content: 'CSR should still work.'
+  content: 'CSR should still work.',
 });
 
 var text = blessed.scrollabletext({
@@ -31,18 +31,18 @@ var text = blessed.scrollabletext({
   height: '50%',
   mouse: true,
   keys: true,
-  vi: true
+  vi: true,
 });
 
 text.focus();
 
 var frames = [];
 
-var timer = setInterval(function() {
+var timer = setInterval(function () {
   frames.push(screen.screenshot());
 }, 100);
 
-screen.key('C-q', function() {
+screen.key('C-q', function () {
   fs.writeFileSync(__dirname + '/frames.json', JSON.stringify(frames));
   clearInterval(timer);
   return screen.destroy();

@@ -1,9 +1,9 @@
-var blessed = require('../')
-  , screen;
+var blessed = require('../'),
+  screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/padding.log',
-  warnings: true
+  warnings: true,
 });
 
 blessed.box({
@@ -18,10 +18,10 @@ blessed.box({
   top: 'center',
   width: 22,
   height: 10,
-  padding: 2
+  padding: 2,
 });
 
-screen.key('q', function() {
+screen.key('q', function () {
   return screen.destroy();
 });
 

@@ -10,13 +10,18 @@ var EventEmitter = require('events').EventEmitter;
 
 var GPM_USE_MAGIC = false;
 
-var GPM_MOVE = 1, GPM_DRAG = 2, GPM_DOWN = 4, GPM_UP = 8;
+var GPM_MOVE = 1,
+  GPM_DRAG = 2,
+  GPM_DOWN = 4,
+  GPM_UP = 8;
 
-var GPM_DOUBLE = 32, GPM_MFLAG = 128;
+var GPM_DOUBLE = 32,
+  GPM_MFLAG = 128;
 
-var GPM_REQ_NOPASTE = 3, GPM_HARD = 256;
+var GPM_REQ_NOPASTE = 3,
+  GPM_HARD = 256;
 
-var GPM_MAGIC = 0x47706D4C;
+var GPM_MAGIC = 0x47706d4c;
 var GPM_SOCKET = '/dev/gpmctl';
 
 // typedef struct Gpm_Connect {
@@ -59,7 +64,11 @@ interface GpmClientInterface extends EventEmitter {
   hasMetaKey(mod: number): boolean;
 }
 
-function send_config(socket: any, Gpm_Connect: GpmConnect, callback?: Function): void {
+function send_config(
+  socket: any,
+  Gpm_Connect: GpmConnect,
+  callback?: Function
+): void {
   var buffer: Buffer;
   if (GPM_USE_MAGIC) {
     buffer = new Buffer(20);
@@ -79,7 +88,7 @@ function send_config(socket: any, Gpm_Connect: GpmConnect, callback?: Function):
     buffer.writeInt16LE(Gpm_Connect.pid, 8);
     buffer.writeInt16LE(Gpm_Connect.vc, 12);
   }
-  socket.write(buffer, function() {
+  socket.write(buffer, function () {
     if (callback) callback();
   });
 }
@@ -118,7 +127,10 @@ function parseEvent(raw: Buffer): GpmEvent {
   return evnt;
 }
 
-function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface {
+function GpmClient(
+  this: GpmClientInterface,
+  options?: any
+): GpmClientInterface {
   if (!(this instanceof GpmClient)) {
     return new GpmClient(options);
   }
@@ -131,8 +143,7 @@ function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface 
   var path: string | undefined;
   try {
     path = fs.readlinkSync('/proc/' + pid + '/fd/0');
-  } catch (e) {
-  }
+  } catch (e) {}
   var tty = path ? /tty[0-9]+$/.exec(path) : null;
   if (tty === null) {
     // TODO: should  also check for /dev/input/..
@@ -147,7 +158,7 @@ function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface 
   var self = this;
 
   if (tty) {
-    fs.stat(GPM_SOCKET, function(err, stat) {
+    fs.stat(GPM_SOCKET, function (err, stat) {
       if (err || !stat.isSocket()) {
         return;
       }
@@ -158,21 +169,21 @@ function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface 
         minMod: 0,
         maxMod: 0xffff,
         pid: pid,
-        vc: vc
+        vc: vc,
       };
 
       var gpm = net.createConnection(GPM_SOCKET);
       this.gpm = gpm;
 
-      gpm.on('connect', function() {
-        send_config(gpm, conf, function() {
+      gpm.on('connect', function () {
+        send_config(gpm, conf, function () {
           conf.pid = 0;
           conf.vc = GPM_REQ_NOPASTE;
           //send_config(gpm, conf);
         });
       });
 
-      gpm.on('data', function(packet) {
+      gpm.on('data', function (packet) {
         var evnt = parseEvent(packet);
         switch (evnt.type & 15) {
           case GPM_MOVE:
@@ -180,9 +191,15 @@ function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface 
               self.emit('move', evnt.buttons, evnt.modifiers, evnt.x, evnt.y);
             }
             if (evnt.wdx || evnt.wdy) {
-              self.emit('mousewheel',
-                evnt.buttons, evnt.modifiers,
-                evnt.x, evnt.y, evnt.wdx, evnt.wdy);
+              self.emit(
+                'mousewheel',
+                evnt.buttons,
+                evnt.modifiers,
+                evnt.x,
+                evnt.y,
+                evnt.wdx,
+                evnt.wdy
+              );
             }
             break;
           case GPM_DRAG:
@@ -190,15 +207,27 @@ function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface 
               self.emit('drag', evnt.buttons, evnt.modifiers, evnt.x, evnt.y);
             }
             if (evnt.wdx || evnt.wdy) {
-              self.emit('mousewheel',
-                evnt.buttons, evnt.modifiers,
-                evnt.x, evnt.y, evnt.wdx, evnt.wdy);
+              self.emit(
+                'mousewheel',
+                evnt.buttons,
+                evnt.modifiers,
+                evnt.x,
+                evnt.y,
+                evnt.wdx,
+                evnt.wdy
+              );
             }
             break;
           case GPM_DOWN:
             self.emit('btndown', evnt.buttons, evnt.modifiers, evnt.x, evnt.y);
             if (evnt.type & GPM_DOUBLE) {
-              self.emit('dblclick', evnt.buttons, evnt.modifiers, evnt.x, evnt.y);
+              self.emit(
+                'dblclick',
+                evnt.buttons,
+                evnt.modifiers,
+                evnt.x,
+                evnt.y
+              );
             }
             break;
           case GPM_UP:
@@ -210,7 +239,7 @@ function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface 
         }
       });
 
-      gpm.on('error', function() {
+      gpm.on('error', function () {
         self.stop();
       });
     });
@@ -219,30 +248,42 @@ function GpmClient(this: GpmClientInterface, options?: any): GpmClientInterface 
 
 GpmClient.prototype.__proto__ = EventEmitter.prototype;
 
-GpmClient.prototype.stop = function(this: GpmClientInterface): void {
+GpmClient.prototype.stop = function (this: GpmClientInterface): void {
   if (this.gpm) {
     this.gpm.end();
   }
   delete this.gpm;
 };
 
-GpmClient.prototype.ButtonName = function(this: GpmClientInterface, btn: number): string {
+GpmClient.prototype.ButtonName = function (
+  this: GpmClientInterface,
+  btn: number
+): string {
   if (btn & 4) return 'left';
   if (btn & 2) return 'middle';
   if (btn & 1) return 'right';
   return '';
 };
 
-GpmClient.prototype.hasShiftKey = function(this: GpmClientInterface, mod: number): boolean {
-  return (mod & 1);
+GpmClient.prototype.hasShiftKey = function (
+  this: GpmClientInterface,
+  mod: number
+): boolean {
+  return mod & 1;
 };
 
-GpmClient.prototype.hasCtrlKey = function(this: GpmClientInterface, mod: number): boolean {
-  return (mod & 4);
+GpmClient.prototype.hasCtrlKey = function (
+  this: GpmClientInterface,
+  mod: number
+): boolean {
+  return mod & 4;
 };
 
-GpmClient.prototype.hasMetaKey = function(this: GpmClientInterface, mod: number): boolean {
-  return (mod & 8);
+GpmClient.prototype.hasMetaKey = function (
+  this: GpmClientInterface,
+  mod: number
+): boolean {
+  return mod & 8;
 };
 
 module.exports = GpmClient;
