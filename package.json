@@ -85,7 +85,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@xterm/xterm": "^5.5.0",
+    "@xterm/headless": "^5.5.0",
     "crc-32": "^1.2.2",
     "eastasianwidth": "^0.3.0",
     "jimp": "^1.6.0",
