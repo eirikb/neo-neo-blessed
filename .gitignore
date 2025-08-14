@@ -3,5 +3,8 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Compiled JS files from TypeScript sources (for unit testing)
+lib/*.js
+
 spinfox.png
 /test-package/

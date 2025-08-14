@@ -37,13 +37,15 @@ interface KeypressEvent {
   [key: string]: any;
 }
 
-interface KeypressStream extends EventEmitter {
+interface KeypressStream {
   _keypressDecoder?: any;
+  encoding?: string;
   listeners(event: string): Function[];
   on(event: string, listener: Function): this;
   once(event: string, listener: Function): this;
   removeListener(event: string, listener: Function): this;
   removeAllListeners(event?: string): this;
+  emit(event: string, ...args: any[]): boolean;
 }
 
 function listenerCount(stream: KeypressStream, event: string): number {
@@ -136,13 +138,14 @@ var escapeCodeReAnywhere = new RegExp(
   ].join('|')
 );
 
-function emitKeys(stream: KeypressStream, s: string): void {
+function emitKeys(stream: KeypressStream, s: string | Buffer): void {
   if (Buffer.isBuffer(s)) {
     if (s[0] > 127 && s[1] === undefined) {
-      s[0] -= 128;
-      s = '\x1b' + s.toString(stream.encoding || 'utf-8');
+      const buf = Buffer.from(s);
+      buf[0] -= 128;
+      s = '\x1b' + buf.toString((stream.encoding as BufferEncoding) || 'utf-8');
     } else {
-      s = s.toString(stream.encoding || 'utf-8');
+      s = s.toString((stream.encoding as BufferEncoding) || 'utf-8');
     }
   }
 
