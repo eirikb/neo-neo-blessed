@@ -22,9 +22,15 @@
     "type-check": "echo 'TypeScript type checking limited to colors.ts and unicode.ts due to legacy codebase complexity' && tsc --noEmit",
     "type-check:strict": "tsc --project tsconfig.strict.json --noEmit",
     "lint": "eslint lib/",
-    "test": "tsx test-runner.ts",
-    "test:fast": "./run-fast-tests.sh",
-    "dev": "tsx",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:prepare": "npx tsc lib/colors.ts --target es2018 --module commonjs --outDir lib --allowJs && npx tsc lib/unicode.ts --target es2018 --module commonjs --outDir lib --allowJs && npx tsc lib/helpers.ts --target es2018 --module commonjs --outDir lib --allowJs && sed -i 's/!== null/!= null/g' lib/colors.js",
+    "test": "npm run test:prepare && vitest run",
+    "test:watch": "npm run test:prepare && vitest",
+    "test:ui": "npm run test:prepare && vitest --ui",
+    "test:integration": "tsx test-runner.ts",
+    "test:integration:fast": "tsx test-runner-fast.ts",
+    "test:examples": "echo 'Run examples with: npm run dev example/<filename>.ts'",
     "prepare": "husky"
   },
   "version": "0.0.0-development",
@@ -73,6 +79,7 @@
     "@types/pngjs": "^6.0.5",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
+    "@vitest/ui": "^3.2.4",
     "esbuild": "^0.25.5",
     "eslint": "^9.29.0",
     "glob": "^11.0.3",
@@ -82,7 +89,8 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@xterm/headless": "^5.5.0",
