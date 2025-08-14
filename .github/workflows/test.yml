@@ -40,6 +40,7 @@ jobs:
           npx tsc lib/colors.ts --target es2018 --module commonjs --outDir lib --allowJs
           npx tsc lib/unicode.ts --target es2018 --module commonjs --outDir lib --allowJs  
           npx tsc lib/helpers.ts --target es2018 --module commonjs --outDir lib --allowJs
+          npx tsc lib/keys.ts --target es2018 --module commonjs --outDir lib --allowJs
 
       - name: Fix cache bug in colors.js
         run: |
