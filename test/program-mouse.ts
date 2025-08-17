@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
-var blessed = require('../'),
-  util = require('util'),
-  program;
+import blessed from '../lib/blessed.js';
+import util from 'util';
+import { fileURLToPath } from 'url';
+import * as path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+var program;
 
 program = blessed.program({
   dump: __dirname + '/logs/mouse.log',

@@ -8,14 +8,18 @@
  * Modules
  */
 
-const Node = require('./node');
-const Checkbox = require('./checkbox');
+import Node from './node.js';
+import Checkbox from './checkbox.js';
 
 /**
  * Type definitions
  */
 
 interface RadioButtonOptions {
+  content?: string;
+  text?: string;
+  checked?: boolean;
+  mouse?: boolean;
   [key: string]: any;
 }
 
@@ -30,54 +34,66 @@ interface RadioButtonInterface extends Checkbox {
   _render(): any;
   uncheck(): void;
   forDescendants(callback: (el: RadioButtonInterface) => void): void;
+  render(): any;
+  toggle(): void;
 }
 
 /**
- * RadioButton
+ * RadioButton - Modern ES6 Class
  */
 
-function RadioButton(this: RadioButtonInterface, options?: RadioButtonOptions) {
-  const self = this;
+class RadioButton extends Checkbox {
+  type = 'radio-button';
 
-  if (!(this instanceof Node)) {
-    return new (RadioButton as any)(options);
+  constructor(options?: RadioButtonOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    super(options);
+
+    // Set up radio button group behavior
+    this.on('check', () => {
+      let el: RadioButtonInterface | undefined = this as any;
+      while ((el = el.parent)) {
+        if (el.type === 'radio-set' || el.type === 'form') break;
+      }
+      el = el || this.parent;
+      if (el) {
+        el.forDescendants((el: RadioButtonInterface) => {
+          if (el.type !== 'radio-button' || el === this) {
+            return;
+          }
+          el.uncheck();
+        });
+      }
+    });
   }
 
-  options = options || {};
+  render(): any {
+    this.clearPos(true);
+    this.setContent('(' + (this.checked ? '*' : ' ') + ') ' + this.text, true);
+    return this._render();
+  }
 
-  Checkbox.call(this, options);
-
-  this.on('check', function () {
-    let el: RadioButtonInterface | undefined = self;
-    while ((el = el.parent)) {
-      if (el.type === 'radio-set' || el.type === 'form') break;
-    }
-    el = el || self.parent;
-    if (el) {
-      el.forDescendants(function (el: RadioButtonInterface) {
-        if (el.type !== 'radio-button' || el === self) {
-          return;
-        }
-        el.uncheck();
-      });
-    }
-  });
+  toggle(): void {
+    return this.check();
+  }
 }
 
-RadioButton.prototype.__proto__ = Checkbox.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function radioButton(options?: RadioButtonOptions): RadioButtonInterface {
+  return new RadioButton(options) as RadioButtonInterface;
+}
 
-RadioButton.prototype.type = 'radio-button';
-
-RadioButton.prototype.render = function (this: RadioButtonInterface) {
-  this.clearPos(true);
-  this.setContent('(' + (this.checked ? '*' : ' ') + ') ' + this.text, true);
-  return this._render();
-};
-
-RadioButton.prototype.toggle = RadioButton.prototype.check;
+// Attach the class as a property for direct access
+radioButton.RadioButton = RadioButton;
 
 /**
  * Expose
  */
 
-module.exports = RadioButton;
+export default radioButton;

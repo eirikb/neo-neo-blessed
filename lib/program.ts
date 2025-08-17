@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * program.js - basic curses-like functionality for blessed.
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -8,14 +9,14 @@
  * Modules
  */
 
-var EventEmitter = require('events').EventEmitter;
-var StringDecoder = require('string_decoder').StringDecoder;
-var cp = require('child_process');
-var util = require('util');
-var fs = require('fs');
+import { EventEmitter } from 'events';
+import { StringDecoder } from 'string_decoder';
+import cp from 'child_process';
+import util from 'util';
+import fs from 'fs';
 
-var Tput = require('./tput');
-var colors = require('./colors');
+import Tput from './tput.js';
+import * as colors from './colors.js';
 var slice = Array.prototype.slice;
 
 var nextTick = global.setImmediate || process.nextTick.bind(process);
@@ -4360,4 +4361,4 @@ function merge(out) {
  * Expose
  */
 
-module.exports = Program;
+export default Program;

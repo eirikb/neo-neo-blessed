@@ -1,4 +1,4 @@
-var blessed = require('../');
+import blessed from '../dist/blessed.js';
 
 var screen = blessed.screen({
   tput: true,

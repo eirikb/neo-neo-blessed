@@ -1,11 +1,12 @@
 // `tail -f` a file.
-module.exports = function (file) {
+import fs from 'fs';
+import { StringDecoder } from 'string_decoder';
+import { Stream } from 'stream';
+
+export default function (file) {
   var self = this,
-    fs = require('fs'),
-    StringDecoder = require('string_decoder').StringDecoder,
     decode = new StringDecoder('utf8'),
     buffer = new Buffer(64 * 1024),
-    Stream = require('stream').Stream,
     s = new Stream(),
     buff = '',
     pos = 0;
@@ -67,4 +68,4 @@ module.exports = function (file) {
   });
 
   return s;
-};
+}

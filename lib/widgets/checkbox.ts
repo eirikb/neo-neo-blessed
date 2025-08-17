@@ -8,8 +8,9 @@
  * Modules
  */
 
-const Node = require('./node');
-const Input = require('./input');
+import Node from './node.js';
+import inputFactory from './input.js';
+const Input = inputFactory.Input;
 
 /**
  * Type definitions
@@ -63,78 +64,91 @@ interface CheckboxInterface extends Input {
 }
 
 /**
- * Checkbox
+ * Checkbox - Modern ES6 Class
  */
 
-function Checkbox(this: CheckboxInterface, options?: CheckboxOptions) {
-  const self = this;
+class Checkbox extends Input {
+  type = 'checkbox';
+  text: string;
+  checked: boolean;
+  value: boolean;
 
-  if (!(this instanceof Node)) {
-    return new (Checkbox as any)(options);
-  }
-
-  options = options || {};
-
-  Input.call(this, options);
-
-  this.text = options.content || options.text || '';
-  this.checked = this.value = options.checked || false;
-
-  this.on('keypress', function (ch: string, key: CheckboxKey) {
-    if (key.name === 'enter' || key.name === 'space') {
-      self.toggle();
-      self.screen.render();
+  constructor(options?: CheckboxOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
     }
-  });
 
-  if (options.mouse) {
-    this.on('click', function () {
-      self.toggle();
-      self.screen.render();
+    super(options);
+
+    this.text = options.content || options.text || '';
+    this.checked = this.value = options.checked || false;
+
+    // Set up keyboard interaction
+    this.on('keypress', (ch: string, key: CheckboxKey) => {
+      if (key.name === 'enter' || key.name === 'space') {
+        this.toggle();
+        this.screen.render();
+      }
+    });
+
+    // Set up mouse interaction if enabled
+    if (options.mouse) {
+      this.on('click', () => {
+        this.toggle();
+        this.screen.render();
+      });
+    }
+
+    // Set up focus/blur cursor handling
+    this.on('focus', () => {
+      const lpos = this.lpos;
+      if (!lpos) return;
+      this.screen.program.lsaveCursor('checkbox');
+      this.screen.program.cup(lpos.yi, lpos.xi + 1);
+      this.screen.program.showCursor();
+    });
+
+    this.on('blur', () => {
+      this.screen.program.lrestoreCursor('checkbox', true);
     });
   }
 
-  this.on('focus', function () {
-    const lpos = self.lpos;
-    if (!lpos) return;
-    self.screen.program.lsaveCursor('checkbox');
-    self.screen.program.cup(lpos.yi, lpos.xi + 1);
-    self.screen.program.showCursor();
-  });
+  render(): any {
+    this.clearPos(true);
+    this.setContent('[' + (this.checked ? 'x' : ' ') + '] ' + this.text, true);
+    return this._render();
+  }
 
-  this.on('blur', function () {
-    self.screen.program.lrestoreCursor('checkbox', true);
-  });
+  check(): void {
+    if (this.checked) return;
+    this.checked = this.value = true;
+    this.emit('check');
+  }
+
+  uncheck(): void {
+    if (!this.checked) return;
+    this.checked = this.value = false;
+    this.emit('uncheck');
+  }
+
+  toggle(): void {
+    return this.checked ? this.uncheck() : this.check();
+  }
 }
 
-Checkbox.prototype.__proto__ = Input.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function checkbox(options?: CheckboxOptions): CheckboxInterface {
+  return new Checkbox(options) as CheckboxInterface;
+}
 
-Checkbox.prototype.type = 'checkbox';
-
-Checkbox.prototype.render = function (this: CheckboxInterface): any {
-  this.clearPos(true);
-  this.setContent('[' + (this.checked ? 'x' : ' ') + '] ' + this.text, true);
-  return this._render();
-};
-
-Checkbox.prototype.check = function (this: CheckboxInterface): void {
-  if (this.checked) return;
-  this.checked = this.value = true;
-  this.emit('check');
-};
-
-Checkbox.prototype.uncheck = function (this: CheckboxInterface): void {
-  if (!this.checked) return;
-  this.checked = this.value = false;
-  this.emit('uncheck');
-};
-
-Checkbox.prototype.toggle = function (this: CheckboxInterface): void {
-  return this.checked ? this.uncheck() : this.check();
-};
+// Attach the class as a property for direct access
+checkbox.Checkbox = Checkbox;
 
 /**
  * Expose
  */
 
-module.exports = Checkbox;
+export default checkbox;

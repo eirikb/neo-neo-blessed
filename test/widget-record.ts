@@ -1,5 +1,9 @@
-var blessed = require('../'),
-  fs = require('fs');
+import blessed from '../dist/blessed.js';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import * as path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 var screen = blessed.screen({
   dump: __dirname + '/logs/record.log',

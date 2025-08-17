@@ -25,7 +25,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-var EventEmitter = require('events').EventEmitter;
+import { EventEmitter } from 'events';
+import { StringDecoder } from 'string_decoder';
 
 // NOTE: node <=v0.8.x has no EventEmitter.listenerCount
 interface KeypressEvent {
@@ -60,7 +61,7 @@ function listenerCount(stream: KeypressStream, event: string): number {
 
 function emitKeypressEvents(stream: KeypressStream): void {
   if (stream._keypressDecoder) return;
-  var StringDecoder = require('string_decoder').StringDecoder; // lazy load
+  // StringDecoder imported at top of file
   stream._keypressDecoder = new StringDecoder('utf8');
 
   function onData(b: Buffer): void {

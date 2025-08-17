@@ -8,10 +8,13 @@
  * Modules
  */
 
-const Node = require('./node');
-const Box = require('./box');
-const Button = require('./button');
-const Textbox = require('./textbox');
+import Node from './node.js';
+import boxFactory from './box.js';
+const Box = boxFactory.Box;
+import buttonFactory from './button.js';
+const Button = buttonFactory.Button;
+import textboxFactory from './textbox.js';
+const Textbox = textboxFactory.Textbox;
 
 /**
  * Type definitions
@@ -64,119 +67,157 @@ interface PromptInterface extends Box {
 }
 
 /**
- * Prompt
+ * Prompt - Modern ES6 Class
  */
 
-function Prompt(this: PromptInterface, options?: PromptOptions) {
-  if (!(this instanceof Node)) {
-    return new (Prompt as any)(options);
+class Prompt extends Box {
+  type = 'prompt';
+  _: {
+    input: PromptTextbox;
+    okay: PromptButton;
+    cancel: PromptButton;
+  };
+
+  constructor(options?: PromptOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    // Force hidden to true for modal behavior
+    options.hidden = true;
+
+    super(options);
+
+    // Initialize the internal objects container
+    this._ = {} as any;
+
+    // Create input textbox
+    this._.input = new Textbox({
+      parent: this,
+      top: 3,
+      height: 1,
+      left: 2,
+      right: 2,
+      bg: 'black',
+    });
+
+    // Create okay button
+    this._.okay = new Button({
+      parent: this,
+      top: 5,
+      height: 1,
+      left: 2,
+      width: 6,
+      content: 'Okay',
+      align: 'center',
+      bg: 'black',
+      hoverBg: 'blue',
+      autoFocus: false,
+      mouse: true,
+    });
+
+    // Create cancel button
+    this._.cancel = new Button({
+      parent: this,
+      top: 5,
+      height: 1,
+      shrink: true,
+      left: 10,
+      width: 8,
+      content: 'Cancel',
+      align: 'center',
+      bg: 'black',
+      hoverBg: 'blue',
+      autoFocus: false,
+      mouse: true,
+    });
   }
 
-  options = options || {};
+  input(text: string, value: string, callback: PromptCallback): void;
+  input(text: string, callback: PromptCallback): void;
+  input(
+    text: string,
+    value?: string | PromptCallback,
+    callback?: PromptCallback
+  ): void {
+    let okay: () => void, cancel: () => void;
 
-  options.hidden = true;
+    if (!callback) {
+      callback = value as PromptCallback;
+      value = '';
+    }
 
-  Box.call(this, options);
+    // Keep above:
+    // var parent = this.parent;
+    // this.detach();
+    // parent.append(this);
 
-  this._.input = new Textbox({
-    parent: this,
-    top: 3,
-    height: 1,
-    left: 2,
-    right: 2,
-    bg: 'black',
-  });
+    this.show();
+    this.setContent(' ' + text);
 
-  this._.okay = new Button({
-    parent: this,
-    top: 5,
-    height: 1,
-    left: 2,
-    width: 6,
-    content: 'Okay',
-    align: 'center',
-    bg: 'black',
-    hoverBg: 'blue',
-    autoFocus: false,
-    mouse: true,
-  });
+    this._.input.value = value as string;
 
-  this._.cancel = new Button({
-    parent: this,
-    top: 5,
-    height: 1,
-    shrink: true,
-    left: 10,
-    width: 8,
-    content: 'Cancel',
-    align: 'center',
-    bg: 'black',
-    hoverBg: 'blue',
-    autoFocus: false,
-    mouse: true,
-  });
+    this.screen.saveFocus();
+
+    this._.okay.on(
+      'press',
+      (okay = () => {
+        this._.input.submit();
+      })
+    );
+
+    this._.cancel.on(
+      'press',
+      (cancel = () => {
+        this._.input.cancel();
+      })
+    );
+
+    this._.input.readInput((err: Error | null, data?: string) => {
+      this.hide();
+      this.screen.restoreFocus();
+      this._.okay.removeListener('press', okay);
+      this._.cancel.removeListener('press', cancel);
+      return (callback as PromptCallback)(err, data);
+    });
+
+    this.screen.render();
+  }
+
+  setInput(text: string, value: string, callback: PromptCallback): void;
+  setInput(text: string, callback: PromptCallback): void;
+  setInput(
+    text: string,
+    value?: string | PromptCallback,
+    callback?: PromptCallback
+  ): void {
+    return this.input(text, value as any, callback);
+  }
+
+  readInput(text: string, value: string, callback: PromptCallback): void;
+  readInput(text: string, callback: PromptCallback): void;
+  readInput(
+    text: string,
+    value?: string | PromptCallback,
+    callback?: PromptCallback
+  ): void {
+    return this.input(text, value as any, callback);
+  }
 }
 
-Prompt.prototype.__proto__ = Box.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function prompt(options?: PromptOptions): PromptInterface {
+  return new Prompt(options) as PromptInterface;
+}
 
-Prompt.prototype.type = 'prompt';
-
-Prompt.prototype.input =
-  Prompt.prototype.setInput =
-  Prompt.prototype.readInput =
-    function (
-      this: PromptInterface,
-      text: string,
-      value?: string | PromptCallback,
-      callback?: PromptCallback
-    ): void {
-      const self = this;
-      let okay: () => void, cancel: () => void;
-
-      if (!callback) {
-        callback = value as PromptCallback;
-        value = '';
-      }
-
-      // Keep above:
-      // var parent = this.parent;
-      // this.detach();
-      // parent.append(this);
-
-      this.show();
-      this.setContent(' ' + text);
-
-      this._.input.value = value as string;
-
-      this.screen.saveFocus();
-
-      this._.okay.on(
-        'press',
-        (okay = function () {
-          self._.input.submit();
-        })
-      );
-
-      this._.cancel.on(
-        'press',
-        (cancel = function () {
-          self._.input.cancel();
-        })
-      );
-
-      this._.input.readInput(function (err: Error | null, data?: string) {
-        self.hide();
-        self.screen.restoreFocus();
-        self._.okay.removeListener('press', okay);
-        self._.cancel.removeListener('press', cancel);
-        return (callback as PromptCallback)(err, data);
-      });
-
-      this.screen.render();
-    };
+// Attach the class as a property for direct access
+prompt.Prompt = Prompt;
 
 /**
  * Expose
  */
 
-module.exports = Prompt;
+export default prompt;

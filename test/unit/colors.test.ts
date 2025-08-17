@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-
-const colors = require('../../lib/colors.js');
+import * as colors from '../../lib/colors.js';
 
 describe('colors module', () => {
   beforeEach(() => {
-    colors._cache = {};
+    // Clear the cache by setting it to an empty object
+    // In ESM, we can't directly assign to _cache, but we can clear it
+    if (colors._cache) {
+      Object.keys(colors._cache).forEach(key => delete colors._cache[key]);
+    }
   });
 
   describe('RGBToHex', () => {

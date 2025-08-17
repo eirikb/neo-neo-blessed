@@ -8,8 +8,8 @@
  * Modules
  */
 
-const BlessedNode = require('./node');
-const BlessedElement = require('./element');
+import BlessedNode from './node.js';
+import BlessedElement from './element.js';
 
 /**
  * Type definitions
@@ -18,23 +18,34 @@ const BlessedElement = require('./element');
 import { BoxOptions, BoxInterface } from '../types/index';
 
 /**
- * Box
+ * Box - Modern ES6 Class
  */
 
-function Box(this: BoxInterface, options?: BoxOptions) {
-  if (!(this instanceof BlessedNode)) {
-    return new (Box as any)(options);
+class Box extends BlessedElement {
+  type = 'box';
+
+  constructor(options?: BoxOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    super(options);
   }
-  options = options || {};
-  BlessedElement.call(this, options);
 }
 
-Box.prototype.__proto__ = BlessedElement.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function box(options?: BoxOptions): BoxInterface {
+  return new Box(options) as BoxInterface;
+}
 
-Box.prototype.type = 'box';
+// Attach the class as a property for direct access
+box.Box = Box;
 
 /**
  * Expose
  */
 
-module.exports = Box;
+export default box;

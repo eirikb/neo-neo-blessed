@@ -1,5 +1,10 @@
-var blessed = require('../'),
-  screen;
+import blessed from '../dist/blessed.js';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import * as path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+var screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/termswitch.log',
@@ -7,7 +12,7 @@ screen = blessed.screen({
   warnings: true,
 });
 
-var lorem = require('fs').readFileSync(__dirname + '/git.diff', 'utf8');
+var lorem = fs.readFileSync(__dirname + '/git.diff', 'utf8');
 
 var btext = blessed.box({
   parent: screen,

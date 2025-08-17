@@ -277,20 +277,7 @@ const combiningProxy = new Proxy(
   }
 );
 
-// Main exports
-(module as any).exports = {
-  charWidth,
-  strWidth,
-  isSurrogate,
-  combining: combiningProxy,
-  combiningTable,
-  isCombining,
-  codePointAt,
-  fromCodePoint,
-  chars: charsWithAll,
-};
-
-// For TypeScript/ES module users
+// Export everything properly for ESM
 export {
   charWidth,
   strWidth,
@@ -299,6 +286,6 @@ export {
   codePointAt,
   fromCodePoint,
   charsWithAll as chars,
-  combining,
+  combiningProxy as combining,
   combiningTable,
 };

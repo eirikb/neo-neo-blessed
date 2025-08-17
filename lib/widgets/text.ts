@@ -8,8 +8,8 @@
  * Modules
  */
 
-const Node = require('./node');
-const Element = require('./element');
+import Node from './node.js';
+import Element from './element.js';
 
 /**
  * Type definitions
@@ -25,24 +25,37 @@ interface TextInterface extends Element {
 }
 
 /**
- * Text
+ * Text - Modern ES6 Class
  */
 
-function Text(this: TextInterface, options?: TextOptions) {
-  if (!(this instanceof Node)) {
-    return new (Text as any)(options);
+class Text extends Element {
+  type = 'text';
+
+  constructor(options?: TextOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    // Set default shrink behavior for text (key Text feature)
+    options.shrink = 'shrink' in options ? options.shrink : true;
+
+    super(options);
   }
-  options = options || {};
-  options.shrink = 'shrink' in options ? options.shrink : true;
-  Element.call(this, options);
 }
 
-Text.prototype.__proto__ = Element.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function text(options?: TextOptions): TextInterface {
+  return new Text(options) as TextInterface;
+}
 
-Text.prototype.type = 'text';
+// Attach the class as a property for direct access
+text.Text = Text;
 
 /**
  * Expose
  */
 
-module.exports = Text;
+export default text;

@@ -8,14 +8,17 @@
  * Modules
  */
 
-const Node = require('./node');
-const ScrollableBox = require('./scrollablebox');
+import Node from './node.js';
+import scrollableBox from './scrollablebox.js';
+
+// Extract the ScrollableBox class from the factory function
+const ScrollableBox = scrollableBox.ScrollableBox;
 
 /**
  * Type definitions
  */
 
-interface ScrollableTextOptions {
+export interface ScrollableTextOptions {
   alwaysScroll?: boolean;
   [key: string]: any;
 }
@@ -25,27 +28,39 @@ interface ScrollableTextInterface extends ScrollableBox {
 }
 
 /**
- * ScrollableText
+ * ScrollableText - Modern ES6 Class
  */
 
-function ScrollableText(
-  this: ScrollableTextInterface,
-  options?: ScrollableTextOptions
-) {
-  if (!(this instanceof Node)) {
-    return new (ScrollableText as any)(options);
+class ScrollableText extends ScrollableBox {
+  type = 'scrollable-text';
+
+  constructor(options?: ScrollableTextOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    // Always enable scrolling for scrollable text
+    options.alwaysScroll = true;
+
+    super(options);
   }
-  options = options || {};
-  options.alwaysScroll = true;
-  ScrollableBox.call(this, options);
 }
 
-ScrollableText.prototype.__proto__ = ScrollableBox.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function scrollableText(
+  options?: ScrollableTextOptions
+): ScrollableTextInterface {
+  return new ScrollableText(options) as ScrollableTextInterface;
+}
 
-ScrollableText.prototype.type = 'scrollable-text';
+// Attach the class as a property for direct access
+scrollableText.ScrollableText = ScrollableText;
 
 /**
  * Expose
  */
 
-module.exports = ScrollableText;
+export default scrollableText;

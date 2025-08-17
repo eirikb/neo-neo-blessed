@@ -8,3 +8,21 @@ lib/*.js
 
 spinfox.png
 /test-package/
+# Ignore any generated .js files in lib (we only want TypeScript sources)
+lib/**/*.js
+
+# Debug and test files in root directory
+/debug-*.ts
+/debug-*.js
+/test-*.ts
+/test-*.js
+/test-*.mjs
+
+# Output files from testing
+/*-output.json
+/capture-*.js
+/verify-*.js
+
+# Temporary test files
+/test-all-widgets.js
+/quick-test.ts

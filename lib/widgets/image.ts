@@ -8,8 +8,11 @@
  * Modules
  */
 
-var Node = require('./node');
-var Box = require('./box');
+import Node from './node.js';
+import boxFactory from './box.js';
+const Box = boxFactory.Box;
+import ansiimage from './ansiimage.js';
+import overlayimage from './overlayimage.js';
 
 /**
  * Interfaces
@@ -26,60 +29,50 @@ interface ImageInterface extends Box {
 }
 
 /**
- * Image
+ * Image - Modern ES6 Class
  */
 
-function Image(this: ImageInterface, options?: ImageOptions) {
-  if (!(this instanceof Node)) {
-    return new Image(options);
+class Image extends Box {
+  type = 'image';
+
+  constructor(options?: ImageOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    // Set image type with fallback to 'ansi'
+    options.type = options.itype || options.type || 'ansi';
+
+    super(options);
+
+    // Handle image type delegation with ES6 classes
+    if (options.type === 'ansi' && this.type !== 'ansiimage') {
+      // Return a new ANSIImage instance instead of prototype manipulation
+      return new ansiimage.ANSIImage(options) as any;
+    }
+
+    if (options.type === 'overlay' && this.type !== 'overlayimage') {
+      // Return a new OverlayImage instance instead of prototype manipulation
+      return new overlayimage.OverlayImage(options) as any;
+    }
+
+    throw new Error('`type` must either be `ansi` or `overlay`.');
   }
-
-  options = options || {};
-  options.type = options.itype || options.type || 'ansi';
-
-  Box.call(this, options);
-
-  if (options.type === 'ansi' && this.type !== 'ansiimage') {
-    var ANSIImage = require('./ansiimage');
-    Object.getOwnPropertyNames(ANSIImage.prototype).forEach(function (
-      key: string
-    ) {
-      if (key === 'type') return;
-      Object.defineProperty(
-        this,
-        key,
-        Object.getOwnPropertyDescriptor(ANSIImage.prototype, key)
-      );
-    }, this);
-    ANSIImage.call(this, options);
-    return this;
-  }
-
-  if (options.type === 'overlay' && this.type !== 'overlayimage') {
-    var OverlayImage = require('./overlayimage');
-    Object.getOwnPropertyNames(OverlayImage.prototype).forEach(function (
-      key: string
-    ) {
-      if (key === 'type') return;
-      Object.defineProperty(
-        this,
-        key,
-        Object.getOwnPropertyDescriptor(OverlayImage.prototype, key)
-      );
-    }, this);
-    OverlayImage.call(this, options);
-    return this;
-  }
-
-  throw new Error('`type` must either be `ansi` or `overlay`.');
 }
 
-Image.prototype.__proto__ = Box.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function image(options?: ImageOptions): ImageInterface {
+  return new Image(options) as ImageInterface;
+}
 
-Image.prototype.type = 'image';
+// Attach the class as a property for direct access
+image.Image = Image;
 
 /**
  * Expose
  */
 
-module.exports = Image;
+export default image;

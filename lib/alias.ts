@@ -8,7 +8,7 @@
 // jscs:disable maximumLineLength
 // jscs:disable
 
-var alias = exports;
+const alias = {} as any;
 
 // These are the boolean capabilities:
 alias.bools = {
@@ -516,3 +516,5 @@ alias.strings = {
   set_a_attributes: ['sgr1', 'sA'], //                               Define second set of video attributes #1-#6
   set_pglen_inch: ['slength', 'sL'], //                               YI Set page length to #1 hundredth of an inch
 };
+
+export default alias;

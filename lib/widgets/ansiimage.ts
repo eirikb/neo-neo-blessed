@@ -8,14 +8,15 @@
  * Modules
  */
 
-var cp = require('child_process');
+import * as cp from 'child_process';
 
-var colors = require('../colors');
+import * as colors from '../colors.js';
 
-var BlessedNode = require('./node');
-var BlessedBox = require('./box');
+import BlessedNode from './node.js';
+import boxFactory from './box.js';
+const BlessedBox = boxFactory.Box;
 
-var processImage = require('../image-processor');
+import processImage from '../image-processor.js';
 
 /**
  * Interfaces
@@ -91,149 +92,161 @@ interface ANSIImageInterface extends any {
 }
 
 /**
- * ANSIImage
+ * ANSIImage - Modern ES6 Class
  */
 
-function ANSIImage(this: ANSIImageInterface, options?: ANSIImageOptions) {
-  var self = this;
+class ANSIImage extends BlessedBox {
+  type = 'ansiimage';
+  scale: number;
+  _noFill: boolean = true;
+  file?: string;
+  img?: TngImage;
+  cellmap?: CellMap;
 
-  if (!(this instanceof BlessedNode)) {
-    return new ANSIImage(options);
+  constructor(options?: ANSIImageOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    // Ensure shrink is set
+    options.shrink = true;
+
+    super(options);
+
+    this.scale = this.options.scale || 1.0;
+    this.options.animate = this.options.animate !== false;
+    this._noFill = true;
+
+    if (this.options.file) {
+      this.setImage(this.options.file);
+    }
+
+    // Set up prerender handler to prevent image blending
+    this.screen.on('prerender', () => {
+      const lpos = this.lpos;
+      if (!lpos) return;
+      // prevent image from blending with itself if there are alpha channels
+      this.screen.clearRegion(lpos.xi, lpos.xl, lpos.yi, lpos.yl);
+    });
+
+    // Set up destroy handler
+    this.on('destroy', () => {
+      this.stop();
+    });
   }
 
-  options = options || {};
-  options.shrink = true;
-
-  BlessedBox.call(this, options);
-
-  this.scale = this.options.scale || 1.0;
-  this.options.animate = this.options.animate !== false;
-  this._noFill = true;
-
-  if (this.options.file) {
-    this.setImage(this.options.file);
+  static curl(url: string): Buffer {
+    try {
+      return cp.execFileSync('curl', ['-s', '-A', '', url], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+    } catch (e) {}
+    try {
+      return cp.execFileSync('wget', ['-U', '', '-O', '-', url], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+    } catch (e) {}
+    throw new Error('curl or wget failed.');
   }
 
-  this.screen.on('prerender', function () {
-    var lpos = self.lpos;
-    if (!lpos) return;
-    // prevent image from blending with itself if there are alpha channels
-    self.screen.clearRegion(lpos.xi, lpos.xl, lpos.yi, lpos.yl);
-  });
+  setImage(file: string | Buffer): void {
+    this.file = typeof file === 'string' ? file : null;
 
-  this.on('destroy', function () {
-    self.stop();
-  });
+    if (typeof file === 'string' && /^https?:/.test(file)) {
+      file = ANSIImage.curl(file);
+    }
+
+    let width = this.position.width;
+    let height = this.position.height;
+
+    if (width != null) {
+      width = this.width;
+    }
+
+    if (height != null) {
+      height = this.height;
+    }
+
+    try {
+      this.setContent('');
+
+      this.img = processImage(file, {
+        colors: colors,
+        width: width,
+        height: height,
+        scale: this.scale,
+        ascii: this.options.ascii,
+        speed: this.options.speed,
+        filename: this.file,
+      }) as TngImage;
+
+      if (width == null || height == null) {
+        this.width = this.img.cellmap[0].length;
+        this.height = this.img.cellmap.length;
+      }
+
+      if (this.img.frames && this.options.animate) {
+        this.play();
+      } else {
+        this.cellmap = this.img.cellmap;
+      }
+    } catch (e: any) {
+      this.setContent('Image Error: ' + e.message);
+      this.img = undefined;
+      this.cellmap = undefined;
+    }
+  }
+
+  play(): any {
+    if (!this.img) return;
+    return this.img.play((bmp: any, cellmap: CellMap) => {
+      this.cellmap = cellmap;
+      this.screen.render();
+    });
+  }
+
+  pause(): any {
+    if (!this.img) return;
+    return this.img.pause();
+  }
+
+  stop(): any {
+    if (!this.img) return;
+    return this.img.stop();
+  }
+
+  clearImage(): void {
+    this.stop();
+    this.setContent('');
+    this.img = undefined;
+    this.cellmap = undefined;
+  }
+
+  render(): ANSIImageCoords | undefined {
+    const coords = this._render();
+    if (!coords) return;
+
+    if (this.img && this.cellmap) {
+      this.img.renderElement(this.cellmap, this);
+    }
+
+    return coords;
+  }
 }
 
-ANSIImage.prototype.__proto__ = BlessedBox.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function ansiImage(options?: ANSIImageOptions): ANSIImageInterface {
+  return new ANSIImage(options) as ANSIImageInterface;
+}
 
-ANSIImage.prototype.type = 'ansiimage';
-
-ANSIImage.curl = function (url: string): Buffer {
-  try {
-    return cp.execFileSync('curl', ['-s', '-A', '', url], {
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
-  } catch (e) {}
-  try {
-    return cp.execFileSync('wget', ['-U', '', '-O', '-', url], {
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
-  } catch (e) {}
-  throw new Error('curl or wget failed.');
-};
-
-ANSIImage.prototype.setImage = function (
-  this: ANSIImageInterface,
-  file: string | Buffer
-): void {
-  this.file = typeof file === 'string' ? file : null;
-
-  if (/^https?:/.test(file)) {
-    file = ANSIImage.curl(file);
-  }
-
-  var width = this.position.width;
-  var height = this.position.height;
-
-  if (width != null) {
-    width = this.width;
-  }
-
-  if (height != null) {
-    height = this.height;
-  }
-
-  try {
-    this.setContent('');
-
-    this.img = processImage(file, {
-      colors: colors,
-      width: width,
-      height: height,
-      scale: this.scale,
-      ascii: this.options.ascii,
-      speed: this.options.speed,
-      filename: this.file,
-    }) as TngImage;
-
-    if (width == null || height == null) {
-      this.width = this.img.cellmap[0].length;
-      this.height = this.img.cellmap.length;
-    }
-
-    if (this.img.frames && this.options.animate) {
-      this.play();
-    } else {
-      this.cellmap = this.img.cellmap;
-    }
-  } catch (e) {
-    this.setContent('Image Error: ' + e.message);
-    this.img = null;
-    this.cellmap = null;
-  }
-};
-
-ANSIImage.prototype.play = function (this: ANSIImageInterface) {
-  var self = this;
-  if (!this.img) return;
-  return this.img.play(function (bmp: any, cellmap: CellMap) {
-    self.cellmap = cellmap;
-    self.screen.render();
-  });
-};
-
-ANSIImage.prototype.pause = function (this: ANSIImageInterface) {
-  if (!this.img) return;
-  return this.img.pause();
-};
-
-ANSIImage.prototype.stop = function (this: ANSIImageInterface) {
-  if (!this.img) return;
-  return this.img.stop();
-};
-
-ANSIImage.prototype.clearImage = function (this: ANSIImageInterface): void {
-  this.stop();
-  this.setContent('');
-  this.img = undefined;
-  this.cellmap = undefined;
-};
-
-ANSIImage.prototype.render = function (this: ANSIImageInterface) {
-  var coords = this._render();
-  if (!coords) return;
-
-  if (this.img && this.cellmap) {
-    this.img.renderElement(this.cellmap, this);
-  }
-
-  return coords;
-};
+// Attach the class as a property for direct access
+ansiImage.ANSIImage = ANSIImage;
 
 /**
  * Expose
  */
 
-module.exports = ANSIImage;
+export default ansiImage;

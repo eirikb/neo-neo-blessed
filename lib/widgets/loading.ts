@@ -8,9 +8,11 @@
  * Modules
  */
 
-const Node = require('./node');
-const Box = require('./box');
-const Text = require('./text');
+import Node from './node.js';
+import boxFactory from './box.js';
+const Box = boxFactory.Box;
+import textFactory from './text.js';
+const Text = textFactory.Text;
 
 /**
  * Type definitions
@@ -40,79 +42,94 @@ interface LoadingInterface extends Box {
   show(): void;
   hide(): void;
   setContent(text: string): void;
+  load(text: string): void;
+  stop(): void;
 }
 
 /**
- * Loading
+ * Loading - Modern ES6 Class
  */
 
-function Loading(this: LoadingInterface, options?: LoadingOptions) {
-  if (!(this instanceof Node)) {
-    return new (Loading as any)(options);
+class Loading extends Box {
+  type = 'loading';
+  _: {
+    icon: LoadingIcon;
+    timer?: NodeJS.Timeout;
+  };
+
+  constructor(options?: LoadingOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    super(options);
+
+    this._ = {
+      icon: new Text({
+        parent: this,
+        align: 'center',
+        top: 2,
+        left: 1,
+        right: 1,
+        height: 1,
+        content: '|',
+      }),
+    };
   }
 
-  options = options || {};
+  load(text: string): void {
+    // XXX Keep above:
+    // var parent = this.parent;
+    // this.detach();
+    // parent.append(this);
 
-  Box.call(this, options);
+    this.show();
+    this.setContent(text);
 
-  this._.icon = new Text({
-    parent: this,
-    align: 'center',
-    top: 2,
-    left: 1,
-    right: 1,
-    height: 1,
-    content: '|',
-  });
+    if (this._.timer) {
+      this.stop();
+    }
+
+    this.screen.lockKeys = true;
+
+    this._.timer = setInterval(() => {
+      if (this._.icon.content === '|') {
+        this._.icon.setContent('/');
+      } else if (this._.icon.content === '/') {
+        this._.icon.setContent('-');
+      } else if (this._.icon.content === '-') {
+        this._.icon.setContent('\\');
+      } else if (this._.icon.content === '\\') {
+        this._.icon.setContent('|');
+      }
+      this.screen.render();
+    }, 200);
+  }
+
+  stop(): void {
+    this.screen.lockKeys = false;
+    this.hide();
+    if (this._.timer) {
+      clearInterval(this._.timer);
+      delete this._.timer;
+    }
+    this.screen.render();
+  }
 }
 
-Loading.prototype.__proto__ = Box.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function loading(options?: LoadingOptions): LoadingInterface {
+  return new Loading(options) as LoadingInterface;
+}
 
-Loading.prototype.type = 'loading';
-
-Loading.prototype.load = function (this: LoadingInterface, text: string): void {
-  const self = this;
-
-  // XXX Keep above:
-  // var parent = this.parent;
-  // this.detach();
-  // parent.append(this);
-
-  this.show();
-  this.setContent(text);
-
-  if (this._.timer) {
-    this.stop();
-  }
-
-  this.screen.lockKeys = true;
-
-  this._.timer = setInterval(function () {
-    if (self._.icon.content === '|') {
-      self._.icon.setContent('/');
-    } else if (self._.icon.content === '/') {
-      self._.icon.setContent('-');
-    } else if (self._.icon.content === '-') {
-      self._.icon.setContent('\\');
-    } else if (self._.icon.content === '\\') {
-      self._.icon.setContent('|');
-    }
-    self.screen.render();
-  }, 200);
-};
-
-Loading.prototype.stop = function (this: LoadingInterface): void {
-  this.screen.lockKeys = false;
-  this.hide();
-  if (this._.timer) {
-    clearInterval(this._.timer);
-    delete this._.timer;
-  }
-  this.screen.render();
-};
+// Attach the class as a property for direct access
+loading.Loading = Loading;
 
 /**
  * Expose
  */
 
-module.exports = Loading;
+export default loading;
