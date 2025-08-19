@@ -147,6 +147,7 @@ function Element(this: ElementInterface, options?: ElementOptions) {
   // DISABLED: ScrollableBox mixin approach causes circular dependency issues in ESM
   // Individual widgets that need scrollability should extend ScrollableBox/ScrollableText directly
   if (
+    // eslint-disable-next-line no-constant-condition, no-constant-binary-expression
     false &&
     options.scrollable &&
     !this._ignore &&

@@ -8,7 +8,6 @@
  * Modules
  */
 
-import BlessedNode from './node.js';
 import BlessedElement from './element.js';
 
 /**

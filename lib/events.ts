@@ -24,7 +24,7 @@ interface ListenerWithOriginal extends Listener {
  * EventEmitter
  */
 
-function EventEmitter(this: EventEmitterInterface) {
+function _EventEmitter(this: EventEmitterInterface) {
   if (!this._events) this._events = {};
 }
 

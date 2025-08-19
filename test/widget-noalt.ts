@@ -41,7 +41,7 @@ list.on('select', function (item) {
   screen.destroy();
 });
 
-screen.key('C-c', function () {
+screen.key(['C-c', 'q', 'C-q'], function () {
   screen.destroy();
 });
 

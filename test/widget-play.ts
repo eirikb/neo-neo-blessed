@@ -20,3 +20,8 @@ var timer = setInterval(function () {
   }
   process.stdout.write(frames.shift());
 }, 100);
+
+screen.key(['C-c', 'q', 'C-q'], function () {
+  clearInterval(timer);
+  screen.destroy();
+});

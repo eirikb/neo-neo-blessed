@@ -38,6 +38,11 @@ terminal.write('This should trigger xterm rendering\r\n');
 
 screen.render();
 
+screen.key(['C-c', 'q', 'C-q'], function () {
+  terminal.destroy();
+  screen.destroy();
+});
+
 // Give it a moment to initialize and render
 setTimeout(function () {
   try {

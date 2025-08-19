@@ -25,6 +25,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { EventEmitter } from 'events';
 import { StringDecoder } from 'string_decoder';
 

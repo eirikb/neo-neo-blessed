@@ -26,11 +26,9 @@
     "format:check": "prettier --check .",
     "test": "vitest run --config vitest.config.mjs",
     "test:watch": "vitest --config vitest.config.mjs",
-    "test:ui": "vitest --ui --config vitest.config.mjs",
-    "test:ci": "npm run build && npm test",
     "test:integration": "tsx test-runner.ts",
-    "test:integration:fast": "tsx test-runner-fast.ts",
-    "test:examples": "echo 'Run examples with: npm run dev example/<filename>.ts'",
+    "check": "npm run build && npm run type-check && npm run lint && npm run format:check && npm test",
+    "check:fix": "npm run build && npm run type-check && npm run format && npm test && npm run test:integration",
     "prepare": "husky"
   },
   "version": "0.0.0-development",

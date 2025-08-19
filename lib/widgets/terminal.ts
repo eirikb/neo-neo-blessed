@@ -72,14 +72,19 @@ class Terminal extends Box {
     this.term.onData(d => this.pty.write(d));
     this.pty.onData(d => this.term.write(d));
 
-    this.screen.program.input.on(
-      'data',
-      (this._onData = (data: any) => {
-        if (this.screen.focused === this) {
-          this.term.input(data.toString());
-        }
-      })
-    );
+    if (
+      this.screen.program.input &&
+      typeof this.screen.program.input.on === 'function'
+    ) {
+      this.screen.program.input.on(
+        'data',
+        (this._onData = (data: any) => {
+          if (this.screen.focused === this) {
+            this.term.input(data.toString());
+          }
+        })
+      );
+    }
 
     this.pty.onData(() => {
       setTimeout(() => this.screen.render(), 16);
@@ -176,7 +181,17 @@ class Terminal extends Box {
   kill() {
     if (this.pty) this.pty.kill();
     if (this.term) this.term.dispose();
-    this.screen.program.input.removeListener('data', this._onData);
+    if (
+      this.screen.program.input &&
+      typeof this.screen.program.input.removeListener === 'function'
+    ) {
+      this.screen.program.input.removeListener('data', this._onData);
+    } else if (
+      this.screen.program.input &&
+      typeof this.screen.program.input.off === 'function'
+    ) {
+      this.screen.program.input.off('data', this._onData);
+    }
   }
 }
 

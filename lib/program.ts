@@ -575,8 +575,13 @@ Program.prototype.destroy = function () {
     this.output._blessedOutput--;
 
     if (this.input._blessedInput === 0) {
-      this.input.removeListener('keypress', this.input._keypressHandler);
-      this.input.removeListener('data', this.input._dataHandler);
+      if (typeof this.input.removeListener === 'function') {
+        this.input.removeListener('keypress', this.input._keypressHandler);
+        this.input.removeListener('data', this.input._dataHandler);
+      } else if (typeof this.input.off === 'function') {
+        this.input.off('keypress', this.input._keypressHandler);
+        this.input.off('data', this.input._dataHandler);
+      }
       delete this.input._keypressHandler;
       delete this.input._dataHandler;
 
@@ -591,7 +596,11 @@ Program.prototype.destroy = function () {
     }
 
     if (this.output._blessedOutput === 0) {
-      this.output.removeListener('resize', this.output._resizeHandler);
+      if (typeof this.output.removeListener === 'function') {
+        this.output.removeListener('resize', this.output._resizeHandler);
+      } else if (typeof this.output.off === 'function') {
+        this.output.off('resize', this.output._resizeHandler);
+      }
       delete this.output._resizeHandler;
     }
 
