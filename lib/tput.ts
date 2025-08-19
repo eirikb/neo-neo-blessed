@@ -1278,12 +1278,17 @@ Tput.prototype._compile = function (
       ? new Function('sprintf, params', code).bind(null, sprintf)
       : new Function('params', code);
   } catch (e) {
-    console.error('');
-    console.error('Error on %s:', tkey);
-    console.error(JSON.stringify(str));
-    console.error('');
-    console.error(code.replace(/(,|;)/g, '$1\n'));
-    e.stack = e.stack.replace(/\x1b/g, '\\x1b');
+    // Suppress error output for known problematic capabilities but still throw
+    // This allows the capability to be properly excluded without ugly console output
+    if (this.debug) {
+      console.error('');
+      console.error('Error on %s:', tkey);
+      console.error(JSON.stringify(str));
+      console.error('');
+      console.error(code.replace(/(,|;)/g, '$1\n'));
+      e.stack = e.stack.replace(/\x1b/g, '\\x1b');
+      console.error(e.stack);
+    }
     throw e;
   }
 };
