@@ -43,6 +43,7 @@ interface KeypressStream {
   _keypressDecoder?: any;
   encoding?: string;
   listeners(event: string): Function[];
+  listenerCount?(event: string): number;
   on(event: string, listener: Function): this;
   once(event: string, listener: Function): this;
   removeListener(event: string, listener: Function): this;
@@ -51,8 +52,8 @@ interface KeypressStream {
 }
 
 function listenerCount(stream: KeypressStream, event: string): number {
-  return EventEmitter.listenerCount
-    ? EventEmitter.listenerCount(stream, event)
+  return stream.listenerCount
+    ? stream.listenerCount(event)
     : stream.listeners(event).length;
 }
 

@@ -264,6 +264,10 @@ const config = [
       'build/**',
       '*.min.js',
       'vendor/**',
+      'lib/colors.js', // Compiled from colors.ts
+      'lib/helpers.js', // Compiled from helpers.ts
+      'lib/keys.js', // Compiled from keys.ts
+      'lib/unicode.js', // Compiled from unicode.ts
     ],
   },
 ];
