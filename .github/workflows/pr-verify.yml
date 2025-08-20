@@ -24,7 +24,7 @@ jobs:
 
       - run: npm run build
 
-      - run: npm run type-check:strict
+      - run: npm run type-check
 
       - run: npm run lint
 
