@@ -8,8 +8,9 @@
  * Modules
  */
 
-const Node = require('./node');
-const Textarea = require('./textarea');
+import Node from './node.js';
+import textareaFactory from './textarea.js';
+const Textarea = textareaFactory.Textarea;
 
 /**
  * Type definitions
@@ -50,73 +51,88 @@ interface TextboxInterface extends Textarea {
 }
 
 /**
- * Textbox
+ * Textbox - Modern ES6 Class
  */
 
-function Textbox(this: TextboxInterface, options?: TextboxOptions) {
-  if (!(this instanceof Node)) {
-    return new (Textbox as any)(options);
+class Textbox extends Textarea {
+  type = 'textbox';
+  secret?: boolean;
+  censor?: boolean;
+  __olistener: (ch: string, key: TextboxKey) => any;
+
+  constructor(options?: TextboxOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    // Force scrollable to false for textbox (single-line input)
+    options.scrollable = false;
+
+    super(options);
+
+    this.secret = options.secret;
+    this.censor = options.censor;
+
+    // Store original listener and override with textbox-specific behavior
+    // Defer binding until after constructor completes to ensure methods are available
+    setImmediate(() => {
+      if (typeof this._listener === 'function') {
+        this.__olistener = this._listener.bind(this);
+        this._listener = this._textboxListener.bind(this);
+      }
+    });
   }
 
-  options = options || {};
+  _textboxListener(ch: string, key: TextboxKey): any {
+    if (key.name === 'enter') {
+      this._done(null, this.value);
+      return;
+    }
+    return this.__olistener(ch, key);
+  }
 
-  options.scrollable = false;
+  setValue(value?: string): void {
+    let visible: number, val: string;
+    if (value == null) {
+      value = this.value;
+    }
+    if (this._value !== value) {
+      // Remove newlines for single-line textbox
+      value = value.replace(/\n/g, '');
+      this.value = value;
+      this._value = value;
+      if (this.secret) {
+        this.setContent('');
+      } else if (this.censor) {
+        this.setContent(Array(this.value.length + 1).join('*'));
+      } else {
+        visible = -(this.width - this.iwidth - 1);
+        val = this.value.replace(/\t/g, this.screen.tabc);
+        this.setContent(val.slice(visible));
+      }
+      this._updateCursor();
+    }
+  }
 
-  Textarea.call(this, options);
-
-  this.secret = options.secret;
-  this.censor = options.censor;
+  submit(): any {
+    if (!this.__listener) return;
+    return this.__listener('\r', { name: 'enter' });
+  }
 }
 
-Textbox.prototype.__proto__ = Textarea.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function textbox(options?: TextboxOptions): TextboxInterface {
+  return new Textbox(options) as TextboxInterface;
+}
 
-Textbox.prototype.type = 'textbox';
-
-Textbox.prototype.__olistener = Textbox.prototype._listener;
-Textbox.prototype._listener = function (
-  this: TextboxInterface,
-  ch: string,
-  key: TextboxKey
-): any {
-  if (key.name === 'enter') {
-    this._done(null, this.value);
-    return;
-  }
-  return this.__olistener(ch, key);
-};
-
-Textbox.prototype.setValue = function (
-  this: TextboxInterface,
-  value?: string
-): void {
-  let visible: number, val: string;
-  if (value == null) {
-    value = this.value;
-  }
-  if (this._value !== value) {
-    value = value.replace(/\n/g, '');
-    this.value = value;
-    this._value = value;
-    if (this.secret) {
-      this.setContent('');
-    } else if (this.censor) {
-      this.setContent(Array(this.value.length + 1).join('*'));
-    } else {
-      visible = -(this.width - this.iwidth - 1);
-      val = this.value.replace(/\t/g, this.screen.tabc);
-      this.setContent(val.slice(visible));
-    }
-    this._updateCursor();
-  }
-};
-
-Textbox.prototype.submit = function (this: TextboxInterface): any {
-  if (!this.__listener) return;
-  return this.__listener('\r', { name: 'enter' });
-};
+// Attach the class as a property for direct access
+textbox.Textbox = Textbox;
 
 /**
  * Expose
  */
 
-module.exports = Textbox;
+export default textbox;

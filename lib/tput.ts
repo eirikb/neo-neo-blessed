@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * tput.js - parse and compile terminfo caps to javascript.
  * Copyright (c) 2013-2015, Christopher Jeffrey and contributors (MIT License).
@@ -21,12 +22,12 @@
  * Modules
  */
 
-var assert = require('assert'),
-  path = require('path'),
-  fs = require('fs'),
-  cp = require('child_process');
-
-import internalTerm from './internal-term';
+import assert from 'assert';
+import path from 'path';
+import fs from 'fs';
+import cp from 'child_process';
+import internalTerm from './internal-term.js';
+import alias from './alias.js';
 
 /**
  * Tput
@@ -1277,12 +1278,17 @@ Tput.prototype._compile = function (
       ? new Function('sprintf, params', code).bind(null, sprintf)
       : new Function('params', code);
   } catch (e) {
-    console.error('');
-    console.error('Error on %s:', tkey);
-    console.error(JSON.stringify(str));
-    console.error('');
-    console.error(code.replace(/(,|;)/g, '$1\n'));
-    e.stack = e.stack.replace(/\x1b/g, '\\x1b');
+    // Suppress error output for known problematic capabilities but still throw
+    // This allows the capability to be properly excluded without ugly console output
+    if (this.debug) {
+      console.error('');
+      console.error('Error on %s:', tkey);
+      console.error(JSON.stringify(str));
+      console.error('');
+      console.error(code.replace(/(,|;)/g, '$1\n'));
+      e.stack = e.stack.replace(/\x1b/g, '\\x1b');
+      console.error(e.stack);
+    }
     throw e;
   }
 };
@@ -2504,7 +2510,7 @@ function sprintf(src) {
  * Aliases
  */
 
-Tput._alias = require('./alias');
+Tput._alias = alias;
 
 Tput.alias = {};
 
@@ -3161,8 +3167,5 @@ Tput.utoa = Tput.prototype.utoa = {
  * Expose
  */
 
-exports = Tput;
-exports.sprintf = sprintf;
-exports.tryRead = tryRead;
-
-module.exports = exports;
+export default Tput;
+export { sprintf, tryRead };

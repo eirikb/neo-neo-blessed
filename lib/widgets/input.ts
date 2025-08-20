@@ -8,14 +8,15 @@
  * Modules
  */
 
-const Node = require('./node');
-const Box = require('./box');
+import Node from './node.js';
+import boxFactory from './box.js';
+const Box = boxFactory.Box;
 
 /**
  * Type definitions
  */
 
-interface InputOptions {
+export interface InputOptions {
   [key: string]: any;
 }
 
@@ -24,23 +25,34 @@ interface InputInterface extends Box {
 }
 
 /**
- * Input
+ * Input - Modern ES6 Class
  */
 
-function Input(this: InputInterface, options?: InputOptions) {
-  if (!(this instanceof Node)) {
-    return new (Input as any)(options);
+class Input extends Box {
+  type = 'input';
+
+  constructor(options?: InputOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    super(options);
   }
-  options = options || {};
-  Box.call(this, options);
 }
 
-Input.prototype.__proto__ = Box.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function input(options?: InputOptions): InputInterface {
+  return new Input(options) as InputInterface;
+}
 
-Input.prototype.type = 'input';
+// Attach the class as a property for direct access
+input.Input = Input;
 
 /**
  * Expose
  */
 
-module.exports = Input;
+export default input;

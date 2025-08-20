@@ -1,6 +1,10 @@
-var fs = require('fs'),
-  blessed = require('../'),
-  screen;
+import fs from 'fs';
+import blessed from '../dist/blessed.js';
+import { fileURLToPath } from 'url';
+import * as path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+var screen;
 
 // {open}xxxx{close} xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx
 // xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx {red-bg}xxxx xxxx xxxx{/red-bg}

@@ -24,7 +24,8 @@
 // $ node test/tput.js xterm-256color --ifile ~/.terminfo/x/xterm-256color | tee out
 // $ cdiff test/terminfo out
 
-var blessed = require('../');
+import blessed from '../lib/blessed.js';
+import readline from 'readline';
 
 // Simple argument parser
 // Copyright (c) 2012, Christopher Jeffrey (MIT License)
@@ -98,7 +99,7 @@ var tput = blessed.tput({
 });
 
 if (argv[0] === 'all') {
-  var rl = require('readline').createInterface({
+  var rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });

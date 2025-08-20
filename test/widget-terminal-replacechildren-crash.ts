@@ -4,8 +4,11 @@
  * replaceChildren on the mock DOM element without crashing
  */
 
-var blessed = require('../');
-var path = require('path');
+import blessed from '../dist/blessed.js';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 console.log('🧪 Testing terminal widget replaceChildren crash fix...');
 
@@ -34,6 +37,11 @@ terminal.write('Test output\r\n');
 terminal.write('This should trigger xterm rendering\r\n');
 
 screen.render();
+
+screen.key(['C-c', 'q', 'C-q'], function () {
+  terminal.destroy();
+  screen.destroy();
+});
 
 // Give it a moment to initialize and render
 setTimeout(function () {

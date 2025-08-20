@@ -1,4 +1,4 @@
-var blessed = require('blessed');
+import blessed from '../dist/blessed.js';
 var screen = blessed.screen({
   autoPadding: true,
   warnings: true,

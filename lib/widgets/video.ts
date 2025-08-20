@@ -8,21 +8,22 @@
  * Modules
  */
 
-var cp = require('child_process');
+import * as cp from 'child_process';
 
-var Node = require('./node');
-var Box = require('./box');
-var Terminal = require('./terminal');
+import Node from './node.js';
+import boxFactory from './box.js';
+const Box = boxFactory.Box;
+import Terminal from './terminal.js';
+
+/**
+ * Type definitions
+ */
+
+import { VideoOptions, VideoInterface } from '../types/index';
 
 /**
  * Interfaces
  */
-
-interface VideoOptions {
-  file?: string;
-  start?: number;
-  [key: string]: any;
-}
 
 interface TerminalOptions {
   parent: any;
@@ -32,6 +33,7 @@ interface TerminalOptions {
   height: number;
   shell: string;
   args: string[];
+  start?: number;
 }
 
 interface VideoTerminal {
@@ -45,107 +47,56 @@ interface VideoScreen {
   render(): void;
 }
 
-interface VideoInterface extends Box {
-  type: string;
-  now: number;
-  start: number;
-  tty: VideoTerminal;
-  screen: VideoScreen;
-  width: number;
-  height: number;
-  iwidth: number;
-  iheight: number;
-  parseTags?: boolean;
-
-  // Methods
-  exists(program: string): boolean;
-  setContent(content: string): void;
-  on(event: string, listener: Function): void;
-}
-
 /**
- * Video
+ * Video - Modern ES6 Class
  */
 
-function Video(this: VideoInterface, options?: VideoOptions) {
-  var self = this,
-    shell: string,
-    args: string[];
+class Video extends Box {
+  type = 'video';
+  now: number = 0;
+  start: number = 0;
+  tty?: VideoTerminal;
 
-  if (!(this instanceof Node)) {
-    return new Video(options);
-  }
-
-  options = options || {};
-
-  Box.call(this, options);
-
-  if (this.exists('mplayer')) {
-    shell = 'mplayer';
-    args = ['-vo', 'caca', '-quiet', options.file];
-  } else if (this.exists('mpv')) {
-    shell = 'mpv';
-    args = ['--vo', 'caca', '--really-quiet', options.file];
-  } else {
-    this.parseTags = true;
-    this.setContent(
-      '{red-fg}{bold}Error:{/bold}' + ' mplayer or mpv not installed.{/red-fg}'
-    );
-    return this;
-  }
-
-  // Calculate dimensions and ensure they're valid
-  var termWidth = this.width - this.iwidth;
-  var termHeight = this.height - this.iheight;
-
-  // Ensure minimum valid dimensions
-  if (isNaN(termWidth) || termWidth <= 0) termWidth = 80;
-  if (isNaN(termHeight) || termHeight <= 0) termHeight = 24;
-
-  var opts: TerminalOptions = {
-    parent: this,
-    left: 0,
-    top: 0,
-    width: termWidth,
-    height: termHeight,
-    shell: shell,
-    args: args.slice(),
-  };
-
-  this.now = (Date.now() / 1000) | 0;
-  this.start = opts.start || 0;
-  if (this.start) {
-    if (shell === 'mplayer') {
-      opts.args.unshift('-ss', this.start + '');
-    } else if (shell === 'mpv') {
-      opts.args.unshift('--start', this.start + '');
+  constructor(options?: VideoOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
     }
+
+    super(options);
+
+    this._initializeVideo(options);
   }
 
-  var DISPLAY = process.env.DISPLAY;
-  delete process.env.DISPLAY;
-  this.tty = new Terminal(opts);
-  process.env.DISPLAY = DISPLAY;
+  private _initializeVideo(options: VideoOptions): void {
+    let shell: string;
+    let args: string[];
 
-  this.on('click', function () {
-    self.tty.pty.write('p');
-  });
-
-  // mplayer/mpv cannot resize itself in the terminal, so we have
-  // to restart it at the correct start time.
-  this.on('resize', function () {
-    self.tty.destroy();
+    if (this.exists('mplayer')) {
+      shell = 'mplayer';
+      args = ['-vo', 'caca', '-quiet', options.file || ''];
+    } else if (this.exists('mpv')) {
+      shell = 'mpv';
+      args = ['--vo', 'caca', '--really-quiet', options.file || ''];
+    } else {
+      this.parseTags = true;
+      this.setContent(
+        '{red-fg}{bold}Error:{/bold}' +
+          ' mplayer or mpv not installed.{/red-fg}'
+      );
+      return;
+    }
 
     // Calculate dimensions and ensure they're valid
-    var termWidth = self.width - self.iwidth;
-    var termHeight = self.height - self.iheight;
+    let termWidth = this.width - this.iwidth;
+    let termHeight = this.height - this.iheight;
 
     // Ensure minimum valid dimensions
     if (isNaN(termWidth) || termWidth <= 0) termWidth = 80;
     if (isNaN(termHeight) || termHeight <= 0) termHeight = 24;
 
-    var opts: TerminalOptions = {
-      parent: self,
+    const opts: TerminalOptions = {
+      parent: this,
       left: 0,
       top: 0,
       width: termWidth,
@@ -154,45 +105,118 @@ function Video(this: VideoInterface, options?: VideoOptions) {
       args: args.slice(),
     };
 
-    var watched = ((Date.now() / 1000) | 0) - self.now;
-    self.now = (Date.now() / 1000) | 0;
-    self.start += watched;
-    if (shell === 'mplayer') {
-      opts.args.unshift('-ss', self.start + '');
-    } else if (shell === 'mpv') {
-      opts.args.unshift('--start', self.start + '');
+    this.now = (Date.now() / 1000) | 0;
+    this.start = options.start || 0;
+    if (this.start) {
+      if (shell === 'mplayer') {
+        opts.args.unshift('-ss', this.start + '');
+      } else if (shell === 'mpv') {
+        opts.args.unshift('--start', this.start + '');
+      }
     }
 
-    var DISPLAY = process.env.DISPLAY;
+    const DISPLAY = process.env.DISPLAY;
     delete process.env.DISPLAY;
-    self.tty = new Terminal(opts);
+    this.tty = new Terminal(opts);
     process.env.DISPLAY = DISPLAY;
-    self.screen.render();
-  });
+
+    this._setupEventHandlers(shell, args);
+  }
+
+  private _setupEventHandlers(shell: string, args: string[]): void {
+    this.on('click', () => {
+      if (this.tty && this.tty.pty) {
+        this.tty.pty.write('p');
+      }
+    });
+
+    // mplayer/mpv cannot resize itself in the terminal, so we have
+    // to restart it at the correct start time.
+    this.on('resize', () => {
+      if (this.tty) {
+        this.tty.destroy();
+      }
+
+      // Calculate dimensions and ensure they're valid
+      let termWidth = this.width - this.iwidth;
+      let termHeight = this.height - this.iheight;
+
+      // Ensure minimum valid dimensions
+      if (isNaN(termWidth) || termWidth <= 0) termWidth = 80;
+      if (isNaN(termHeight) || termHeight <= 0) termHeight = 24;
+
+      const opts: TerminalOptions = {
+        parent: this,
+        left: 0,
+        top: 0,
+        width: termWidth,
+        height: termHeight,
+        shell: shell,
+        args: args.slice(),
+      };
+
+      const watched = ((Date.now() / 1000) | 0) - this.now;
+      this.now = (Date.now() / 1000) | 0;
+      this.start += watched;
+      if (shell === 'mplayer') {
+        opts.args.unshift('-ss', this.start + '');
+      } else if (shell === 'mpv') {
+        opts.args.unshift('--start', this.start + '');
+      }
+
+      const DISPLAY = process.env.DISPLAY;
+      delete process.env.DISPLAY;
+      this.tty = new Terminal(opts);
+      process.env.DISPLAY = DISPLAY;
+      (this.screen as VideoScreen).render();
+    });
+  }
+
+  exists(program: string): boolean {
+    try {
+      return !!+cp
+        .execSync(
+          'type ' + program + ' > /dev/null 2> /dev/null' + ' && echo 1',
+          { encoding: 'utf8' }
+        )
+        .trim();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Video control methods for interface compatibility
+  play(): void {
+    if (this.tty && this.tty.pty) {
+      this.tty.pty.write('p');
+    }
+  }
+
+  pause(): void {
+    if (this.tty && this.tty.pty) {
+      this.tty.pty.write('p');
+    }
+  }
+
+  stop(): void {
+    if (this.tty) {
+      this.tty.destroy();
+    }
+  }
 }
 
-Video.prototype.__proto__ = Box.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function video(options?: VideoOptions): VideoInterface {
+  return new Video(options) as VideoInterface;
+}
 
-Video.prototype.type = 'video';
-
-Video.prototype.exists = function (
-  this: VideoInterface,
-  program: string
-): boolean {
-  try {
-    return !!+cp
-      .execSync(
-        'type ' + program + ' > /dev/null 2> /dev/null' + ' && echo 1',
-        { encoding: 'utf8' }
-      )
-      .trim();
-  } catch (e) {
-    return false;
-  }
-};
+// Attach the class as a property for direct access
+video.Video = Video;
 
 /**
  * Expose
  */
 
-module.exports = Video;
+export default video;

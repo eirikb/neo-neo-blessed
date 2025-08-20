@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-
-const unicode = require('../../lib/unicode.js');
+import * as unicode from '../../lib/unicode.js';
 
 describe('unicode module', () => {
   let originalEnv: any;

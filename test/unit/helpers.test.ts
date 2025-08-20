@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('fs', () => ({
-  readdirSync: vi.fn(),
-  lstatSync: vi.fn(),
+  readdirSync: vi.fn(() => []), // Return empty array by default
+  lstatSync: vi.fn(() => ({
+    isDirectory: () => false,
+    isSymbolicLink: () => false,
+  })), // Return stat-like object
 }));
 
-const helpers = require('../../lib/helpers.js');
-const fs = require('fs');
+import * as helpers from '../../lib/helpers.js';
+import * as fs from 'fs';
 
 describe('helpers module', () => {
   beforeEach(() => {

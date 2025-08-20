@@ -8,8 +8,8 @@
  * Modules
  */
 
-const fs = require('fs');
-const unicode = require('./unicode');
+import * as fs from 'fs';
+import * as unicode from './unicode.js';
 
 /**
  * Type definitions
@@ -48,6 +48,10 @@ interface Element {
  */
 
 const helpers = {} as any;
+
+// Placeholder for functions that will be added by blessed.ts
+helpers.sprintf = null;
+helpers.tryRead = null;
 
 helpers.merge = function (a: any, b: any): any {
   Object.keys(b).forEach(function (key: string) {
@@ -185,18 +189,54 @@ helpers.dropUnicode = function (text: string): string {
     .replace(unicode.chars.surrogate, '?');
 };
 
-helpers.__defineGetter__('Screen', function () {
-  if (!helpers._screen) {
-    helpers._screen = require('./widgets/screen');
-  }
-  return helpers._screen;
+Object.defineProperty(helpers, 'Screen', {
+  get() {
+    if (!helpers._screen) {
+      helpers._screen = require('./widgets/screen');
+    }
+    return helpers._screen;
+  },
+  enumerable: true,
+  configurable: true,
 });
 
-helpers.__defineGetter__('Element', function () {
-  if (!helpers._element) {
-    helpers._element = require('./widgets/element');
-  }
-  return helpers._element;
+Object.defineProperty(helpers, 'Element', {
+  get() {
+    if (!helpers._element) {
+      helpers._element = require('./widgets/element');
+    }
+    return helpers._element;
+  },
+  enumerable: true,
+  configurable: true,
 });
 
-module.exports = helpers;
+// Export individual functions for named imports
+export const merge = helpers.merge;
+export const asort = helpers.asort;
+export const hsort = helpers.hsort;
+export const findFile = helpers.findFile;
+export const escape = helpers.escape;
+export const parseTags = helpers.parseTags;
+export const generateTags = helpers.generateTags;
+export const attrToBinary = helpers.attrToBinary;
+export const stripTags = helpers.stripTags;
+export const cleanTags = helpers.cleanTags;
+export const dropUnicode = helpers.dropUnicode;
+
+// Make sure all named exports are also available on helpers object
+Object.assign(helpers, {
+  merge,
+  asort,
+  hsort,
+  findFile,
+  escape,
+  parseTags,
+  generateTags,
+  attrToBinary,
+  stripTags,
+  cleanTags,
+  dropUnicode,
+});
+
+export default helpers;

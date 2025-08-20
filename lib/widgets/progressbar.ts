@@ -8,8 +8,9 @@
  * Modules
  */
 
-const Node = require('./node');
-const Input = require('./input');
+import Node from './node.js';
+import inputFactory from './input.js';
+const Input = inputFactory.Input;
 
 /**
  * Type definitions
@@ -81,160 +82,166 @@ interface ProgressBarInterface extends Input {
   emit(event: string, ...args: any[]): boolean;
   _render(): ProgressBarPosition | null;
   sattr(style: any): any;
+  progress(filled: number): void;
+  setProgress(filled: number): void;
+  reset(): void;
 }
 
 /**
- * ProgressBar
+ * ProgressBar - Modern ES6 Class
  */
 
-function ProgressBar(this: ProgressBarInterface, options?: ProgressBarOptions) {
-  const self = this;
+class ProgressBar extends Input {
+  type = 'progress-bar';
+  filled: number;
+  value: number;
+  pch: string;
+  orientation: 'horizontal' | 'vertical';
 
-  if (!(this instanceof Node)) {
-    return new (ProgressBar as any)(options);
+  constructor(options?: ProgressBarOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    super(options);
+
+    this.filled = options.filled || 0;
+    if (typeof this.filled === 'string') {
+      this.filled = +(this.filled as string).slice(0, -1);
+    }
+    this.value = this.filled;
+
+    this.pch = options.pch || ' ';
+
+    // XXX Workaround that predates the usage of `el.ch`.
+    if (options.ch) {
+      this.pch = options.ch;
+      this.ch = ' ';
+    }
+    if (options.bch) {
+      this.ch = options.bch;
+    }
+
+    if (!this.style.bar) {
+      this.style.bar = {};
+      this.style.bar.fg = options.barFg;
+      this.style.bar.bg = options.barBg;
+    }
+
+    this.orientation = options.orientation || 'horizontal';
+
+    if (options.keys) {
+      this.on('keypress', (ch: string, key: ProgressBarKey) => {
+        let back: string[], forward: string[];
+        if (this.orientation === 'horizontal') {
+          back = ['left', 'h'];
+          forward = ['right', 'l'];
+        } else if (this.orientation === 'vertical') {
+          back = ['down', 'j'];
+          forward = ['up', 'k'];
+        }
+        if (key.name === back![0] || (options.vi && key.name === back![1])) {
+          this.progress(-5);
+          this.screen.render();
+          return;
+        }
+        if (
+          key.name === forward![0] ||
+          (options.vi && key.name === forward![1])
+        ) {
+          this.progress(5);
+          this.screen.render();
+          return;
+        }
+      });
+    }
+
+    if (options.mouse) {
+      this.on('click', (data: ProgressBarMouseData) => {
+        let x: number, y: number, m: number, p: number;
+        if (!this.lpos) return;
+        if (this.orientation === 'horizontal') {
+          x = data.x - this.lpos.xi;
+          m = this.lpos.xl - this.lpos.xi - this.iwidth;
+          p = ((x / m) * 100) | 0;
+        } else if (this.orientation === 'vertical') {
+          y = data.y - this.lpos.yi;
+          m = this.lpos.yl - this.lpos.yi - this.iheight;
+          p = ((y / m) * 100) | 0;
+        }
+        this.setProgress(p!);
+      });
+    }
   }
 
-  options = options || {};
+  render(): ProgressBarPosition | null {
+    const ret = this._render();
+    if (!ret) return null;
 
-  Input.call(this, options);
+    let xi = ret.xi;
+    let xl = ret.xl;
+    let yi = ret.yi;
+    let yl = ret.yl;
+    let dattr: any;
 
-  this.filled = options.filled || 0;
-  if (typeof this.filled === 'string') {
-    this.filled = +(this.filled as string).slice(0, -1);
-  }
-  this.value = this.filled;
+    if (this.border) xi++, yi++, xl--, yl--;
 
-  this.pch = options.pch || ' ';
+    if (this.orientation === 'horizontal') {
+      xl = (xi + (xl - xi) * (this.filled / 100)) | 0;
+    } else if (this.orientation === 'vertical') {
+      yi = yi + (yl - yi - (((yl - yi) * (this.filled / 100)) | 0));
+    }
 
-  // XXX Workaround that predates the usage of `el.ch`.
-  if (options.ch) {
-    this.pch = options.ch;
-    this.ch = ' ';
-  }
-  if (options.bch) {
-    this.ch = options.bch;
-  }
+    dattr = this.sattr(this.style.bar);
 
-  if (!this.style.bar) {
-    this.style.bar = {};
-    this.style.bar.fg = options.barFg;
-    this.style.bar.bg = options.barBg;
-  }
+    this.screen.fillRegion(dattr, this.pch, xi, xl, yi, yl);
 
-  this.orientation = options.orientation || 'horizontal';
-
-  if (options.keys) {
-    this.on('keypress', function (ch: string, key: ProgressBarKey) {
-      let back: string[], forward: string[];
-      if (self.orientation === 'horizontal') {
-        back = ['left', 'h'];
-        forward = ['right', 'l'];
-      } else if (self.orientation === 'vertical') {
-        back = ['down', 'j'];
-        forward = ['up', 'k'];
+    if (this.content) {
+      const line = this.screen.lines[yi];
+      for (let i = 0; i < this.content.length; i++) {
+        line[xi + i][1] = this.content[i];
       }
-      if (key.name === back![0] || (options.vi && key.name === back![1])) {
-        self.progress(-5);
-        self.screen.render();
-        return;
-      }
-      if (
-        key.name === forward![0] ||
-        (options.vi && key.name === forward![1])
-      ) {
-        self.progress(5);
-        self.screen.render();
-        return;
-      }
-    });
+      line.dirty = true;
+    }
+
+    return ret;
   }
 
-  if (options.mouse) {
-    this.on('click', function (data: ProgressBarMouseData) {
-      let x: number, y: number, m: number, p: number;
-      if (!self.lpos) return;
-      if (self.orientation === 'horizontal') {
-        x = data.x - self.lpos.xi;
-        m = self.lpos.xl - self.lpos.xi - self.iwidth;
-        p = ((x / m) * 100) | 0;
-      } else if (self.orientation === 'vertical') {
-        y = data.y - self.lpos.yi;
-        m = self.lpos.yl - self.lpos.yi - self.iheight;
-        p = ((y / m) * 100) | 0;
-      }
-      self.setProgress(p!);
-    });
+  progress(filled: number): void {
+    this.filled += filled;
+    if (this.filled < 0) this.filled = 0;
+    else if (this.filled > 100) this.filled = 100;
+    if (this.filled === 100) {
+      this.emit('complete');
+    }
+    this.value = this.filled;
+  }
+
+  setProgress(filled: number): void {
+    this.filled = 0;
+    this.progress(filled);
+  }
+
+  reset(): void {
+    this.emit('reset');
+    this.filled = 0;
+    this.value = this.filled;
   }
 }
 
-ProgressBar.prototype.__proto__ = Input.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function progressBar(options?: ProgressBarOptions): ProgressBarInterface {
+  return new ProgressBar(options) as ProgressBarInterface;
+}
 
-ProgressBar.prototype.type = 'progress-bar';
-
-ProgressBar.prototype.render = function (
-  this: ProgressBarInterface
-): ProgressBarPosition | null {
-  const ret = this._render();
-  if (!ret) return null;
-
-  let xi = ret.xi;
-  let xl = ret.xl;
-  let yi = ret.yi;
-  let yl = ret.yl;
-  let dattr: any;
-
-  if (this.border) xi++, yi++, xl--, yl--;
-
-  if (this.orientation === 'horizontal') {
-    xl = (xi + (xl - xi) * (this.filled / 100)) | 0;
-  } else if (this.orientation === 'vertical') {
-    yi = yi + (yl - yi - (((yl - yi) * (this.filled / 100)) | 0));
-  }
-
-  dattr = this.sattr(this.style.bar);
-
-  this.screen.fillRegion(dattr, this.pch, xi, xl, yi, yl);
-
-  if (this.content) {
-    const line = this.screen.lines[yi];
-    for (let i = 0; i < this.content.length; i++) {
-      line[xi + i][1] = this.content[i];
-    }
-    line.dirty = true;
-  }
-
-  return ret;
-};
-
-ProgressBar.prototype.progress = function (
-  this: ProgressBarInterface,
-  filled: number
-): void {
-  this.filled += filled;
-  if (this.filled < 0) this.filled = 0;
-  else if (this.filled > 100) this.filled = 100;
-  if (this.filled === 100) {
-    this.emit('complete');
-  }
-  this.value = this.filled;
-};
-
-ProgressBar.prototype.setProgress = function (
-  this: ProgressBarInterface,
-  filled: number
-): void {
-  this.filled = 0;
-  this.progress(filled);
-};
-
-ProgressBar.prototype.reset = function (this: ProgressBarInterface): void {
-  this.emit('reset');
-  this.filled = 0;
-  this.value = this.filled;
-};
+// Attach the class as a property for direct access
+progressBar.ProgressBar = ProgressBar;
 
 /**
  * Expose
  */
 
-module.exports = ProgressBar;
+export default progressBar;

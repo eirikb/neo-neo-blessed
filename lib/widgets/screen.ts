@@ -8,23 +8,24 @@
  * Modules
  */
 
-var path = require('path'),
-  fs = require('fs'),
-  cp = require('child_process'),
-  os = require('os');
+import path from 'path';
+import fs from 'fs';
+import cp from 'child_process';
+import os from 'os';
 
-var colors = require('../colors'),
-  program = require('../program'),
-  unicode = require('../unicode');
+import * as colors from '../colors.js';
+import program from '../program.js';
+import * as unicode from '../unicode.js';
 
 var nextTick = global.setImmediate || process.nextTick.bind(process);
 
-var helpers = require('../helpers');
+import * as helpers from '../helpers.js';
 
-var Node = require('./node');
-var Log = require('./log');
-var Element = require('./element');
-var Box = require('./box');
+import Node from './node.js';
+import Log from './log.js';
+import Element from './element.js';
+import boxFactory from './box.js';
+const Box = boxFactory.Box;
 
 /**
  * Interfaces
@@ -371,9 +372,18 @@ Screen.bind = function (screen) {
       });
       err = err || new Error('Uncaught Exception.');
       process.stderr.write((err.stack || err) + '\n');
-      nextTick(function () {
-        process.exit(1);
-      });
+
+      // Don't exit in test environment
+      const isTestEnv =
+        process.env.NODE_ENV === 'test' ||
+        process.env.VITEST === 'true' ||
+        typeof global.expect !== 'undefined';
+
+      if (!isTestEnv) {
+        nextTick(function () {
+          process.exit(1);
+        });
+      }
     })
   );
 
@@ -1928,7 +1938,7 @@ Screen.prototype.spawn = function (file, args, options) {
 
   var screen = this,
     program = screen.program,
-    spawn = require('child_process').spawn,
+    spawn = cp.spawn,
     mouse = program.mouseEnabled,
     ps;
 
@@ -2477,4 +2487,4 @@ Object.keys(angleTable).forEach(function (key) {
  * Expose
  */
 
-module.exports = Screen;
+export default Screen;

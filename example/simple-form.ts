@@ -1,8 +1,8 @@
 import * as blessed from '../lib/blessed';
 
-const screen = blessed.screen();
+const screen = blessed.default.screen();
 
-const form = blessed.form({
+const form = blessed.default.form({
   parent: screen,
   keys: true,
   left: 0,
@@ -13,7 +13,7 @@ const form = blessed.form({
   content: 'Submit or cancel?',
 });
 
-const submit = blessed.button({
+const submit = blessed.default.button({
   parent: form,
   mouse: true,
   keys: true,
@@ -37,7 +37,7 @@ const submit = blessed.button({
   },
 });
 
-const cancel = blessed.button({
+const cancel = blessed.default.button({
   parent: form,
   mouse: true,
   keys: true,

@@ -4,6 +4,14 @@
  * https://github.com/chjj/blessed
  */
 
+import program from './program.js';
+import tput, { sprintf, tryRead } from './tput.js';
+import widget from './widget.js';
+import * as colors from './colors.js';
+import * as unicode from './unicode.js';
+import * as helpers from './helpers.js';
+import './events.js'; // Apply EventEmitter extensions
+
 /**
  * The main blessed namespace that provides access to all widgets and functionality.
  *
@@ -45,15 +53,15 @@ function blessed() {
   return blessed.program.apply(null, arguments);
 }
 
-blessed.program = blessed.Program = require('./program');
-blessed.tput = blessed.Tput = require('./tput');
-blessed.widget = require('./widget');
-blessed.colors = require('./colors');
-blessed.unicode = require('./unicode');
-blessed.helpers = require('./helpers');
+blessed.program = blessed.Program = program;
+blessed.tput = blessed.Tput = tput;
+blessed.widget = widget;
+blessed.colors = colors;
+blessed.unicode = unicode;
+blessed.helpers = helpers;
 
-blessed.helpers.sprintf = blessed.tput.sprintf;
-blessed.helpers.tryRead = blessed.tput.tryRead;
+(blessed.helpers as any).sprintf = sprintf;
+(blessed.helpers as any).tryRead = tryRead;
 blessed.helpers.merge(blessed, blessed.helpers);
 
 blessed.helpers.merge(blessed, blessed.widget);
@@ -62,4 +70,4 @@ blessed.helpers.merge(blessed, blessed.widget);
  * Expose
  */
 
-module.exports = blessed;
+export default blessed;

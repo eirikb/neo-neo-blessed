@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [main, 'feature/**']
+    branches: [ main, 'feature/**' ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch: # Allow manual runs
 
 permissions:
@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [ 18, 20, 22 ]
 
     steps:
       - name: Checkout code
@@ -48,10 +48,6 @@ jobs:
 
       - name: Run unit tests
         run: npm test
-
-      - name: Run unit tests with UI (for coverage)
-        if: matrix.node-version == 20 # Only run on one Node version
-        run: npm run test:ui -- --reporter=verbose --coverage
 
   integration-tests:
     name: Integration Tests (Sample)

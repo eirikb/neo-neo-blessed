@@ -5,42 +5,42 @@
  */
 
 // Static imports for bundler compatibility
-import node from './widgets/node';
-import screen from './widgets/screen';
-import element from './widgets/element';
-import box from './widgets/box';
-import text from './widgets/text';
-import line from './widgets/line';
-import scrollablebox from './widgets/scrollablebox';
-import scrollabletext from './widgets/scrollabletext';
-import bigtext from './widgets/bigtext';
-import list from './widgets/list';
-import form from './widgets/form';
-import input from './widgets/input';
-import textarea from './widgets/textarea';
-import textbox from './widgets/textbox';
-import button from './widgets/button';
-import progressbar from './widgets/progressbar';
-import filemanager from './widgets/filemanager';
-import checkbox from './widgets/checkbox';
-import radioset from './widgets/radioset';
-import radiobutton from './widgets/radiobutton';
-import prompt from './widgets/prompt';
-import question from './widgets/question';
-import message from './widgets/message';
-import loading from './widgets/loading';
-import listbar from './widgets/listbar';
-import log from './widgets/log';
-import table from './widgets/table';
-import listtable from './widgets/listtable';
-import terminal from './widgets/terminal';
-import image from './widgets/image';
-import ansiimage from './widgets/ansiimage';
-import overlayimage from './widgets/overlayimage';
-import video from './widgets/video';
-import layout from './widgets/layout';
+import node from './widgets/node.js';
+import screen from './widgets/screen.js';
+import element from './widgets/element.js';
+import box from './widgets/box.js';
+import text from './widgets/text.js';
+import line from './widgets/line.js';
+import scrollablebox from './widgets/scrollablebox.js';
+import scrollabletext from './widgets/scrollabletext.js';
+import bigtext from './widgets/bigtext.js';
+import list from './widgets/list.js';
+import form from './widgets/form.js';
+import input from './widgets/input.js';
+import textarea from './widgets/textarea.js';
+import textbox from './widgets/textbox.js';
+import button from './widgets/button.js';
+import progressbar from './widgets/progressbar.js';
+import filemanager from './widgets/filemanager.js';
+import checkbox from './widgets/checkbox.js';
+import radioset from './widgets/radioset.js';
+import radiobutton from './widgets/radiobutton.js';
+import prompt from './widgets/prompt.js';
+import question from './widgets/question.js';
+import message from './widgets/message.js';
+import loading from './widgets/loading.js';
+import listbar from './widgets/listbar.js';
+import log from './widgets/log.js';
+import table from './widgets/table.js';
+import listtable from './widgets/listtable.js';
+import terminal from './widgets/terminal.js';
+import image from './widgets/image.js';
+import ansiimage from './widgets/ansiimage.js';
+import overlayimage from './widgets/overlayimage.js';
+import video from './widgets/video.js';
+import layout from './widgets/layout.js';
 
-var widget = exports;
+const widget = {} as any;
 
 widget.classes = [
   'Node',
@@ -132,3 +132,5 @@ Object.keys(widget.aliases).forEach(function (key) {
   widget[key] = widget[name];
   widget[key.toLowerCase()] = widget[name];
 });
+
+export default widget;

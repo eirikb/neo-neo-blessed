@@ -1,5 +1,9 @@
-var blessed = require('../'),
-  screen;
+import blessed from '../dist/blessed.js';
+import { fileURLToPath } from 'url';
+import * as path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+var screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/noalt.log',
@@ -37,7 +41,7 @@ list.on('select', function (item) {
   screen.destroy();
 });
 
-screen.key('C-c', function () {
+screen.key(['C-c', 'q', 'C-q'], function () {
   screen.destroy();
 });
 

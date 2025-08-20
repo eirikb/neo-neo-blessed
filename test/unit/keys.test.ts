@@ -7,7 +7,7 @@ vi.mock('string_decoder', () => ({
   })),
 }));
 
-const keys = require('../../lib/keys.js');
+import * as keys from '../../lib/keys.js';
 
 interface MockStream extends EventEmitter {
   _keypressDecoder?: any;

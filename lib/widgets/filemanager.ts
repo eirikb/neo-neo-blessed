@@ -8,13 +8,14 @@
  * Modules
  */
 
-var path = require('path'),
-  fs = require('fs');
+import * as path from 'path';
+import * as fs from 'fs';
 
-var helpers = require('../helpers');
+import * as helpers from '../helpers.js';
 
-var Node = require('./node');
-var List = require('./list');
+import Node from './node.js';
+import listFactory from './list.js';
+const List = listFactory.List;
 
 /**
  * Interfaces
@@ -69,216 +70,213 @@ interface FileManagerInterface extends List {
 }
 
 /**
- * FileManager
+ * FileManager - Modern ES6 Class
  */
 
-function FileManager(this: FileManagerInterface, options?: FileManagerOptions) {
-  var self = this;
+class FileManager extends List {
+  type = 'file-manager';
+  cwd: string;
+  file: string;
+  value: string;
 
-  if (!(this instanceof Node)) {
-    return new FileManager(options);
-  }
+  constructor(options?: FileManagerOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
 
-  options = options || {};
-  options.parseTags = true;
-  // options.label = ' {blue-fg}%path{/blue-fg} ';
+    // Force filemanager-specific options
+    options.parseTags = true;
+    // options.label = ' {blue-fg}%path{/blue-fg} ';
 
-  List.call(this, options);
+    super(options);
 
-  this.cwd = options.cwd || process.cwd();
-  this.file = this.cwd;
-  this.value = this.cwd;
+    this.cwd = options.cwd || process.cwd();
+    this.file = this.cwd;
+    this.value = this.cwd;
 
-  if (options.label && ~options.label.indexOf('%path')) {
-    this._label.setContent(options.label.replace('%path', this.cwd));
-  }
+    if (options.label && ~options.label.indexOf('%path')) {
+      this._label.setContent(options.label.replace('%path', this.cwd));
+    }
 
-  this.on('select', function (item: any) {
-    var value = item.content.replace(/\{[^{}]+\}/g, '').replace(/@$/, ''),
-      file = path.resolve(self.cwd, value);
+    this.on('select', (item: any) => {
+      const value = item.content.replace(/\{[^{}]+\}/g, '').replace(/@$/, '');
+      const file = path.resolve(this.cwd, value);
 
-    return fs.stat(
-      file,
-      function (err: NodeJS.ErrnoException | null, stat?: fs.Stats) {
-        if (err) {
-          return self.emit('error', err, file);
-        }
-        self.file = file;
-        self.value = file;
-        if (stat.isDirectory()) {
-          self.emit('cd', file, self.cwd);
-          self.cwd = file;
-          if (options.label && ~options.label.indexOf('%path')) {
-            self._label.setContent(options.label.replace('%path', file));
+      return fs.stat(
+        file,
+        (err: NodeJS.ErrnoException | null, stat?: fs.Stats) => {
+          if (err) {
+            return this.emit('error', err, file);
           }
-          self.refresh();
-        } else {
-          self.emit('file', file);
+          this.file = file;
+          this.value = file;
+          if (stat!.isDirectory()) {
+            this.emit('cd', file, this.cwd);
+            this.cwd = file;
+            if (options!.label && ~options!.label.indexOf('%path')) {
+              this._label.setContent(options!.label.replace('%path', file));
+            }
+            this.refresh();
+          } else {
+            this.emit('file', file);
+          }
         }
+      );
+    });
+  }
+
+  refresh(cwd?: string | Function, callback?: Function): any {
+    if (!callback) {
+      callback = cwd;
+      cwd = null;
+    }
+
+    if (cwd) this.cwd = cwd as string;
+    else cwd = this.cwd;
+
+    return fs.readdir(
+      cwd as string,
+      (err: NodeJS.ErrnoException | null, list?: string[]) => {
+        if (err && err.code === 'ENOENT') {
+          this.cwd = cwd !== process.env.HOME ? process.env.HOME! : '/';
+          return this.refresh(callback);
+        }
+
+        if (err) {
+          if (callback) return callback(err);
+          return this.emit('error', err, cwd);
+        }
+
+        let dirs: FileItem[] = [];
+        let files: FileItem[] = [];
+
+        list!.unshift('..');
+
+        list!.forEach((name: string) => {
+          const f = path.resolve(cwd as string, name);
+          let stat: fs.Stats | undefined;
+
+          try {
+            stat = fs.lstatSync(f);
+          } catch (e) {}
+
+          if ((stat && stat.isDirectory()) || name === '..') {
+            dirs.push({
+              name: name,
+              text: '{light-blue-fg}' + name + '{/light-blue-fg}/',
+              dir: true,
+            });
+          } else if (stat && stat.isSymbolicLink()) {
+            files.push({
+              name: name,
+              text: '{light-cyan-fg}' + name + '{/light-cyan-fg}@',
+              dir: false,
+            });
+          } else {
+            files.push({
+              name: name,
+              text: name,
+              dir: false,
+            });
+          }
+        });
+
+        dirs = helpers.asort(dirs);
+        files = helpers.asort(files);
+
+        list = dirs.concat(files).map((data: FileItem) => {
+          return data.text;
+        });
+
+        this.setItems(list);
+        this.select(0);
+        this.screen.render();
+
+        this.emit('refresh');
+
+        if (callback) callback();
       }
     );
-  });
+  }
+
+  pick(cwd?: string | Function, callback?: Function): void {
+    if (!callback) {
+      callback = cwd;
+      cwd = null;
+    }
+
+    const focused = this.screen.focused === this;
+    const hidden = this.hidden;
+    let onfile: Function;
+    let oncancel: Function;
+
+    const resume = () => {
+      this.removeListener('file', onfile);
+      this.removeListener('cancel', oncancel);
+      if (hidden) {
+        this.hide();
+      }
+      if (!focused) {
+        this.screen.restoreFocus();
+      }
+      this.screen.render();
+    };
+
+    this.on(
+      'file',
+      (onfile = (file: string) => {
+        resume();
+        return callback!(null, file);
+      })
+    );
+
+    this.on(
+      'cancel',
+      (oncancel = () => {
+        resume();
+        return callback!();
+      })
+    );
+
+    this.refresh(cwd as string, (err?: NodeJS.ErrnoException) => {
+      if (err) return callback!(err);
+
+      if (hidden) {
+        this.show();
+      }
+
+      if (!focused) {
+        this.screen.saveFocus();
+        this.focus();
+      }
+
+      this.screen.render();
+    });
+  }
+
+  reset(cwd?: string | Function, callback?: Function): void {
+    if (!callback) {
+      callback = cwd;
+      cwd = null;
+    }
+    this.cwd = (cwd as string) || this.options.cwd;
+    this.refresh(callback);
+  }
 }
 
-FileManager.prototype.__proto__ = List.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function fileManager(options?: FileManagerOptions): FileManagerInterface {
+  return new FileManager(options) as FileManagerInterface;
+}
 
-FileManager.prototype.type = 'file-manager';
-
-FileManager.prototype.refresh = function (
-  this: FileManagerInterface,
-  cwd?: string | Function,
-  callback?: Function
-) {
-  if (!callback) {
-    callback = cwd;
-    cwd = null;
-  }
-
-  var self = this;
-
-  if (cwd) this.cwd = cwd;
-  else cwd = this.cwd;
-
-  return fs.readdir(
-    cwd as string,
-    function (err: NodeJS.ErrnoException | null, list?: string[]) {
-      if (err && err.code === 'ENOENT') {
-        self.cwd = cwd !== process.env.HOME ? process.env.HOME : '/';
-        return self.refresh(callback);
-      }
-
-      if (err) {
-        if (callback) return callback(err);
-        return self.emit('error', err, cwd);
-      }
-
-      var dirs: FileItem[] = [],
-        files: FileItem[] = [];
-
-      list.unshift('..');
-
-      list!.forEach(function (name: string) {
-        var f = path.resolve(cwd as string, name),
-          stat: fs.Stats | undefined;
-
-        try {
-          stat = fs.lstatSync(f);
-        } catch (e) {}
-
-        if ((stat && stat.isDirectory()) || name === '..') {
-          dirs.push({
-            name: name,
-            text: '{light-blue-fg}' + name + '{/light-blue-fg}/',
-            dir: true,
-          });
-        } else if (stat && stat.isSymbolicLink()) {
-          files.push({
-            name: name,
-            text: '{light-cyan-fg}' + name + '{/light-cyan-fg}@',
-            dir: false,
-          });
-        } else {
-          files.push({
-            name: name,
-            text: name,
-            dir: false,
-          });
-        }
-      });
-
-      dirs = helpers.asort(dirs);
-      files = helpers.asort(files);
-
-      list = dirs.concat(files).map(function (data: FileItem) {
-        return data.text;
-      });
-
-      self.setItems(list);
-      self.select(0);
-      self.screen.render();
-
-      self.emit('refresh');
-
-      if (callback) callback();
-    }
-  );
-};
-
-FileManager.prototype.pick = function (
-  this: FileManagerInterface,
-  cwd?: string | Function,
-  callback?: Function
-) {
-  if (!callback) {
-    callback = cwd;
-    cwd = null;
-  }
-
-  var self = this,
-    focused = this.screen.focused === this,
-    hidden = this.hidden,
-    onfile,
-    oncancel;
-
-  function resume() {
-    self.removeListener('file', onfile);
-    self.removeListener('cancel', oncancel);
-    if (hidden) {
-      self.hide();
-    }
-    if (!focused) {
-      self.screen.restoreFocus();
-    }
-    self.screen.render();
-  }
-
-  this.on(
-    'file',
-    (onfile = function (file: string) {
-      resume();
-      return callback(null, file);
-    })
-  );
-
-  this.on(
-    'cancel',
-    (oncancel = function () {
-      resume();
-      return callback();
-    })
-  );
-
-  this.refresh(cwd as string, function (err?: NodeJS.ErrnoException) {
-    if (err) return callback(err);
-
-    if (hidden) {
-      self.show();
-    }
-
-    if (!focused) {
-      self.screen.saveFocus();
-      self.focus();
-    }
-
-    self.screen.render();
-  });
-};
-
-FileManager.prototype.reset = function (
-  this: FileManagerInterface,
-  cwd?: string | Function,
-  callback?: Function
-) {
-  if (!callback) {
-    callback = cwd;
-    cwd = null;
-  }
-  this.cwd = cwd || this.options.cwd;
-  this.refresh(callback);
-};
+// Attach the class as a property for direct access
+fileManager.FileManager = FileManager;
 
 /**
  * Expose
  */
 
-module.exports = FileManager;
+export default fileManager;

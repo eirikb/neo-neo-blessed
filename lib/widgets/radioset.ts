@@ -8,8 +8,9 @@
  * Modules
  */
 
-const Node = require('./node');
-const Box = require('./box');
+import Node from './node.js';
+import boxFactory from './box.js';
+const Box = boxFactory.Box;
 
 /**
  * Type definitions
@@ -25,25 +26,36 @@ interface RadioSetInterface extends Box {
 }
 
 /**
- * RadioSet
+ * RadioSet - Modern ES6 Class
  */
 
-function RadioSet(this: RadioSetInterface, options?: RadioSetOptions) {
-  if (!(this instanceof Node)) {
-    return new (RadioSet as any)(options);
+class RadioSet extends Box {
+  type = 'radio-set';
+
+  constructor(options?: RadioSetOptions) {
+    // Handle malformed options gracefully
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      options = {};
+    }
+
+    // Possibly inherit parent's style.
+    // options.style = this.parent.style;
+    super(options);
   }
-  options = options || {};
-  // Possibly inherit parent's style.
-  // options.style = this.parent.style;
-  Box.call(this, options);
 }
 
-RadioSet.prototype.__proto__ = Box.prototype;
+/**
+ * Factory function for backward compatibility
+ */
+function radioSet(options?: RadioSetOptions): RadioSetInterface {
+  return new RadioSet(options) as RadioSetInterface;
+}
 
-RadioSet.prototype.type = 'radio-set';
+// Attach the class as a property for direct access
+radioSet.RadioSet = RadioSet;
 
 /**
  * Expose
  */
 
-module.exports = RadioSet;
+export default radioSet;

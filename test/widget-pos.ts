@@ -1,6 +1,10 @@
-var blessed = require('../'),
-  assert = require('assert'),
-  screen;
+import blessed from '../dist/blessed.js';
+import assert from 'assert';
+import { fileURLToPath } from 'url';
+import * as path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+var screen;
 
 screen = blessed.screen({
   dump: __dirname + '/logs/pos.log',
