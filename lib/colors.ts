@@ -144,10 +144,9 @@ export function mixColors(
   c2: number,
   alpha?: number | null
 ): number {
-  // if (c1 === 0x1ff) return c1;
-  // if (c2 === 0x1ff) return c1;
-  if (c1 === 0x1ff) c1 = 0;
-  if (c2 === 0x1ff) c2 = 0;
+  // Handle new default color marker
+  if (c1 === 0xffffff) c1 = 0;
+  if (c2 === 0xffffff) c2 = 0;
   if (alpha === null) alpha = 0.5;
 
   const c1Color = vcolors[c1];
@@ -174,30 +173,81 @@ export function blend(
 ): number {
   var name, i, c, nc;
 
-  var bg = attr & 0x1ff;
+  // Extract colors from new format
+  var bg = attr & 0xffffff;
+  var fg = Math.floor(attr / 0x1000000) & 0xffffff;
+  var flags = Math.floor(attr / 0x1000000000000);
+
   if (attr2 !== null) {
-    var bg2 = attr2 & 0x1ff;
-    if (bg === 0x1ff) bg = 0;
-    if (bg2 === 0x1ff) bg2 = 0;
+    var bg2 = attr2 & 0xffffff;
+    var fg2 = Math.floor(attr2 / 0x1000000) & 0xffffff;
+
+    // Handle default colors
+    if (bg === 0xffffff) bg = 0;
+    if (bg2 === 0xffffff) bg2 = 0;
+    if (fg === 0xffffff) fg = 7;
+    if (fg2 === 0xffffff) fg2 = 7;
+
+    // For RGB colors (> 255), convert to palette for blending
+    if (bg > 255) bg = match([(bg >> 16) & 0xff, (bg >> 8) & 0xff, bg & 0xff]);
+    if (bg2 > 255)
+      bg2 = match([(bg2 >> 16) & 0xff, (bg2 >> 8) & 0xff, bg2 & 0xff]);
+    if (fg > 255) fg = match([(fg >> 16) & 0xff, (fg >> 8) & 0xff, fg & 0xff]);
+    if (fg2 > 255)
+      fg2 = match([(fg2 >> 16) & 0xff, (fg2 >> 8) & 0xff, fg2 & 0xff]);
+
     bg = mixColors(bg, bg2, alpha);
+    fg = mixColors(fg, fg2, alpha);
   } else {
-    if ((blend as any)._cache[bg] !== null) {
-      bg = (blend as any)._cache[bg];
-      // } else if (bg < 8) {
-      //   bg += 8;
-    } else if (bg >= 8 && bg <= 15) {
-      bg -= 8;
-    } else {
-      name = ncolors[bg];
-      if (name) {
-        for (i = 0; i < ncolors.length; i++) {
-          if (name === ncolors[i] && i !== bg) {
-            c = vcolors[bg];
-            nc = vcolors[i];
-            if (nc[0] + nc[1] + nc[2] < c[0] + c[1] + c[2]) {
-              (blend as any)._cache[bg] = i;
-              bg = i;
-              break;
+    // Handle single color processing
+    if (bg === 0xffffff) bg = 0;
+    if (fg === 0xffffff) fg = 7;
+
+    // For RGB colors, convert to palette
+    if (bg > 255) bg = match([(bg >> 16) & 0xff, (bg >> 8) & 0xff, bg & 0xff]);
+    if (fg > 255) fg = match([(fg >> 16) & 0xff, (fg >> 8) & 0xff, fg & 0xff]);
+
+    // Apply cache and brightness adjustments for palette colors
+    if (bg <= 255) {
+      if ((blend as any)._cache[bg] !== null) {
+        bg = (blend as any)._cache[bg];
+      } else if (bg >= 8 && bg <= 15) {
+        bg -= 8;
+      } else {
+        name = ncolors[bg];
+        if (name) {
+          for (i = 0; i < ncolors.length; i++) {
+            if (name === ncolors[i] && i !== bg) {
+              c = vcolors[bg];
+              nc = vcolors[i];
+              if (nc[0] + nc[1] + nc[2] < c[0] + c[1] + c[2]) {
+                (blend as any)._cache[bg] = i;
+                bg = i;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (fg <= 255) {
+      if ((blend as any)._cache[fg] !== null) {
+        fg = (blend as any)._cache[fg];
+      } else if (fg >= 8 && fg <= 15) {
+        fg -= 8;
+      } else {
+        name = ncolors[fg];
+        if (name) {
+          for (i = 0; i < ncolors.length; i++) {
+            if (name === ncolors[i] && i !== fg) {
+              c = vcolors[fg];
+              nc = vcolors[i];
+              if (nc[0] + nc[1] + nc[2] < c[0] + c[1] + c[2]) {
+                (blend as any)._cache[fg] = i;
+                fg = i;
+                break;
+              }
             }
           }
         }
@@ -205,50 +255,8 @@ export function blend(
     }
   }
 
-  attr &= ~0x1ff;
-  attr |= bg;
-
-  var fg = (attr >> 9) & 0x1ff;
-  if (attr2 !== null) {
-    var fg2 = (attr2 >> 9) & 0x1ff;
-    // 0, 7, 188, 231, 251
-    if (fg === 0x1ff) {
-      // XXX workaround
-      fg = 248;
-    } else {
-      if (fg === 0x1ff) fg = 7;
-      if (fg2 === 0x1ff) fg2 = 7;
-      fg = mixColors(fg, fg2, alpha);
-    }
-  } else {
-    if ((blend as any)._cache[fg] !== null) {
-      fg = (blend as any)._cache[fg];
-      // } else if (fg < 8) {
-      //   fg += 8;
-    } else if (fg >= 8 && fg <= 15) {
-      fg -= 8;
-    } else {
-      name = ncolors[fg];
-      if (name) {
-        for (i = 0; i < ncolors.length; i++) {
-          if (name === ncolors[i] && i !== fg) {
-            c = vcolors[fg];
-            nc = vcolors[i];
-            if (nc[0] + nc[1] + nc[2] < c[0] + c[1] + c[2]) {
-              (blend as any)._cache[fg] = i;
-              fg = i;
-              break;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  attr &= ~(0x1ff << 9);
-  attr |= fg << 9;
-
-  return attr;
+  // Pack back into new format
+  return bg + fg * 0x1000000 + flags * 0x1000000000000;
 }
 
 blend._cache = {};
@@ -389,6 +397,25 @@ export function convert(color: ColorInput): number {
     let name = color.replace(/[\- ]/g, '');
     if (colorNames[name] !== null) {
       result = colorNames[name];
+    } else if (color.startsWith('#')) {
+      // Handle hex colors like #ff0000
+      const hex = color.slice(1);
+      if (hex.length === 6) {
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        result = (r << 16) | (g << 8) | b; // Return full RGB value
+      } else {
+        result = match(color);
+      }
+    } else {
+      result = match(color);
+    }
+  } else if (Array.isArray(color) && color.length === 3) {
+    // Handle RGB arrays like [255, 0, 0]
+    const [r, g, b] = color;
+    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+      result = (r << 16) | (g << 8) | b; // Return full RGB value
     } else {
       result = match(color);
     }
@@ -397,7 +424,9 @@ export function convert(color: ColorInput): number {
   } else {
     result = -1;
   }
-  return result !== -1 ? result : 0x1ff;
+
+  // Return default color marker for undefined/null/-1, otherwise return the color
+  return result !== -1 ? result : 0xffffff;
 }
 
 // Map higher colors to the first 8 colors.

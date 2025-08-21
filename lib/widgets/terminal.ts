@@ -14,6 +14,7 @@ const Box = boxFactory.Box;
 import * as xterm from '@xterm/headless';
 const XTerminal = xterm.Terminal;
 import { spawn } from 'node-pty';
+import { match, vcolors } from '../colors.js';
 
 /**
  * Type definitions
@@ -32,6 +33,7 @@ class Terminal extends Box {
   term: any;
   pty: any;
   _onData: Function;
+  _rawAnsiBuffer: string;
 
   constructor(options?: TerminalOptions) {
     // Handle malformed options gracefully
@@ -61,6 +63,20 @@ class Terminal extends Box {
       rows: rows,
       scrollback: 5000,
       allowProposedApi: true,
+      // Enhanced color support configuration
+      allowTransparency: true,
+      drawBoldTextInBrightColors: true,
+      // Enable all color modes for maximum compatibility
+      minimumContrastRatio: 1,
+      // Advanced features for better compatibility
+      convertEol: false, // Don't convert \n to \r\n (preserves original formatting)
+      disableStdin: false, // Allow input handling
+      cursorBlink: options.cursorBlink || false,
+      cursorStyle: 'block', // Default cursor style
+      altClickMovesCursor: false, // Disable alt-click cursor movement for compatibility
+      rightClickSelectsWord: false, // Disable right-click selection to avoid conflicts
+      fastScrollModifier: 'none', // Disable fast scroll modifiers
+      wordSeparator: ' ()[]{},"\':;', // Standard word separators
     });
 
     this.pty = spawn(this.shell, this.args, {
@@ -70,7 +86,19 @@ class Terminal extends Box {
     });
 
     this.term.onData(d => this.pty.write(d));
-    this.pty.onData(d => this.term.write(d));
+
+    // Store raw ANSI sequences with line tracking for tmux-like passthrough
+    this._rawAnsiBuffer = '';
+
+    this.pty.onData(d => {
+      const data = d.toString();
+
+      // Store raw ANSI data - keep it organized by recent output
+      this._rawAnsiBuffer = data; // Only keep the most recent chunk for direct replay
+
+      // Send to xterm.js for structural processing
+      this.term.write(d);
+    });
 
     if (
       this.screen.program.input &&
@@ -109,6 +137,38 @@ class Terminal extends Box {
     this.on('destroy', () => this.kill());
   }
 
+  extractColor(cell: any, type: 'foreground' | 'background'): number {
+    // Check if it's default color first
+    if (type === 'foreground' && cell.isFgDefault()) {
+      return -1;
+    }
+    if (type === 'background' && cell.isBgDefault()) {
+      return -1;
+    }
+
+    const color = type === 'foreground' ? cell.getFgColor() : cell.getBgColor();
+
+    // Handle RGB colors (24-bit true color)
+    if (type === 'foreground' ? cell.isFgRGB() : cell.isBgRGB()) {
+      // For RGB mode, color is 0xRRGGBB
+      const r = (color >> 16) & 0xff;
+      const g = (color >> 8) & 0xff;
+      const b = color & 0xff;
+
+      // Use blessed's color matching to find closest terminal color
+      return match(r, g, b);
+    }
+
+    // Handle 256-color palette mode
+    if (type === 'foreground' ? cell.isFgPalette() : cell.isBgPalette()) {
+      // In palette mode, color is directly the palette index (0-255)
+      return color >= 0 && color <= 255 ? color : -1;
+    }
+
+    // Fallback for any other cases
+    return -1;
+  }
+
   render() {
     var ret = this._render();
     if (!ret) return;
@@ -141,28 +201,54 @@ class Terminal extends Box {
         var cell = bufferLine.getCell(cellX);
         if (!cell) continue;
 
-        line[x][1] = cell.getChars() || ' ';
+        // Enhanced character handling for Unicode
+        var chars = cell.getChars();
+        if (!chars || chars === '') {
+          chars = ' ';
+        }
+        line[x][1] = chars;
 
-        var attr = this.dattr || (0x07 << 9) | 0x00;
+        // Use new 24-bit color format
+        var attr = this.dattr || 0x07 * 0x1000000; // fg=7, bg=0
 
-        if (cell.isBold()) attr |= 1 << 18;
-        if (cell.isUnderline()) attr |= 2 << 18;
-        if (cell.isInverse()) attr |= 8 << 18;
+        // Enhanced attribute support (flags now using Math operations)
+        var flags = 0;
+        if (cell.isBold()) flags |= 1;
+        if (cell.isUnderline()) flags |= 2;
+        if (cell.isInverse()) flags |= 8;
+        if (cell.isDim()) flags |= 4;
+        if (cell.isItalic()) flags |= 16;
+        if (cell.isStrikethrough()) flags |= 32;
+        if (cell.isBlink()) flags |= 64;
+        if (cell.isInvisible()) flags |= 128;
+        if (cell.isOverline()) flags |= 256;
 
-        var fg = cell.getFgColor();
-        var bg = cell.getBgColor();
+        // 24-bit RGB color extraction
+        var fg = 0xffffff; // default (means use default)
+        var bg = 0xffffff; // default (means use default)
 
-        if (fg !== undefined && fg !== -1) {
-          attr = (attr & ~(0x1ff << 9)) | ((fg & 0x1ff) << 9);
-        } else {
-          attr = (attr & ~(0x1ff << 9)) | (0x07 << 9);
+        if (!cell.isFgDefault()) {
+          if (cell.isFgRGB()) {
+            // Store full RGB value directly
+            fg = cell.getFgColor(); // Already in 0xRRGGBB format
+          } else if (cell.isFgPalette()) {
+            // Keep palette colors as-is (0-255)
+            fg = cell.getFgColor();
+          }
         }
 
-        if (bg !== undefined && bg !== -1) {
-          attr = (attr & ~0x1ff) | (bg & 0x1ff);
-        } else {
-          attr = (attr & ~0x1ff) | 0x00;
+        if (!cell.isBgDefault()) {
+          if (cell.isBgRGB()) {
+            // Store full RGB value directly
+            bg = cell.getBgColor(); // Already in 0xRRGGBB format
+          } else if (cell.isBgPalette()) {
+            // Keep palette colors as-is (0-255)
+            bg = cell.getBgColor();
+          }
         }
+
+        // Pack into new format: bg + (fg * 2^24) + (flags * 2^48)
+        attr = bg + fg * 0x1000000 + flags * 0x1000000000000;
 
         line[x][0] = attr;
       }
