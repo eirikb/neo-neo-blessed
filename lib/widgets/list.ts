@@ -267,8 +267,7 @@ class List extends ScrollableBox {
       options.width = 'shrink';
     }
 
-    const item = new Box(options);
-
+    let item: any;
     ['bg', 'fg', 'bold', 'underline', 'blink', 'inverse', 'invisible'].forEach(
       (name: string) => {
         options[name] = () => {
@@ -281,6 +280,8 @@ class List extends ScrollableBox {
         };
       }
     );
+
+    item = new Box(options);
 
     if (this.style.transparent) {
       options.transparent = true;
@@ -564,6 +565,12 @@ class List extends ScrollableBox {
     if (this.scrollTo && typeof this.scrollTo === 'function') {
       this.scrollTo(this.selected);
     }
+
+    this.items.forEach((item: any) => {
+      if (item.clearPos) {
+        item.clearPos();
+      }
+    });
 
     this.emit('select item', this.items[this.selected], this.selected);
   };

@@ -24,8 +24,8 @@ interface ListenerWithOriginal extends Listener {
  * EventEmitter
  */
 
-function _EventEmitter(this: EventEmitterInterface) {
-  if (!this._events) this._events = {};
+function _EventEmitter(this: EventEmitterInterface): void {
+  this._events ??= {};
 }
 
 NodeEventEmitter.prototype.setMaxListeners = function (
@@ -40,12 +40,13 @@ NodeEventEmitter.prototype.addListener = function (
   type: string,
   listener: Listener
 ): void {
-  if (!this._events![type]) {
-    this._events![type] = listener;
-  } else if (typeof this._events![type] === 'function') {
-    this._events![type] = [this._events![type] as Listener, listener];
+  this._events ??= {};
+  if (!this._events[type]) {
+    this._events[type] = listener;
+  } else if (typeof this._events[type] === 'function') {
+    this._events[type] = [this._events[type] as Listener, listener];
   } else {
-    (this._events![type] as Listener[]).push(listener);
+    (this._events[type] as Listener[]).push(listener);
   }
   this._emit('newListener', [type, listener]);
 };
@@ -57,11 +58,12 @@ NodeEventEmitter.prototype.removeListener = function (
   type: string,
   listener: Listener
 ): void {
-  const handler = this._events![type];
+  if (!this._events) return;
+  const handler = this._events[type];
   if (!handler) return;
 
   if (typeof handler === 'function' || (handler as Listener[])?.length === 1) {
-    delete this._events![type];
+    delete this._events[type];
     this._emit('removeListener', [type, listener]);
     return;
   }
@@ -82,8 +84,12 @@ NodeEventEmitter.prototype.removeAllListeners = function (
   this: EventEmitterInterface,
   type?: string
 ): void {
+  if (!this._events) {
+    this._events = {};
+    return;
+  }
   if (type) {
-    delete this._events![type];
+    delete this._events[type];
   } else {
     this._events = {};
   }
@@ -176,7 +182,7 @@ NodeEventEmitter.prototype.emit = function (
 
   do {
     // el._emit('event', params);
-    if (!el._events![elementType]) continue;
+    if (!el._events?.[elementType]) continue;
     if (el._emit(elementType, args) === false) {
       return false;
     }
