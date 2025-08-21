@@ -28,7 +28,7 @@
     "test:watch": "vitest --config vitest.config.mjs",
     "test:integration": "tsx test-runner.ts",
     "check": "npm run build && npm run type-check && npm run lint && npm run format:check && npm test",
-    "check:fix": "npm run build && npm run type-check && npm run format && npm test && npm run test:integration",
+    "check:fix": "npm run build && npm run type-check && npm run format && npm test",
     "prepare": "husky"
   },
   "version": "0.0.0-development",
