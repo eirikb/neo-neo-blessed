@@ -376,17 +376,20 @@ Element.prototype.sattr = function (
   if (typeof fg === 'function') fg = fg(this);
   if (typeof bg === 'function') bg = bg(this);
 
-  // return (this.uid << 24)
-  //   | ((this.dockBorders ? 32 : 0) << 18)
-  return (
-    ((invisible ? 16 : 0) << 18) |
-    ((inverse ? 8 : 0) << 18) |
-    ((blink ? 4 : 0) << 18) |
-    ((underline ? 2 : 0) << 18) |
-    ((bold ? 1 : 0) << 18) |
-    (colors.convert(fg) << 9) |
-    colors.convert(bg)
-  );
+  // Updated for 24-bit color support using new format:
+  // bg + (fg * 2^24) + (flags * 2^48)
+  var flags = 0;
+  if (invisible) flags |= 16;
+  if (inverse) flags |= 8;
+  if (blink) flags |= 4;
+  if (underline) flags |= 2;
+  if (bold) flags |= 1;
+
+  var fgColor = colors.convert(fg);
+  var bgColor = colors.convert(bg);
+
+  // Pack into new format using Math operations for large numbers
+  return bgColor + fgColor * 0x1000000 + flags * 0x1000000000000;
 };
 
 Element.prototype.onScreenEvent = function (
@@ -2205,7 +2208,12 @@ Element.prototype.render = function () {
             this.parent.items[this.parent.selected] === this &&
             this.parent.options.invertSelected !== false
           ) {
-            attr = (attr & ~(0x1ff << 9)) | (dattr & (0x1ff << 9));
+            // Copy foreground color from dattr in new format
+            var dFg = Math.floor(dattr / 0x1000000) & 0xffffff;
+            attr =
+              (attr & 0xffffff) +
+              dFg * 0x1000000 +
+              Math.floor(attr / 0x1000000000000) * 0x1000000000000;
           }
           ch = content[ci] || bch;
           ci++;

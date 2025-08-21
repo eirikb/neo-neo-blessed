@@ -233,7 +233,14 @@ function Screen(this: ScreenInterface, options?: ScreenOptions) {
   this._unicode = this.tput.unicode || this.tput.numbers.U8 === 1;
   this.fullUnicode = this.options.fullUnicode && this._unicode;
 
-  this.dattr = (0 << 18) | (0x1ff << 9) | 0x1ff;
+  // Updated attribute format for 24-bit color support:
+  // We pack everything into a JS number (53-bit safe integer)
+  // But since bitwise ops are 32-bit, we handle it carefully:
+  // Background: bits 0-23 (24 bits for RGB)
+  // Foreground: bits 24-47 (24 bits for RGB) - handled with Math
+  // Flags: bits 48-52 (5 bits) - handled with Math
+  // Default color: 0xffffff means "use default"
+  this.dattr = 0xffffff + 0xffffff * 0x1000000; // bg + (fg * 2^24)
 
   this.renders = 0;
   this.position = {
@@ -1307,8 +1314,8 @@ Screen.prototype.draw = function (start, end) {
         this.options.useBCE &&
         ch === ' ' &&
         (this.tput.bools.back_color_erase ||
-          (data & 0x1ff) === (this.dattr & 0x1ff)) &&
-        ((data >> 18) & 8) === ((this.dattr >> 18) & 8)
+          (data & 0xffffff) === (this.dattr & 0xffffff)) &&
+        ((data >> 48) & 8) === ((this.dattr >> 48) & 8)
       ) {
         clr = true;
         neq = false;
@@ -1410,9 +1417,11 @@ Screen.prototype.draw = function (start, end) {
         if (data !== this.dattr) {
           out += '\x1b[';
 
-          bg = data & 0x1ff;
-          fg = (data >> 9) & 0x1ff;
-          flags = data >> 18;
+          // Extract 24-bit colors and flags from new format
+          // Use Math operations for values beyond 32-bit
+          bg = data & 0xffffff;
+          fg = Math.floor(data / 0x1000000) & 0xffffff;
+          flags = Math.floor(data / 0x1000000000000); // 2^48
 
           // bold
           if (flags & 1) {
@@ -1439,33 +1448,53 @@ Screen.prototype.draw = function (start, end) {
             out += '8;';
           }
 
-          if (bg !== 0x1ff) {
-            bg = this._reduceColor(bg);
-            if (bg < 16) {
-              if (bg < 8) {
-                bg += 40;
-              } else if (bg < 16) {
-                bg -= 8;
-                bg += 100;
+          // Handle background color
+          if (bg !== 0xffffff) {
+            if (bg <= 255) {
+              // Legacy 256-color mode
+              bg = this._reduceColor(bg);
+              if (bg < 16) {
+                if (bg < 8) {
+                  bg += 40;
+                } else if (bg < 16) {
+                  bg -= 8;
+                  bg += 100;
+                }
+                out += bg + ';';
+              } else {
+                out += '48;5;' + bg + ';';
               }
-              out += bg + ';';
             } else {
-              out += '48;5;' + bg + ';';
+              // 24-bit RGB color
+              const r = (bg >> 16) & 0xff;
+              const g = (bg >> 8) & 0xff;
+              const b = bg & 0xff;
+              out += `48;2;${r};${g};${b};`;
             }
           }
 
-          if (fg !== 0x1ff) {
-            fg = this._reduceColor(fg);
-            if (fg < 16) {
-              if (fg < 8) {
-                fg += 30;
-              } else if (fg < 16) {
-                fg -= 8;
-                fg += 90;
+          // Handle foreground color
+          if (fg !== 0xffffff) {
+            if (fg <= 255) {
+              // Legacy 256-color mode
+              fg = this._reduceColor(fg);
+              if (fg < 16) {
+                if (fg < 8) {
+                  fg += 30;
+                } else if (fg < 16) {
+                  fg -= 8;
+                  fg += 90;
+                }
+                out += fg + ';';
+              } else {
+                out += '38;5;' + fg + ';';
               }
-              out += fg + ';';
             } else {
-              out += '38;5;' + fg + ';';
+              // 24-bit RGB color
+              const r = (fg >> 16) & 0xff;
+              const g = (fg >> 8) & 0xff;
+              const b = fg & 0xff;
+              out += `38;2;${r};${g};${b};`;
             }
           }
 
@@ -1594,9 +1623,10 @@ Screen.prototype._reduceColor = function (color) {
 
 // Convert an SGR string to our own attribute format.
 Screen.prototype.attrCode = function (code, cur, def) {
-  var flags = (cur >> 18) & 0x1ff,
-    fg = (cur >> 9) & 0x1ff,
-    bg = cur & 0x1ff,
+  // Extract from new 24-bit format using Math for high bits
+  var flags = Math.floor(cur / 0x1000000000000) & 0x1f,
+    fg = Math.floor(cur / 0x1000000) & 0xffffff,
+    bg = cur & 0xffffff,
     c,
     i;
 
@@ -1607,49 +1637,49 @@ Screen.prototype.attrCode = function (code, cur, def) {
     c = +code[i] || 0;
     switch (c) {
       case 0: // normal
-        bg = def & 0x1ff;
-        fg = (def >> 9) & 0x1ff;
-        flags = (def >> 18) & 0x1ff;
+        bg = def & 0xffffff;
+        fg = Math.floor(def / 0x1000000) & 0xffffff;
+        flags = Math.floor(def / 0x1000000000000) & 0x1f;
         break;
       case 1: // bold
         flags |= 1;
         break;
       case 22:
-        flags = (def >> 18) & 0x1ff;
+        flags = Math.floor(def / 0x1000000000000) & 0x1f;
         break;
       case 4: // underline
         flags |= 2;
         break;
       case 24:
-        flags = (def >> 18) & 0x1ff;
+        flags = Math.floor(def / 0x1000000000000) & 0x1f;
         break;
       case 5: // blink
         flags |= 4;
         break;
       case 25:
-        flags = (def >> 18) & 0x1ff;
+        flags = Math.floor(def / 0x1000000000000) & 0x1f;
         break;
       case 7: // inverse
         flags |= 8;
         break;
       case 27:
-        flags = (def >> 18) & 0x1ff;
+        flags = Math.floor(def / 0x1000000000000) & 0x1f;
         break;
       case 8: // invisible
         flags |= 16;
         break;
       case 28:
-        flags = (def >> 18) & 0x1ff;
+        flags = Math.floor(def / 0x1000000000000) & 0x1f;
         break;
       case 39: // default fg
-        fg = (def >> 9) & 0x1ff;
+        fg = Math.floor(def / 0x1000000) & 0xffffff;
         break;
       case 49: // default bg
-        bg = def & 0x1ff;
+        bg = def & 0xffffff;
         break;
       case 100: // default fg/bg
-        fg = (def >> 9) & 0x1ff;
-        bg = def & 0x1ff;
+        fg = Math.floor(def / 0x1000000) & 0xffffff;
+        bg = def & 0xffffff;
         break;
       default: // color
         if (c === 48 && +code[i + 1] === 5) {
@@ -1657,9 +1687,12 @@ Screen.prototype.attrCode = function (code, cur, def) {
           bg = +code[i];
           break;
         } else if (c === 48 && +code[i + 1] === 2) {
+          // 24-bit RGB background
           i += 2;
-          bg = colors.match(+code[i], +code[i + 1], +code[i + 2]);
-          if (bg === -1) bg = def & 0x1ff;
+          const r = +code[i];
+          const g = +code[i + 1];
+          const b = +code[i + 2];
+          bg = (r << 16) | (g << 8) | b;
           i += 2;
           break;
         } else if (c === 38 && +code[i + 1] === 5) {
@@ -1667,9 +1700,12 @@ Screen.prototype.attrCode = function (code, cur, def) {
           fg = +code[i];
           break;
         } else if (c === 38 && +code[i + 1] === 2) {
+          // 24-bit RGB foreground
           i += 2;
-          fg = colors.match(+code[i], +code[i + 1], +code[i + 2]);
-          if (fg === -1) fg = (def >> 9) & 0x1ff;
+          const r = +code[i];
+          const g = +code[i + 1];
+          const b = +code[i + 2];
+          fg = (r << 16) | (g << 8) | b;
           i += 2;
           break;
         }
@@ -1679,30 +1715,30 @@ Screen.prototype.attrCode = function (code, cur, def) {
           bg = c - 100;
           bg += 8;
         } else if (c === 49) {
-          bg = def & 0x1ff;
+          bg = def & 0xffffff;
         } else if (c >= 30 && c <= 37) {
           fg = c - 30;
         } else if (c >= 90 && c <= 97) {
           fg = c - 90;
           fg += 8;
         } else if (c === 39) {
-          fg = (def >> 9) & 0x1ff;
+          fg = Math.floor(def / 0x1000000) & 0xffffff;
         } else if (c === 100) {
-          fg = (def >> 9) & 0x1ff;
-          bg = def & 0x1ff;
+          fg = Math.floor(def / 0x1000000) & 0xffffff;
+          bg = def & 0xffffff;
         }
         break;
     }
   }
 
-  return (flags << 18) | (fg << 9) | bg;
+  return bg + fg * 0x1000000 + flags * 0x1000000000000;
 };
 
 // Convert our own attribute format to an SGR string.
 Screen.prototype.codeAttr = function (code) {
-  var flags = (code >> 18) & 0x1ff,
-    fg = (code >> 9) & 0x1ff,
-    bg = code & 0x1ff,
+  var flags = Math.floor(code / 0x1000000000000) & 0x1f,
+    fg = Math.floor(code / 0x1000000) & 0xffffff,
+    bg = code & 0xffffff,
     out = '';
 
   // bold
@@ -1730,33 +1766,53 @@ Screen.prototype.codeAttr = function (code) {
     out += '8;';
   }
 
-  if (bg !== 0x1ff) {
-    bg = this._reduceColor(bg);
-    if (bg < 16) {
-      if (bg < 8) {
-        bg += 40;
-      } else if (bg < 16) {
-        bg -= 8;
-        bg += 100;
+  // Handle background color
+  if (bg !== 0xffffff) {
+    if (bg <= 255) {
+      // Legacy 256-color mode
+      bg = this._reduceColor(bg);
+      if (bg < 16) {
+        if (bg < 8) {
+          bg += 40;
+        } else if (bg < 16) {
+          bg -= 8;
+          bg += 100;
+        }
+        out += bg + ';';
+      } else {
+        out += '48;5;' + bg + ';';
       }
-      out += bg + ';';
     } else {
-      out += '48;5;' + bg + ';';
+      // 24-bit RGB color
+      const r = (bg >> 16) & 0xff;
+      const g = (bg >> 8) & 0xff;
+      const b = bg & 0xff;
+      out += `48;2;${r};${g};${b};`;
     }
   }
 
-  if (fg !== 0x1ff) {
-    fg = this._reduceColor(fg);
-    if (fg < 16) {
-      if (fg < 8) {
-        fg += 30;
-      } else if (fg < 16) {
-        fg -= 8;
-        fg += 90;
+  // Handle foreground color
+  if (fg !== 0xffffff) {
+    if (fg <= 255) {
+      // Legacy 256-color mode
+      fg = this._reduceColor(fg);
+      if (fg < 16) {
+        if (fg < 8) {
+          fg += 30;
+        } else if (fg < 16) {
+          fg -= 8;
+          fg += 90;
+        }
+        out += fg + ';';
+      } else {
+        out += '38;5;' + fg + ';';
       }
-      out += fg + ';';
     } else {
-      out += '38;5;' + fg + ';';
+      // 24-bit RGB color
+      const r = (fg >> 16) & 0xff;
+      const g = (fg >> 8) & 0xff;
+      const b = fg & 0xff;
+      out += `38;2;${r};${g};${b};`;
     }
   }
 
@@ -2256,17 +2312,20 @@ Screen.prototype._cursorAttr = function (cursor, dattr) {
     ch;
 
   if (cursor.shape === 'line') {
-    attr &= ~(0x1ff << 9);
-    attr |= 7 << 9;
+    // Set fg color to 7
+    attr =
+      (attr & 0xffffff) +
+      7 * 0x1000000 +
+      Math.floor(attr / 0x1000000000000) * 0x1000000000000;
     ch = '\u2502';
   } else if (cursor.shape === 'underline') {
-    attr &= ~(0x1ff << 9);
-    attr |= 7 << 9;
-    attr |= 2 << 18;
+    // Set fg color to 7 and underline flag
+    var flags = Math.floor(attr / 0x1000000000000) | 2;
+    attr = (attr & 0xffffff) + 7 * 0x1000000 + flags * 0x1000000000000;
   } else if (cursor.shape === 'block') {
-    attr &= ~(0x1ff << 9);
-    attr |= 7 << 9;
-    attr |= 8 << 18;
+    // Set fg color to 7 and inverse flag
+    var flags = Math.floor(attr / 0x1000000000000) | 8;
+    attr = (attr & 0xffffff) + 7 * 0x1000000 + flags * 0x1000000000000;
   } else if (typeof cursor.shape === 'object' && cursor.shape) {
     cattr = Element.prototype.sattr.call(cursor, cursor.shape);
 
@@ -2277,18 +2336,23 @@ Screen.prototype._cursorAttr = function (cursor, dattr) {
       cursor.shape.inverse ||
       cursor.shape.invisible
     ) {
-      attr &= ~(0x1ff << 18);
-      attr |= ((cattr >> 18) & 0x1ff) << 18;
+      // Copy flags from cattr
+      var cflags = Math.floor(cattr / 0x1000000000000) & 0x1f;
+      attr = (attr & 0xffffffffffff) + cflags * 0x1000000000000;
     }
 
     if (cursor.shape.fg) {
-      attr &= ~(0x1ff << 9);
-      attr |= ((cattr >> 9) & 0x1ff) << 9;
+      // Copy fg from cattr
+      var cfg = Math.floor(cattr / 0x1000000) & 0xffffff;
+      attr =
+        (attr & 0xffffff) +
+        cfg * 0x1000000 +
+        Math.floor(attr / 0x1000000000000) * 0x1000000000000;
     }
 
     if (cursor.shape.bg) {
-      attr &= ~(0x1ff << 0);
-      attr |= cattr & 0x1ff;
+      attr &= ~0xffffff;
+      attr |= cattr & 0xffffff;
     }
 
     if (cursor.shape.ch) {
@@ -2297,8 +2361,11 @@ Screen.prototype._cursorAttr = function (cursor, dattr) {
   }
 
   if (cursor.color != null) {
-    attr &= ~(0x1ff << 9);
-    attr |= cursor.color << 9;
+    // Set cursor foreground color
+    attr =
+      (attr & 0xffffff) +
+      cursor.color * 0x1000000 +
+      Math.floor(attr / 0x1000000000000) * 0x1000000000000;
   }
 
   return {
@@ -2347,8 +2414,8 @@ Screen.prototype.screenshot = function (xi, xl, yi, yl, term) {
         if (data !== this.dattr) {
           var _data = data;
           if (term) {
-            if (((_data >> 9) & 0x1ff) === 257) _data |= 0x1ff << 9;
-            if ((_data & 0x1ff) === 256) _data |= 0x1ff;
+            if (((_data >> 24) & 0xffffff) === 257) _data |= 0xffffff << 24;
+            if ((_data & 0xffffff) === 256) _data |= 0xffffff;
           }
           out += this.codeAttr(_data);
         }

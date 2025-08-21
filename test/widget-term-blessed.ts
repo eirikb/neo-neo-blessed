@@ -19,6 +19,7 @@ var terminal = blessed.terminal({
   left: 'center',
   width: '90%',
   height: '90%',
+  shell: 'bash',
   border: 'line',
   handler: function () {},
   style: {
