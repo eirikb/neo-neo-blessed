@@ -115,6 +115,10 @@ class Terminal extends Box {
     }
 
     this.pty.onData(() => {
+      // Auto-scroll to bottom when new content arrives
+      if (this.term && typeof this.term.scrollToBottom === 'function') {
+        this.term.scrollToBottom();
+      }
       setTimeout(() => this.screen.render(), 16);
     });
 
@@ -186,11 +190,13 @@ class Terminal extends Box {
     if (xi >= xl || yi >= yl) return ret;
 
     const buf = this.term.buffer.active;
+    const viewportY = buf.viewportY || 0; // Get the current scroll position
+
     for (var y = yi; y < yl; y++) {
       var line = this.screen.lines[y];
       if (!line) continue;
 
-      var bufferY = y - yi;
+      var bufferY = y - yi + viewportY; // Account for scroll position
       var bufferLine = buf.getLine(bufferY);
       if (!bufferLine) continue;
 
@@ -261,6 +267,30 @@ class Terminal extends Box {
   write(data: string) {
     if (this.term) {
       this.term.write(data);
+    }
+  }
+
+  scrollTo(line: number): void {
+    if (this.term && typeof this.term.scrollToLine === 'function') {
+      this.term.scrollToLine(line);
+    }
+  }
+
+  scroll(offset: number): void {
+    if (this.term && typeof this.term.scrollLines === 'function') {
+      this.term.scrollLines(offset);
+    }
+  }
+
+  scrollToTop(): void {
+    if (this.term && typeof this.term.scrollToTop === 'function') {
+      this.term.scrollToTop();
+    }
+  }
+
+  scrollToBottom(): void {
+    if (this.term && typeof this.term.scrollToBottom === 'function') {
+      this.term.scrollToBottom();
     }
   }
 

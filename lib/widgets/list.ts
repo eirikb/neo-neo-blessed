@@ -527,11 +527,9 @@ class List extends ScrollableBox {
     }
   }
 
-  // Basic scrollTo implementation for list functionality
+  // Use parent ScrollableBox scrollTo implementation
   scrollTo(offset: number, always?: boolean): any {
-    // For now, just a stub implementation
-    // This should be replaced with proper scrolling logic
-    return;
+    return super.scrollTo(offset, always);
   }
 
   select = (index: any): void => {
