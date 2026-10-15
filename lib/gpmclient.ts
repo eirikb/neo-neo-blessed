@@ -6,7 +6,7 @@
 
 import net from 'net';
 import fs from 'fs';
-import { EventEmitter } from 'events';
+import { EventEmitter } from './events.js';
 
 var GPM_USE_MAGIC = false;
 

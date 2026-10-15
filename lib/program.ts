@@ -9,7 +9,7 @@
  * Modules
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from './events.js';
 import { StringDecoder } from 'string_decoder';
 import cp from 'child_process';
 import util from 'util';

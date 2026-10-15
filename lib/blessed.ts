@@ -10,7 +10,6 @@ import widget from './widget.js';
 import * as colors from './colors.js';
 import * as unicode from './unicode.js';
 import * as helpers from './helpers.js';
-import './events.js'; // Apply EventEmitter extensions
 
 /**
  * The main blessed namespace that provides access to all widgets and functionality.

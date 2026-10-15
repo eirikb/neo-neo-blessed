@@ -8,8 +8,7 @@
  * Modules
  */
 
-import { EventEmitter } from 'events';
-import '../events.js'; // Apply EventEmitter extensions
+import { EventEmitter } from '../events.js';
 
 /**
  * Interfaces

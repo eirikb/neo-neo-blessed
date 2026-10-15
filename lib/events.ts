@@ -24,18 +24,25 @@ interface ListenerWithOriginal extends Listener {
  * EventEmitter
  */
 
-function _EventEmitter(this: EventEmitterInterface): void {
+// blessed's own emitter. It inherits from Node's EventEmitter (so `instanceof` checks and
+// methods blessed doesn't override, like listenerCount, keep working), but the overrides below
+// live on this prototype only. Patching Node's EventEmitter.prototype instead would replace
+// on/emit/etc. for every emitter in the host process (sockets, streams, fetch, ...).
+function EventEmitter(this: EventEmitterInterface): void {
+  NodeEventEmitter.call(this);
   this._events ??= {};
 }
 
-NodeEventEmitter.prototype.setMaxListeners = function (
+Object.setPrototypeOf(EventEmitter.prototype, NodeEventEmitter.prototype);
+
+EventEmitter.prototype.setMaxListeners = function (
   this: EventEmitterInterface,
   n: number
 ): void {
   this._maxListeners = n;
 };
 
-NodeEventEmitter.prototype.addListener = function (
+EventEmitter.prototype.addListener = function (
   this: EventEmitterInterface,
   type: string,
   listener: Listener
@@ -51,9 +58,9 @@ NodeEventEmitter.prototype.addListener = function (
   this._emit('newListener', [type, listener]);
 };
 
-NodeEventEmitter.prototype.on = NodeEventEmitter.prototype.addListener;
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
-NodeEventEmitter.prototype.removeListener = function (
+EventEmitter.prototype.removeListener = function (
   this: EventEmitterInterface,
   type: string,
   listener: Listener
@@ -78,9 +85,9 @@ NodeEventEmitter.prototype.removeListener = function (
   }
 };
 
-NodeEventEmitter.prototype.off = NodeEventEmitter.prototype.removeListener;
+EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
 
-NodeEventEmitter.prototype.removeAllListeners = function (
+EventEmitter.prototype.removeAllListeners = function (
   this: EventEmitterInterface,
   type?: string
 ): void {
@@ -95,7 +102,7 @@ NodeEventEmitter.prototype.removeAllListeners = function (
   }
 };
 
-NodeEventEmitter.prototype.once = function (
+EventEmitter.prototype.once = function (
   this: EventEmitterInterface,
   type: string,
   listener: Listener
@@ -109,7 +116,7 @@ NodeEventEmitter.prototype.once = function (
   return this.on(type, on);
 };
 
-NodeEventEmitter.prototype.listeners = function (
+EventEmitter.prototype.listeners = function (
   this: EventEmitterInterface,
   type: string
 ): Listener[] {
@@ -120,7 +127,7 @@ NodeEventEmitter.prototype.listeners = function (
     : (handler as Listener[]) || [];
 };
 
-NodeEventEmitter.prototype._emit = function (
+EventEmitter.prototype._emit = function (
   this: EventEmitterInterface,
   type: string,
   args: any[]
@@ -154,7 +161,7 @@ NodeEventEmitter.prototype._emit = function (
   return ret !== false;
 };
 
-NodeEventEmitter.prototype.emit = function (
+EventEmitter.prototype.emit = function (
   this: EventEmitterInterface,
   type: string,
   ..._eventArgs: any[]
@@ -238,5 +245,5 @@ NodeEventEmitter.prototype.emit = function (
  * Expose
  */
 
-export default NodeEventEmitter;
-export { NodeEventEmitter as EventEmitter };
+export default EventEmitter;
+export { EventEmitter };
